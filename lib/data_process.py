@@ -38,7 +38,7 @@ def column_choice(data : pd.DataFrame):
     """
     not_a_variable = [ "lat", "lon"]
     columns_list = [column  for column in data.columns if column not in not_a_variable]
-    column_chosen = st.selectbox("Chose variable of interest", options=columns_list)
+    column_chosen = st.multiselect("Chose variable of interest", options=columns_list, default=columns_list[0])
     df_final = data[column_chosen]
 
     return df_final
