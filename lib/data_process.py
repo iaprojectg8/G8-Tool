@@ -42,3 +42,16 @@ def column_choice(data : pd.DataFrame):
     df_final = data[column_chosen]
 
     return df_final
+
+def apply_changes(data, chosen_variables, period):
+
+    # Change the format of the proposition made to the user to correspond to the dataframe column name
+    chosen_variables_modified = ["_".join(variable.lower().split()) for variable in chosen_variables]
+    # Check whether the columns chould be taken or removed from the dataframe
+    columns_to_keep = [column for column in data.columns if any(variable in column for variable in chosen_variables_modified)]
+    # Filter by the period
+    data_in_right_period = data[(data.index.year>=period[0]) & (data.index.year<=period[-1])]
+    # Filter the relevant columns
+    data_to_keep = data_in_right_period[columns_to_keep]
+    # Display the final dataframe
+    st.dataframe(data=data_to_keep,use_container_width=True)
