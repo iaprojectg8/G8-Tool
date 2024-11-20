@@ -55,3 +55,21 @@ def apply_changes(data, chosen_variables, period):
     data_to_keep = data_in_right_period[columns_to_keep]
     # Display the final dataframe
     st.dataframe(data=data_to_keep,use_container_width=True)
+    return data_to_keep
+
+
+def split_into_periods(period_length, start_year, end_year):
+    whole_period_length = end_year - start_year + 1
+    amount_of_periods = whole_period_length//period_length +1
+    periods = []
+    for period_index in range(amount_of_periods):
+        period_start = start_year+period_index*period_length
+        period_end = period_start + period_length 
+        if period_end <= end_year:
+            periods.append((period_start, period_end))
+        else:
+            periods.append((period_start, end_year))
+    return periods
+
+
+

@@ -38,3 +38,6 @@ import streamlit as st
 import pytest
 from unittest import mock
 from unittest.mock import MagicMock
+
+# Plot part
+import plotly.graph_objects as go
