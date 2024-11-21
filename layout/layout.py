@@ -16,8 +16,8 @@ def set_page_width(width):
 
 def set_page_title(title):
     st.markdown(
-        """
-        <h1 style="text-align: center;font-size:60px">General Information</h1>
+        f"""
+        <h1 style="text-align: center;font-size:60px">{title}</h1>
         """, 
         unsafe_allow_html=True
     )
