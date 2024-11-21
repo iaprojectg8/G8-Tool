@@ -19,6 +19,7 @@ from matplotlib import rcParams
 from matplotlib.backend_bases import MouseEvent
 import time
 from tqdm import tqdm
+from copy import copy
 
 
 # Raster viz part
@@ -41,3 +42,7 @@ from unittest.mock import MagicMock
 
 # Plot part
 import plotly.graph_objects as go
+
+# Regression part
+from scipy.stats import linregress
+import plotly.express as px

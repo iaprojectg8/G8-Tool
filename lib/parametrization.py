@@ -7,12 +7,11 @@ from layout.layout import *
 
 def select_period():
     set_title_1("Period")
-    st.write("Select the data period")
     period_start= 1950
     period_end= 2050
 
     period_start, period_end = st.slider(
-        "Select a date range:",
+        "Select the data period:",
         min_value=period_start, 
         max_value=period_end,
         value=(period_start, period_end))      
@@ -20,7 +19,7 @@ def select_period():
 
 
 def variable_choice():
-    st.write("Chose the climate variable you are interest in")
+    st.write("Choose the climate variable you are interested in: ")
     variables_choice = []
     col1, col2 = st.columns(2)
     for index, variable in enumerate(AVAILABLE_VARIABLES):
@@ -145,3 +144,13 @@ def yearly_threshold_init():
         df = pd.DataFrame(yearly_threshold.items(), columns=["Threshold", "Value"]).reset_index(drop=True)
         st.dataframe(yearly_threshold, column_config=[""])
 
+
+
+# Indicateurs
+# Les basiques
+#     compte le nombre de jour
+#     compte le nombre de jour consécutifs
+# Pour les variables à cumul
+#     Faire la sum de toute la growing season et voir si c'est entre des seuil
+# A voir pour mettre un shift (growing season)
+# + indicateur de variabilité

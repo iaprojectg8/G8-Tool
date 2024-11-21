@@ -43,7 +43,7 @@ def column_choice(data : pd.DataFrame):
 
     return df_final
 
-def apply_changes(data, chosen_variables, period):
+def apply_changes(data:pd.DataFrame, chosen_variables, period):
 
     # Change the format of the proposition made to the user to correspond to the dataframe column name
     chosen_variables_modified = ["_".join(variable.lower().split()) for variable in chosen_variables]
@@ -54,7 +54,9 @@ def apply_changes(data, chosen_variables, period):
     # Filter the relevant columns
     data_to_keep = data_in_right_period[columns_to_keep]
     # Display the final dataframe
-    st.dataframe(data=data_to_keep,use_container_width=True)
+    data_to_diplay = copy(data_to_keep)
+    data_to_diplay.index = data_to_diplay.index.date
+    st.dataframe(data=data_to_diplay,use_container_width=True)
     return data_to_keep
 
 

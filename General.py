@@ -21,7 +21,7 @@ def main():
     long_period = (long_period_start, long_period_end) = select_period()
 
     # Period cut
-    smaller_period_length  = st.select_slider("Chose the length of smaller period to see the evolution of your data on them",options=[10,20,25,30])
+    smaller_period_length  = st.select_slider("Choose the length of smaller period to see the evolution of your data on them:",options=PERIOD_LENGTH)
     periods = split_into_periods(smaller_period_length, long_period_start, long_period_end)
     print(periods)
     
@@ -29,12 +29,13 @@ def main():
     filename = "CSV_files/cmip6_era5_data_daily_0.csv"
     data, lat, lon = loads_data(filename=filename)
 
-    st.write("Possibility to upload a CSV file")
-    st.write("Here is your dataset with the relevant variable following your precedent choices")
+    # st.write("Possibility to upload a CSV file")
+
+    st.write("Here is your dataset with the relevant variables following your precedent choices:")
     data_to_keep = apply_changes(data, chosen_variables, long_period)
 
     # -- From now it will be a plot part with monthly means and regression through all time --
-    plot_monthly_means(data_to_keep, periods)
+    general_plot(data_to_keep, periods, chosen_variables)
 
 if "__main__":
     main()
