@@ -8,7 +8,7 @@ from lib.plot import *
 def main():
     """Basic Streamlit app with a title."""
     set_page_width(1200)
-    set_page_title("title")
+    set_page_title("General Informations")
     set_title_1("Climate Variables")
 
     # Variable choice
