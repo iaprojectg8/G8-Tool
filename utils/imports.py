@@ -46,3 +46,8 @@ import plotly.graph_objects as go
 # Regression part
 from scipy.stats import linregress
 import plotly.express as px
+from io import BytesIO
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import landscape, A4
+import plotly.io as pio
+from reportlab.lib.utils import ImageReader

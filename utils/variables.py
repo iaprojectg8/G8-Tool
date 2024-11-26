@@ -8,3 +8,5 @@ AVAILABLE_VARIABLES = ["Temperature", "Precipitation", "Wind", "Shortwave Radiat
 UNIT_DICT={"Temperature":"°C","Precipitation":"mm", "Wind":"km/h", "Shortwave Radiation":"MJ/m²","Relative Humidity":"%","Soil Moisture": "m³/m³"}
 
 PERIOD_LENGTH = [15,20,25,30,35,40,45,50,55,60]
+
+PDF_FILENAME = "general_plot_export.pdf"

@@ -44,70 +44,74 @@ def add_month_to_df(df):
 
 def plot_monthly_mean(column, columns_to_keep, monthly_mean, monthly_data):
     
-        fig = go.Figure()
+    fig = go.Figure()
 
-        # Mean line
-        fig.add_trace(go.Scatter(
-            x=monthly_data["month_name"], 
-            name="Monthly mean over years", 
-            y=monthly_data[column], 
-            mode='lines', 
-            line=dict(color='blue')
-        ))
+    # Mean line
+    fig.add_trace(go.Scatter(
+        x=monthly_data["month_name"], 
+        name="Monthly mean over years", 
+        y=monthly_data[column], 
+        mode='lines', 
+        line=dict(color='blue')
+    ))
 
-        variable = [variable for variable in AVAILABLE_VARIABLES if "_".join(variable.lower().split()) in column][0]
-        unit=UNIT_DICT[variable]
-        fig.add_trace(go.Scatter(
-            x=monthly_mean['month_name'],
-            y=monthly_mean[column],
-            name="Month mean", 
-            mode='markers',
-            marker=dict(
-                size=10,
-                color=monthly_mean["period_index"],  # Color by the period_index
-                colorscale="agsunset_r",  # Use correct colorscale name
-                showscale=True,  # Show color scale
-                opacity=0.5,
-                line_width=1,
-                line_color="black",
-                colorbar=dict(
-                    title="Periods",
-                    title_side="right", 
-                    ticktext=monthly_mean["customdata"].unique(), 
-                    tickvals=monthly_mean["period_index"].unique(), 
-                    orientation="v",  
-                    len=1, 
-                    thickness=15, 
-                    borderwidth=1,
-                    x=1.05,  
-                    y=0.35)),
-            text=monthly_mean["year"],
-            customdata= monthly_mean["customdata"],
-            hovertemplate=(
-                f"Temperature: %{{y:.2f}} {unit}<br>" +
-                "Year: %{text}<br>"+
-                "Decade: %{customdata}<br>"
-            ),
-            showlegend=False
+    variable = [variable for variable in AVAILABLE_VARIABLES if "_".join(variable.lower().split()) in column][0]
+    unit=UNIT_DICT[variable]
+    fig.add_trace(go.Scatter(
+        x=monthly_mean['month_name'],
+        y=monthly_mean[column],
+        name="Month mean", 
+        mode='markers',
+        marker=dict(
+            size=10,
+            color=monthly_mean["period_index"],  # Color by the period_index
+            colorscale="agsunset_r",  # Use correct colorscale name
+            showscale=True,  # Show color scale
+            opacity=0.5,
+            line_width=1,
+            line_color="black",
+            colorbar=dict(
+                title="Periods",
+                title_side="right", 
+                ticktext=monthly_mean["customdata"].unique(), 
+                tickvals=monthly_mean["period_index"].unique(), 
+                orientation="v",  
+                len=1, 
+                thickness=15, 
+                borderwidth=1,
+                x=1.05,  
+                y=0.35)),
+        text=monthly_mean["year"],
+        customdata= monthly_mean["customdata"],
+        hovertemplate=(
+            f"Temperature: %{{y:.2f}} {unit}<br>" +
+            "Year: %{text}<br>"+
+            "Decade: %{customdata}<br>"
+        ),
+        showlegend=False
 
-        ))
+    ))
 
-        # Update layout with titles and labels
-        fig.update_layout(
-            title=dict(text=f'Monthly Mean {variable} through years',
-                    x=0.5,
-                    xanchor="center",
-                    font_size=25),
-            xaxis_title='Month',
-            yaxis_title=f'{variable} - {UNIT_DICT[variable]}',
-            legend_title='',
-            template='plotly_dark',
-            autosize=True,
-            hoverlabel_align="auto"
-        )
-        
-        # Display the plot in Streamlit
-        st.plotly_chart(fig)
+    # Update layout with titles and labels
+    fig.update_layout(
+        width=1500, height=500,
+        title=dict(text=f'Monthly Mean {variable} through years',
+                x=0.5,
+                xanchor="center",
+                font_size=25),
+        xaxis_title='Month',
+        yaxis_title=f'{variable} - {UNIT_DICT[variable]}',
+        legend_title='',
+        template='plotly_dark',
+        autosize=True,
+        hoverlabel_align="auto"
+    )
+    
+    # Display the plot in Streamlit
+    st.plotly_chart(fig)
+    return fig
+
+
 
 def get_period_trend(df : pd.DataFrame,column, start, stop):
     # Calculating the trend lines
@@ -166,6 +170,7 @@ def plot_periods_trend(yearly_mean, column, columns_to_keep, periods):
         ))
     # Update layout with titles and labels
     fig.update_layout(
+        width=1500, height=500,
         title=dict(text=f'Mean Year {variable} and Trends from Different Periods',
                     x=0.5,
                     xanchor="center",
@@ -174,6 +179,7 @@ def plot_periods_trend(yearly_mean, column, columns_to_keep, periods):
         yaxis_title=f"{variable} - {UNIT_DICT[variable]}",
         # template="plotly_dark",
         autosize=True,
+        template='plotly_dark',
         showlegend=True,
         legend=dict(
             orientation="v",  # Horizontal orientation
@@ -182,7 +188,17 @@ def plot_periods_trend(yearly_mean, column, columns_to_keep, periods):
         )
     )
     st.plotly_chart(fig)
+
+    return fig
     # Display the plot in Streamlit or standalone
+
+def save_plotly_graph_to_pdf(fig1, fig2):
+    pdf_buffer = BytesIO()
+    print(fig1)
+    fig1.write_image(pdf_buffer, format="pdf", engine="kaleido",)
+    # fig2.write_image(pdf_buffer, format="pdf", engine="kaleido")
+    pdf_buffer.seek(0)
+    return pdf_buffer
 
 
 def general_plot(data:pd.DataFrame, periods, chosen_variable):
@@ -202,6 +218,62 @@ def general_plot(data:pd.DataFrame, periods, chosen_variable):
     for column in data.columns:
         if column in columns_to_keep and "min" not in column and "max" not in column and "_".join(variable_choice.lower().split(" ")) in column:
             
-            plot_monthly_mean(column, columns_to_keep, monthly_mean, monthly_data)
-            plot_periods_trend(yearly_mean, column,columns_to_keep, periods)
+            fig1 = plot_monthly_mean(column, columns_to_keep, monthly_mean, monthly_data)
+            fig2 = plot_periods_trend(yearly_mean, column,columns_to_keep, periods)
+            pdf = wrap_into_pdf(fig1, fig2)
+
             
+
+            st.download_button(
+                label="Download PDF",
+                data=pdf,
+                file_name=PDF_FILENAME,
+                mime="application/pdf"
+            )
+            
+def wrap_into_pdf(fig1, fig2):
+    
+    pdf_buffer = BytesIO()
+
+    # Create the png images
+
+    # fig1.write_image("figure1.png")
+    # fig2.write_image("figure2.png")
+
+    # Create the pdf
+    c = canvas.Canvas(pdf_buffer, pagesize=landscape(A4))
+
+    # Set the background dark as the plot have this kind of background
+    c.setFillColorRGB(0, 0, 0)  # Black background
+    c.rect(0, 0, 892, 612, fill=1)  # Fill the page with black
+    # Convert Plotly figures to images in memory using kaleido
+    fig1_image = pio.to_image(fig1, format="png", width=fig1.layout.width, height=fig1.layout.height)
+    fig2_image = pio.to_image(fig2, format="png", width=fig2.layout.width, height=fig2.layout.height)
+
+        # Use ImageReader to handle the image data in memory
+    img1_reader = ImageReader(BytesIO(fig1_image))
+    img2_reader = ImageReader(BytesIO(fig2_image))
+
+    # Add first figure to the PDF (in-memory image)
+    c.drawImage(img1_reader, x=-330, y=320, height=fig1.layout.height / 2, width=fig1.layout.width, preserveAspectRatio=True)
+
+    # Add second figure to the PDF (in-memory image)
+    c.drawImage(img2_reader, x=-330, y=20, height=fig2.layout.height / 2, width=fig2.layout.width, preserveAspectRatio=True)
+
+
+    # # Draw the images on the pdf 
+    # c.drawImage("figure1.png", x=-330, y=320,height=fig1.layout.height/2,width=fig1.layout.width, preserveAspectRatio=True)
+    # c.drawImage("figure2.png", x=-330, y=20,height=fig2.layout.height/2,width=fig2.layout.width,preserveAspectRatio=True)
+    
+    c.save()
+
+    # Get the PDF content from the buffer
+    pdf_buffer.seek(0)
+    pdf_bytes = pdf_buffer.read()
+
+    # Clean up and return the PDF bytes
+    pdf_buffer.close()
+
+    return pdf_bytes
+            
+
