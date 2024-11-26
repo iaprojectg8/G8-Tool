@@ -2,12 +2,14 @@ from utils.imports import *
 from utils.variables import DATAFRAME_HEIGHT
 from lib.data_process import * 
 from lib.parametrization import *
-from layout.layout import *
 from lib.plot import *
+from layouts.layout import *
+
+
 
 def main():
     """Basic Streamlit app with a title."""
-    set_page_width(1200)
+    st.set_page_config(layout="wide")
     set_page_title("General Informations")
     set_title_1("Climate Variables")
 
@@ -37,5 +39,5 @@ def main():
     # -- From now it will be a plot part with monthly means and regression through all time --
     general_plot(data_to_keep, periods, chosen_variables)
 
-if "__main__":
+if __name__== "__main__":
     main()

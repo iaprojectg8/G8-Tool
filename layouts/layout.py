@@ -1,18 +1,5 @@
 from utils.imports import *
 
-def set_page_width(width):
-    st.markdown(
-        f"""
-        <style>
-            .main .block-container {{
-                max-width: {width}px;  /* Adjust width as desired */
-                padding-left: 2rem;
-                padding-right: 2rem;
-            }}
-        </style>
-        """, 
-        unsafe_allow_html=True
-    )
 
 def set_page_title(title):
     st.markdown(
