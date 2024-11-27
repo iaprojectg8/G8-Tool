@@ -1,7 +1,7 @@
 from utils.imports import *
 from lib.session_variables import * 
 from utils.variables import *
-from layout.layout import *
+from layouts.layout import *
 
 
 

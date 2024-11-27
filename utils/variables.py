@@ -7,6 +7,6 @@ MONTHS_LIST = [
 AVAILABLE_VARIABLES = ["Temperature", "Precipitation", "Wind", "Shortwave Radiation", "Relative Humidity", "Soil Moisture"]
 UNIT_DICT={"Temperature":"°C","Precipitation":"mm", "Wind":"km/h", "Shortwave Radiation":"MJ/m²","Relative Humidity":"%","Soil Moisture": "m³/m³"}
 
-PERIOD_LENGTH = [15,20,25,30,35,40,45,50,55,60]
+PERIOD_LENGTH = [10,15,20,25,30,35,40,45,50,55,60]
 
 PDF_FILENAME = "general_plot_export.pdf"
