@@ -1,6 +1,5 @@
 from utils.imports import *
 
-
 # --- Main functions ---
 def loads_data(filename):
     """
@@ -24,7 +23,7 @@ def loads_data(filename):
 
     # Set the index to the date for the process to be easier
     data = data.set_index("date")
-    return data, lat, lon
+    return data
 
 def column_choice(data : pd.DataFrame):
     """
@@ -43,34 +42,68 @@ def column_choice(data : pd.DataFrame):
 
     return df_final
 
-def apply_changes(data:pd.DataFrame, chosen_variables, period):
+def filtered_data(data:pd.DataFrame, chosen_variables, period):
+    """
+    Filters a DataFrame based on selected variables and a specified time period, 
+    then displays the resulting DataFrame.
 
-    # Change the format of the proposition made to the user to correspond to the dataframe column name
-    chosen_variables_modified = ["_".join(variable.lower().split()) for variable in chosen_variables]
-    # Check whether the columns chould be taken or removed from the dataframe
-    columns_to_keep = [column for column in data.columns if any(variable in column for variable in chosen_variables_modified)]
+    Args:
+        data (pd.DataFrame): The input DataFrame with a datetime index.
+        chosen_variables (list of str): The list of variables to filter the columns.
+        period (tuple of int): The start and end years for filtering the DataFrame.
+
+    Returns:
+        pd.DataFrame: The filtered DataFrame containing only the relevant columns and rows within the specified period.
+    """
+
     # Filter by the period
     data_in_right_period = data[(data.index.year>=period[0]) & (data.index.year<=period[-1])]
-    # Filter the relevant columns
+    
+    # Change the format of the proposition made to the user to correspond to the dataframe column name
+    chosen_variables_modified = ["_".join(variable.lower().split()) for variable in chosen_variables]
+
+    # Check whether the columns chould be taken or removed from the dataframe
+    columns_to_keep = [column for column in data.columns if any(variable in column for variable in chosen_variables_modified)]
+    
+    # Keep the relevant columns
     data_to_keep = data_in_right_period[columns_to_keep]
-    # Display the final dataframe
+    
     data_to_diplay = copy(data_to_keep)
     data_to_diplay.index = data_to_diplay.index.date
+
+    # Display the dataframe
     st.dataframe(data=data_to_diplay,use_container_width=True)
     return data_to_keep
 
 
 def split_into_periods(period_length, start_year, end_year):
+    """
+    Splits a given time range into multiple periods of a specified length.
+
+    Args:
+        period_length (int): The length of each period in years.
+        start_year (int): The starting year of the entire time range.
+        end_year (int): The ending year of the entire time range.
+
+    Returns:
+        list of tuples: A list of tuples where each tuple represents a period
+                        with the format (period_start, period_end).
+    """
     whole_period_length = end_year - start_year + 1
-    amount_of_periods = whole_period_length//period_length +1
+    amount_of_periods = whole_period_length // period_length + 1
     periods = []
+
+    # Loop through each period index and calculate start and end years
     for period_index in range(amount_of_periods):
-        period_start = start_year+period_index*period_length
-        period_end = period_start + period_length 
+        period_start = start_year + period_index * period_length  # Start year of the current period
+        period_end = period_start + period_length  # End year of the current period
+
+        # Append the period to the list, ensuring it does not exceed the end year
         if period_end <= end_year:
             periods.append((period_start, period_end))
         else:
             periods.append((period_start, end_year))
+
     return periods
 
 

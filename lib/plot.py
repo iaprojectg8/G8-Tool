@@ -1,52 +1,112 @@
 from utils.imports import *
 from utils.variables import *
 
+# ---------------------------------------------------------------
+# --- Calculation and data process function done for the plot ---
+# ---------------------------------------------------------------
+
+def add_periods_to_df(df:pd.DataFrame, periods):
+    """
+    Assigns a period to each row in the DataFrame based on the 'year' column.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame containing a 'year' column.
+        periods (list of tuples): A list of periods, where each period is a tuple (start_year, end_year).
+
+    Returns:
+        pd.DataFrame: The DataFrame with an additional 'period' column indicating the assigned period.
+    """
+    # Assign the first matching period to each 'year' using the next() function that iterates over periods
+    df["period"] = df["year"].apply(lambda x: next((period for period in periods if period[0] <= x <= period[1]), None))
+    return df
+
+def add_month_name_to_df(df):
+    """
+    Adds a 'month_name' column to the DataFrame based on the numeric 'month' column.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame containing a 'month' column (1 to 12).
+
+    Returns:
+        pd.DataFrame: The DataFrame with an additional 'month_name' column.
+    """
+    df["month_name"] = df["month"].apply(lambda x:MONTHS_LIST[int(x-1)])
+    return df
+
 def calculate_mothly_mean_through_year(data:pd.DataFrame, periods):
+    """
+    Calculates the monthly mean or sum for different variables over a range of years and periods.
+
+    Args:
+        data (pd.DataFrame): The input DataFrame with a datetime index and relevant variables.
+        periods (list of tuples): List of periods, where each period is a tuple (start_year, end_year).
+
+    Returns:
+        tuple: 
+            - monthly_data (pd.DataFrame): Monthly average values for each month across all years.
+            - monthly_mean (pd.DataFrame): Monthly mean values along with corresponding periods and metadata for plotting.
+    """
+    # Add month and year colums to the dataframe
     data["month"] = data.index.month
     data["year"] = data.index.year
+
+    # Aggreagate the data in different way following the variable
     monthly_mean = data.resample("ME").agg({
         **{col: "mean" for col in data.columns if "precipitation" not in col.lower()},
         **{col: "sum" for col in data.columns if "precipitation" in col.lower()}
     })
-    monthly_data = monthly_mean.groupby("month").mean().reset_index()
-    monthly_data = add_month_to_df(monthly_data)
 
-    # Adding month string and periods to the df
-    monthly_mean = add_month_to_df(monthly_mean)
+    # Group the data by month so as to take the mean for each month on the whole range of years
+    monthly_data = monthly_mean.groupby("month").mean().reset_index()
+    monthly_data = add_month_name_to_df(monthly_data)
+
+    # Adding month name and periods to the monthly mean dataframe
+    monthly_mean = add_month_name_to_df(monthly_mean)
     monthly_mean =  add_periods_to_df(monthly_mean, periods)
 
+    # These two lines are exlusively to improve the plot layout
     monthly_mean["period_index"] = monthly_mean["period"].apply(lambda p: periods.index(p))
     monthly_mean["customdata"] = monthly_mean["period"].apply(lambda x: "-".join([str(list(x)[0]),str(list(x)[1])]))
 
     return monthly_data, monthly_mean
 
 def calculate_yearly_mean_through_year(data:pd.DataFrame, periods):
+    """
+    Calculates the yearly mean or sum for different variables over a range of years and periods.
+
+    Args:
+        data (pd.DataFrame): The input DataFrame with a datetime index and relevant variables.
+        periods (list of tuples): List of periods, where each period is a tuple (start_year, end_year).
+
+    Returns:
+        pd.DataFrame: DataFrame with yearly mean or sum values and corresponding periods.
+    """
+
+    # Add the year column to the dataframe
     data["year"] = data.index.year 
+
+    # Same as before but instead of monthly aggregation, a yearly aggregation is done
     yearly_mean = data.resample("YE").agg({
         **{col: "mean" for col in data.columns if "precipitation" not in col.lower()},
         **{col: "sum" for col in data.columns if "precipitation" in col.lower()}
     })  
     yearly_mean = add_periods_to_df(yearly_mean, periods)
+
     return yearly_mean
 
+# --------------------
+# --- Monthly plot ---
+# --------------------
 
-def add_periods_to_df(df:pd.DataFrame, periods):
-    df["period"] = df["year"].apply(lambda x: next((period for period in periods if period[0] <= x <= period[1]), None))
-    return df
+def mean_line_monthly_plot(fig:go.Figure, monthly_data, column):
+    """
+    Adds a line plot for the monthly mean over the years to the given figure.
 
-def add_month_to_df(df):
-    df["month_name"] = df["month"].apply(lambda x:MONTHS_LIST[int(x-1)])
-    return df
-
-
-    
-
-
-def plot_monthly_mean(column, columns_to_keep, monthly_mean, monthly_data):
-    
-    fig = go.Figure()
-
-    # Mean line
+    Args:
+        fig (go.Figure): The Plotly figure object to which the plot will be added.
+        monthly_data (pd.DataFrame): The DataFrame containing monthly data.
+        column (str): The column name for which the monthly mean is plotted.
+    """
     fig.add_trace(go.Scatter(
         x=monthly_data["month_name"], 
         name="Monthly mean over years", 
@@ -55,8 +115,16 @@ def plot_monthly_mean(column, columns_to_keep, monthly_mean, monthly_data):
         line=dict(color='blue')
     ))
 
-    variable = [variable for variable in AVAILABLE_VARIABLES if "_".join(variable.lower().split()) in column][0]
-    unit=UNIT_DICT[variable]
+def monthly_scatter(fig: go.Figure, monthly_mean, column, unit):
+    """
+    Adds a scatter plot for monthly means with markers to the given figure.
+
+    Args:
+        fig (go.Figure): The Plotly figure object to which the plot will be added.
+        monthly_mean (pd.DataFrame): The DataFrame containing the monthly mean values.
+        column (str): The column name to plot.
+        unit (str): The unit of measurement for the variable being plotted.
+    """
     fig.add_trace(go.Scatter(
         x=monthly_mean['month_name'],
         y=monthly_mean[column],
@@ -88,11 +156,16 @@ def plot_monthly_mean(column, columns_to_keep, monthly_mean, monthly_data):
             "Year: %{text}<br>"+
             "Decade: %{customdata}<br>"
         ),
-        showlegend=False
+        showlegend=False))
 
-    ))
+def layout_monthly_plot(fig:go.Figure, variable):
+    """
+    Updates the layout of the Plotly figure for the monthly plot.
 
-    # Update layout with titles and labels
+    Args:
+        fig (go.Figure): The Plotly figure to update.
+        variable (str): The name of the variable being plotted, used for title and axis labels.
+    """
     fig.update_layout(
         width=1500, height=500,
         title=dict(text=f'Monthly Mean {variable} through years',
@@ -106,45 +179,106 @@ def plot_monthly_mean(column, columns_to_keep, monthly_mean, monthly_data):
         autosize=True,
         hoverlabel_align="auto"
     )
+
+def plot_monthly_mean(column, monthly_mean, monthly_data):
+    """
+    Creates and displays a monthly mean plot for a specified column.
+
+    Args:
+        column (str): The column name for which the monthly mean plot is created.
+        monthly_mean (pd.DataFrame): DataFrame containing the monthly mean values.
+        monthly_data (pd.DataFrame): DataFrame containing the original monthly data for plotting.
+
+    Returns:
+        go.Figure: The Plotly figure with the monthly mean plot.
+    """
+    fig = go.Figure()
+
+    # Mean blue line
+    mean_line_monthly_plot(fig, monthly_data, column)
+
+    # Get the variable name corresponding to the column
+    variable = [variable for variable in AVAILABLE_VARIABLES if "_".join(variable.lower().split()) in column][0]
+    unit=UNIT_DICT[variable]
+
+    # Make the monthly plot
+    monthly_scatter(fig, monthly_mean, column, unit)
+    layout_monthly_plot(fig, variable)
     
     # Display the plot in Streamlit
     st.plotly_chart(fig)
     return fig
 
-
+# -------------------
+# --- Yearly plot ---
+# -------------------
 
 def get_period_trend(df : pd.DataFrame,column, start, stop):
-    # Calculating the trend lines
+    """
+    Calculates the trend line (slope and intercept) for a specified period based on linear regression.
+
+    Args:
+        df (pd.DataFrame): DataFrame containing the data.
+        column (str): The column name for which the trend is calculated.
+        start (int): The start year of the period.
+        stop (int): The end year of the period.
+
+    Returns:
+        tuple: A tuple containing the trend line values and the corresponding years.
+    """
+    # Get the data for the corresponding period interval
     df = df[(df["year"] >= start) & (df["year"]<= stop) ]
 
     if not df.empty:
+        # Get the years and the values
         years = np.array(df["year"])
-        annual_properties = df[column]
-        slope, intercept, r_value, p_value, std_err = linregress(years, annual_properties)
+        annual_values = df[column]
+
+        # Creating the parameters for the line, only slope and intercept will be useful in our case
+        slope, intercept, _ , _ , _ = linregress(years, annual_values)
+        print("Line slope:",slope)
         
-        # Create the trend line using the slope and intercept
+        # Create the trend using the line parameters got
         trend_line = slope * years + intercept
-        print(trend_line)
         return trend_line, years
 
 def build_trend_plot(year_mean_df, periods, column):
+    """
+    Builds the trend lines for multiple periods.
+
+    Args:
+        year_mean_df (pd.DataFrame): DataFrame containing the yearly mean data.
+        periods (list of tuples): List of tuples, each representing a start and end year for a period.
+        column (str): The column name for which the trends are calculated.
+
+    Returns:
+        tuple: A tuple containing the list of trend lines and corresponding years for each period.
+    """
     trend_lines = []
     years_all = []
     
-    for i, period in enumerate(periods): 
+    # Loop to go through each period in order to get the trend line for them
+    for period in periods: 
         start, end = period
-        print(start, end)
-
-        trend_line, years = get_period_trend(year_mean_df,column, int(start), int(end))
-        trend_lines.append(trend_line)
-        years_all.append(years)
+        if start != end:
+            print(start, end)
+            trend_line, years = get_period_trend(year_mean_df,column, int(start), int(end))
+            trend_lines.append(trend_line)
+            years_all.append(years)
         
     return trend_lines, years_all
 
-def plot_periods_trend(yearly_mean, column, columns_to_keep, periods):
-    fig = go.Figure()
-    variable = [variable for variable in AVAILABLE_VARIABLES if "_".join(variable.lower().split()) in column][0]
-    # Plotting the year average temperatures (as a line)
+
+def plot_yearly_curve(fig:go.Figure, yearly_mean, column, variable):
+    """
+    Adds a line plot for the yearly mean of a variable to the figure.
+
+    Args:
+        fig (go.Figure): The Plotly figure to which the trace will be added.
+        yearly_mean (pd.DataFrame): DataFrame containing the yearly mean values.
+        column (str): The column name for which the yearly mean is plotted.
+        variable (str): The variable name for the title and axis labels.
+    """
     fig.add_trace(go.Scatter(
         x=yearly_mean["year"],
         y=yearly_mean[column],
@@ -153,7 +287,43 @@ def plot_periods_trend(yearly_mean, column, columns_to_keep, periods):
         line=dict(color="blue"),
     ))
 
-    # Define periods for trends
+def yearly_layout(fig:go.Figure, variable):
+    """
+    Updates the layout of the Plotly figure for the yearly curve plot.
+
+    Args:
+        fig (go.Figure): The Plotly figure to update.
+        variable (str): The variable name used for title and axis labels.
+    """
+    fig.update_layout(
+        width=1500, height=500,
+        title=dict(text=f'Mean Year {variable} and Trends from Different Periods',
+                    x=0.5,
+                    xanchor="center",
+                    font_size=25),
+        xaxis_title="Year",
+        yaxis_title=f"{variable} - {UNIT_DICT[variable]}",
+        autosize=True,
+        template='plotly_dark',
+        showlegend=True,
+        legend=dict(
+            orientation="v",  # Horizontal orientation
+            x=1.05,            # Center the legend horizontally
+            y=0.5,           # Position the legend below the plot (adjust as needed)
+        )
+    )
+
+def plot_all_trend_lines(fig:go.Figure, yearly_mean, periods, column, variable):
+    """
+    Adds multiple trend lines for different periods to the figure.
+
+    Args:
+        fig (go.Figure): The Plotly figure to which the trend lines will be added.
+        yearly_mean (pd.DataFrame): DataFrame containing the yearly mean data.
+        periods (list of tuples): List of periods (start, end) for which trends are calculated.
+        column (str): The column name for which the trend lines are plotted.
+        variable (str): The variable name for labeling and title purposes.
+    """
     trend_lines, years_all = build_trend_plot(yearly_mean, periods, column)
     colorscale = px.colors.sequential.YlOrRd  # Choose the desired colorscale
     num_trends = len(trend_lines)
@@ -168,112 +338,131 @@ def plot_periods_trend(yearly_mean, column, columns_to_keep, periods):
             name=f"{periods[i][0]}-{periods[i][1]} {variable} Trend",
             line=dict(color=color),
         ))
+
+def plot_yearly_curve_and_period_trends(yearly_mean, column, periods):
+    """
+    Plots the yearly curve along with trend lines for different periods.
+
+    Args:
+        yearly_mean (pd.DataFrame): DataFrame containing the yearly mean data.
+        column (str): The column name for which the yearly curve and trends are plotted.
+        periods (list of tuples): List of periods (start, end) for which trends are calculated.
+
+    Returns:
+        go.Figure: The Plotly figure containing the yearly curve and trend lines.
+    """
+    fig = go.Figure()
+
+    variable = [variable for variable in AVAILABLE_VARIABLES if "_".join(variable.lower().split()) in column][0]
+
+    # Plot yearly curve and trend lines
+    plot_yearly_curve(fig, yearly_mean, column, variable)
+    plot_all_trend_lines(fig, yearly_mean, periods, column, variable)
+
     # Update layout with titles and labels
-    fig.update_layout(
-        width=1500, height=500,
-        title=dict(text=f'Mean Year {variable} and Trends from Different Periods',
-                    x=0.5,
-                    xanchor="center",
-                    font_size=25),
-        xaxis_title="Year",
-        yaxis_title=f"{variable} - {UNIT_DICT[variable]}",
-        # template="plotly_dark",
-        autosize=True,
-        template='plotly_dark',
-        showlegend=True,
-        legend=dict(
-            orientation="v",  # Horizontal orientation
-            x=1.05,            # Center the legend horizontally
-            y=0.5,           # Position the legend below the plot (adjust as needed)
-        )
-    )
+    yearly_layout(fig, variable)
     st.plotly_chart(fig)
 
     return fig
-    # Display the plot in Streamlit or standalone
 
-def save_plotly_graph_to_pdf(fig1, fig2):
-    pdf_buffer = BytesIO()
-    print(fig1)
-    fig1.write_image(pdf_buffer, format="pdf", engine="kaleido",)
-    # fig2.write_image(pdf_buffer, format="pdf", engine="kaleido")
-    pdf_buffer.seek(0)
-    return pdf_buffer
+# --------------------
+# --- PDF filling  ---
+# --------------------
 
 
-def general_plot(data:pd.DataFrame, periods, chosen_variable):
+def wrap_into_pdf(fig1, fig2):
     """
-    Plots monthly mean, max, and min for each variable in the list 'variables' using Plotly and displays it in Streamlit.
-    
+    Wraps two Plotly figures into a PDF file with a black background and landscape layout.
+
     Args:
-        data (pd.DataFrame): The input DataFrame with daily data.
-        variables (list): List of column names in the DataFrame to calculate the monthly means.
+        fig1 (go.Figure): The first Plotly figure to be included in the PDF.
+        fig2 (go.Figure): The second Plotly figure to be included in the PDF.
+
+    Returns:
+        bytes: The PDF content as bytes.
     """
+    # Create an in-memory buffer to store the PDF content
+    pdf_buffer = BytesIO()
+
+    # Initialize the PDF canvas with landscape orientation A4 size
+    c = canvas.Canvas(pdf_buffer, pagesize=landscape(A4))
+
+    # Set the background color to black
+    c.setFillColorRGB(0, 0, 0)
+    c.rect(0, 0, 892, 612, fill=1)  # Fill the entire page with black color
+
+    # Convert the Plotly figures to PNG images in memory using kaleido
+    fig1_image = pio.to_image(fig1, format="png", width=fig1.layout.width, height=fig1.layout.height)
+    fig2_image = pio.to_image(fig2, format="png", width=fig2.layout.width, height=fig2.layout.height)
+
+    # Create ImageReader objects for the figures' image data
+    img1_reader = ImageReader(BytesIO(fig1_image))
+    img2_reader = ImageReader(BytesIO(fig2_image))
+
+    # Place the first figure image on the PDF at a specific location with scaled dimensions
+    c.drawImage(img1_reader, x=-330, y=320, height=fig1.layout.height / 2, width=fig1.layout.width, preserveAspectRatio=True)
+    
+    # Place the second figure image on the PDF at a specific location with scaled dimensions
+    c.drawImage(img2_reader, x=-330, y=20, height=fig2.layout.height / 2, width=fig2.layout.width, preserveAspectRatio=True)
+
+    # Finalize the PDF document
+    c.save()
+
+    # Retrieve the content of the PDF from the buffer
+    pdf_buffer.seek(0)
+    pdf_bytes = pdf_buffer.read()
+
+    # Close the buffer and return the PDF bytes
+    pdf_buffer.close()
+
+    return pdf_bytes
+
+
+# --------------------------
+# --- Main plot function ---
+# --------------------------
+
+def general_plot(data: pd.DataFrame, periods, chosen_variable):
+    """
+    Generates a plot for the selected variable and period, including monthly and yearly means,
+    trends, and the option to download the plots as a PDF.
+
+    Args:
+        data (pd.DataFrame): The input data frame containing the data to plot.
+        periods (list): List of tuples representing the periods to analyze (start year, end year).
+        chosen_variable (list): List of available variable options for the user to choose from.
+
+    Returns:
+        None: The function generates plots and provides a download button for the PDF.
+    """
+    # Define columns to keep from the original dataframe
     columns_to_keep = data.columns
 
+    # Calculate monthly and yearly mean data
     monthly_data, monthly_mean = calculate_mothly_mean_through_year(copy(data), periods)
     yearly_mean = calculate_yearly_mean_through_year(data, periods)
     
+    # Create a select box for users to choose the variable they want to plot
     variable_choice = st.selectbox("Choose the variable on which you want to see the plot", options=chosen_variable)
+    
+    # Loop through columns to find and plot data matching the selected variable
     for column in data.columns:
         if column in columns_to_keep and "min" not in column and "max" not in column and "_".join(variable_choice.lower().split(" ")) in column:
             
-            fig1 = plot_monthly_mean(column, columns_to_keep, monthly_mean, monthly_data)
-            fig2 = plot_periods_trend(yearly_mean, column,columns_to_keep, periods)
+            # Generate the monthly and yearly plots for the selected column
+            fig1 = plot_monthly_mean(column, monthly_mean, monthly_data)
+            fig2 = plot_yearly_curve_and_period_trends(yearly_mean, column, periods)
+            
+            # Generate the PDF with the two figures
             pdf = wrap_into_pdf(fig1, fig2)
 
-            
-
+            # Provide a button to download the generated PDF
             st.download_button(
                 label="Download PDF",
                 data=pdf,
                 file_name=PDF_FILENAME,
                 mime="application/pdf"
             )
-            
-def wrap_into_pdf(fig1, fig2):
-    
-    pdf_buffer = BytesIO()
 
-    # Create the png images
-
-    # fig1.write_image("figure1.png")
-    # fig2.write_image("figure2.png")
-
-    # Create the pdf
-    c = canvas.Canvas(pdf_buffer, pagesize=landscape(A4))
-
-    # Set the background dark as the plot have this kind of background
-    c.setFillColorRGB(0, 0, 0)  # Black background
-    c.rect(0, 0, 892, 612, fill=1)  # Fill the page with black
-    # Convert Plotly figures to images in memory using kaleido
-    fig1_image = pio.to_image(fig1, format="png", width=fig1.layout.width, height=fig1.layout.height)
-    fig2_image = pio.to_image(fig2, format="png", width=fig2.layout.width, height=fig2.layout.height)
-
-        # Use ImageReader to handle the image data in memory
-    img1_reader = ImageReader(BytesIO(fig1_image))
-    img2_reader = ImageReader(BytesIO(fig2_image))
-
-    # Add first figure to the PDF (in-memory image)
-    c.drawImage(img1_reader, x=-330, y=320, height=fig1.layout.height / 2, width=fig1.layout.width, preserveAspectRatio=True)
-
-    # Add second figure to the PDF (in-memory image)
-    c.drawImage(img2_reader, x=-330, y=20, height=fig2.layout.height / 2, width=fig2.layout.width, preserveAspectRatio=True)
-
-
-    # # Draw the images on the pdf 
-    # c.drawImage("figure1.png", x=-330, y=320,height=fig1.layout.height/2,width=fig1.layout.width, preserveAspectRatio=True)
-    # c.drawImage("figure2.png", x=-330, y=20,height=fig2.layout.height/2,width=fig2.layout.width,preserveAspectRatio=True)
-    
-    c.save()
-
-    # Get the PDF content from the buffer
-    pdf_buffer.seek(0)
-    pdf_bytes = pdf_buffer.read()
-
-    # Clean up and return the PDF bytes
-    pdf_buffer.close()
-
-    return pdf_bytes
             
 
