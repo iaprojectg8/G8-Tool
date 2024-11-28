@@ -10,3 +10,6 @@ UNIT_DICT={"Temperature":"°C","Precipitation":"mm", "Wind":"km/h", "Shortwave R
 PERIOD_LENGTH = [10,15,20,25,30,35,40,45,50,55,60]
 
 PDF_FILENAME = "general_plot_export.pdf"
+
+COLORSCALE = ["Spectral", "RdYlBu", "RdYlGn"]
+VARIATION_THRESHOLD = 0.05

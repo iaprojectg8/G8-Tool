@@ -365,18 +365,203 @@ def plot_yearly_curve_and_period_trends(yearly_mean, column, periods):
 
     return fig
 
+# --------------------------------
+# --- Monthly period variation ---
+# --------------------------------
+def change_color_scale(color_scale_reversed, color_scale):
+    """
+    Modifies the color scale by appending '_r' to reverse it if specified.
+
+    Args:
+        color_scale_reversed (bool): Whether the color scale should be reversed.
+        color_scale (str): The original color scale.
+
+    Returns:
+        str: The modified color scale (reversed if applicable).
+    """
+    if color_scale_reversed:
+        color_scale+="_r"
+    return color_scale
+
+def modify_differences(df: pd.DataFrame, column: str) -> pd.DataFrame:
+    """
+    Replace small variations in the 'difference' column with 0.
+
+    Args:
+        df (pd.DataFrame): DataFrame containing the difference column.
+        column (str): Column name where small variations will be replaced.
+
+    Returns:
+        pd.DataFrame: Modified DataFrame with small variations set to 0.
+    """
+    
+    max_variation = df[column].abs().max()
+    threshold = VARIATION_THRESHOLD * max_variation  # 5% of the max variation
+    df[column] = df[column].apply(lambda x: 0 if abs(x) < threshold else x)
+    return df
+
+
+def monthly_variation_calculation(monthly_mean, monthly_data, column):
+    """
+    Calculates the difference between the mean value of a specified column 
+    across periods and the overall mean for each month.
+
+    Args:
+        monthly_mean (pd.DataFrame): DataFrame containing period-specific means.
+        monthly_data (pd.DataFrame): DataFrame containing overall monthly data.
+        column (str): The column for which differences are calculated.
+
+    Returns:
+        pd.DataFrame: A DataFrame with the calculated differences and period names.
+    """
+    # Group by period and month, and calculate the mean for the specified column
+    monthly_mean = (
+        monthly_mean.groupby(["period", "month"])
+        .agg({column: "mean"})
+        .reset_index()
+    )
+
+    # Merge the period-specific mean with overall monthly data
+    monthly_mean = monthly_mean.merge(monthly_data, on="month", suffixes=("_period", "_overall"))
+
+    # Calculate the difference between period-specific and overall mean
+    monthly_mean["difference"] = monthly_mean[column + "_period"] - monthly_mean[column + "_overall"]
+    # monthly_mean = modify_differences(monthly_mean, "difference")
+
+    # Create a human-readable period name (e.g., "2020-2022")
+    monthly_mean["period_name"] = monthly_mean["period"].apply(lambda x: f"{x[0]}-{x[1]}")
+
+    return monthly_mean
+
+
+def monthly_variation_plot(fig:go.Figure, monthly_mean, unit, color_scale, variable):
+    """
+    Adds a heatmap trace to the figure showing the variation of a specified variable.
+
+    Args:
+        fig (go.Figure): The Plotly figure to update.
+        monthly_mean (pd.DataFrame): DataFrame containing the monthly variations.
+        unit (str): Unit of the variable being plotted.
+        color_scale (str): Color scale used for the heatmap.
+        variable (str): The variable name.
+    """
+    colorscale = px.colors.diverging.Spectral
+    print(type(colorscale))
+    # custom_colorscale = [
+    #     [0, colorscale[0]],  # Start of the original colorscale
+    #     [0.4999999999999999, colorscale[4]],
+    #     [0.5, 'rgb(169,169,169)'],        # Midpoint
+    #     [0.5000000000000001, colorscale[4]],
+    #     [1, colorscale[-1]]           # Full color scale
+    # ]
+    fig.add_trace(go.Heatmap(
+        name=f"",
+        z=round(monthly_mean["difference"],3),
+        zmid = 0,
+        x=monthly_mean["month_name"],  # Months
+        y=monthly_mean["period_name"],    # Periods
+        colorbar=dict(title=f"Difference {unit}"),
+        colorscale=color_scale,
+        connectgaps=False,
+        hovertemplate=(
+            "Month:  %{x}<br>" +
+            "Period: %{y}<br>"+
+            f"{variable} "+"Variation: %{z}"+f" {unit}"
+        ),
+    ))
+
+def monthly_variation_layout(fig:go.Figure, graph_part, variable):
+    """
+    Updates the layout of the Plotly figure to customize its appearance.
+
+    Args:
+        fig (go.Figure): The Plotly figure to update.
+        graph_part (float): Proportion of the layout width allocated to the graph.
+        variable (str): The variable being plotted, used for the title.
+    """
+    fig.update_layout(
+        width=1500*graph_part, height=1000*graph_part,
+        title=dict(text=f"Monthly {variable} Variation over Periods ",
+                    x=0.5,
+                    xanchor="center",
+                    font_size=25),
+        autosize=True,
+        template='plotly_dark',
+        showlegend=True,
+        xaxis=dict(tickfont_size=15,
+                    title = dict(
+                        text="Month",
+                        font_size=17,
+                        standoff=50),       
+                    ticklabelstandoff =20),
+        yaxis=dict(tickfont_size=15,
+                    title=dict(
+                        text="Year",
+                        font_size=17,
+                        standoff=50),
+                    ticklabelstandoff = 20),
+        legend=dict(
+            orientation="v", 
+            x=1.05,            
+            y=0.5),
+        font=dict(
+            size=17),
+        )
+
+def plot_monthly_period_variation(monthly_mean: pd.DataFrame, monthly_data: pd.DataFrame, column: str) -> go.Figure:
+    """
+    Main function to calculate and plot the monthly variation for a given column.
+
+    Args:
+        monthly_mean (pd.DataFrame): DataFrame containing period-specific data.
+        monthly_data (pd.DataFrame): DataFrame containing overall monthly data.
+        column (str): The column to analyze.
+
+    Returns:
+        go.Figure: The Plotly figure displaying the heatmap.
+    """
+    graph_part = 0.85  # Proportion of the layout for the graph
+    col1, col2 = st.columns([1 - graph_part, graph_part], vertical_alignment="center")
+
+    # Sidebar for color scale selection and reversing
+    with col1:
+        color_scale = st.selectbox("Choose the colorscale you want", options=COLORSCALE)
+        color_scale_reversed = st.checkbox("Reverse the colorscale")
+        color_scale = change_color_scale(color_scale_reversed, color_scale)
+
+    # Initialize the Plotly figure
+    fig = go.Figure()
+
+    # Determine the variable name and unit from the column name
+    variable = [v for v in AVAILABLE_VARIABLES if "_".join(v.lower().split()) in column][0]
+    unit = UNIT_DICT[variable]
+
+    # Calculate the monthly variation
+    monthly_mean = monthly_variation_calculation(monthly_mean, monthly_data, column)
+
+    # Plot the heatmap and update layout
+    monthly_variation_plot(fig, monthly_mean, unit, color_scale, variable)
+    monthly_variation_layout(fig, graph_part, variable)
+
+    # Display the figure on the right
+    with col2:
+        st.plotly_chart(fig)
+
+    return fig
+
 # --------------------
 # --- PDF filling  ---
 # --------------------
 
 
-def wrap_into_pdf(fig1, fig2):
+def wrap_into_pdf(fig1, fig2, fig3):
     """
     Wraps two Plotly figures into a PDF file with a black background and landscape layout.
 
     Args:
         fig1 (go.Figure): The first Plotly figure to be included in the PDF.
         fig2 (go.Figure): The second Plotly figure to be included in the PDF.
+        fig3 (go.Figure): The second Plotly figure to be included in the PDF.
 
     Returns:
         bytes: The PDF content as bytes.
@@ -392,19 +577,23 @@ def wrap_into_pdf(fig1, fig2):
     c.rect(0, 0, 892, 612, fill=1)  # Fill the entire page with black color
 
     # Convert the Plotly figures to PNG images in memory using kaleido
-    fig1_image = pio.to_image(fig1, format="png", width=fig1.layout.width, height=fig1.layout.height)
-    fig2_image = pio.to_image(fig2, format="png", width=fig2.layout.width, height=fig2.layout.height)
+    fig1_image = pio.to_image(fig1, format="jpg", width=fig1.layout.width, height=fig1.layout.height)
+    fig2_image = pio.to_image(fig2, format="jpg", width=fig2.layout.width, height=fig2.layout.height)
+    fig3_image = pio.to_image(fig3, format="jpg", width=fig3.layout.width, height=fig3.layout.height)
 
     # Create ImageReader objects for the figures' image data
     img1_reader = ImageReader(BytesIO(fig1_image))
     img2_reader = ImageReader(BytesIO(fig2_image))
+    img3_reader = ImageReader(BytesIO(fig3_image))
 
     # Place the first figure image on the PDF at a specific location with scaled dimensions
     c.drawImage(img1_reader, x=-330, y=320, height=fig1.layout.height / 2, width=fig1.layout.width, preserveAspectRatio=True)
     
     # Place the second figure image on the PDF at a specific location with scaled dimensions
     c.drawImage(img2_reader, x=-330, y=20, height=fig2.layout.height / 2, width=fig2.layout.width, preserveAspectRatio=True)
-
+    c.showPage()
+    c.rect(0, 0, 892, 612, fill=1)  # Fill the entire page with black color
+    c.drawImage(img3_reader, x=-220, y=40, height=fig3.layout.height*0.60, width=fig3.layout.width, preserveAspectRatio=True)
     # Finalize the PDF document
     c.save()
 
@@ -452,9 +641,11 @@ def general_plot(data: pd.DataFrame, periods, chosen_variable):
             # Generate the monthly and yearly plots for the selected column
             fig1 = plot_monthly_mean(column, monthly_mean, monthly_data)
             fig2 = plot_yearly_curve_and_period_trends(yearly_mean, column, periods)
+            fig3 = plot_monthly_period_variation(monthly_mean,monthly_data, column)
+
             
             # Generate the PDF with the two figures
-            pdf = wrap_into_pdf(fig1, fig2)
+            pdf = wrap_into_pdf(fig1, fig2, fig3)
 
             # Provide a button to download the generated PDF
             st.download_button(
@@ -464,5 +655,4 @@ def general_plot(data: pd.DataFrame, periods, chosen_variable):
                 mime="application/pdf"
             )
 
-            
-
+        
