@@ -4,18 +4,55 @@ from utils.variables import *
 from layouts.layout import *
 
 
+def create_empty_dataframe():
+    df = pd.DataFrame()
+    return df
 
-def select_period():
-    set_title_1("Period")
-    period_start= 1950
-    period_end= 2050
 
-    period_start, period_end = st.slider(
-        "Select the data period:",
-        min_value=period_start, 
-        max_value=period_end,
-        value=(period_start, period_end))      
-    return period_start, period_end
+
+def create_dynamic_dataframe(df:pd.DataFrame,columns_chosen):
+    if df is None or df.empty:
+        df = pd.DataFrame(columns=["Name", "Variable", 
+                                    "Daily Threshold Min","Daily Threshold Max", "Monthly Agg", 
+                                    "Yearly Threshold Min", "Yearly Threshold Max", "Yearly Agg", 
+                                    "Cumulated Days Threshold",
+                                    'Season Shift Start', 'Season Shift End'
+                            ])
+        
+    column_config={
+        'Name': st.column_config.TextColumn(
+            max_chars=50,
+            default=str(),
+        ),
+        'Variable': st.column_config.SelectboxColumn(
+            options=columns_chosen,
+            default=columns_chosen[0]),
+
+        'Daily Threshold Min': st.column_config.NumberColumn(),  # Boolean checkbox
+        'Daily Threshold Max': st.column_config.NumberColumn(),  # Boolean checkbox
+
+        # Is it really necessary ?
+        'Monthly Agg': st.column_config.SelectboxColumn(
+            options=AGG_FUNC,
+            default=AGG_FUNC[0]),
+
+        'Yearly Threshold Min': st.column_config.NumberColumn(),  # Boolean checkbox
+        'Yearly Threshold Max': st.column_config.NumberColumn(),  # Boolean checkbox
+
+        'Yearly Agg': st.column_config.SelectboxColumn(
+            options=AGG_FUNC,
+            default=AGG_FUNC[0]),
+
+        'Cumulated Days Threshold': st.column_config.NumberColumn(default=None),
+
+        'Season Shift Start': st.column_config.NumberColumn(default=None),
+        'Season Shift End': st.column_config.NumberColumn(default=None),
+    }
+    df_indicator_parameters = st.data_editor(df, use_container_width=True, num_rows="dynamic", column_config=column_config)
+    return df_indicator_parameters
+    
+
+
 
 
 def variable_choice():
@@ -57,17 +94,17 @@ def select_season():
         value=(start, end),
         format_func=lambda x:MONTHS_LIST[x-1]  # Displays full month name, day, and year
     )
-
-    # It is not relevant because we almost always want to compare the data we have on different year in if we have period
-    # in between two years it is quite difficult to compare them to each other and the process would be very complicated
-    inverted = st.radio("Invert", options=["Yes", "No"])
-    selected_months = invert_month_choice(inverted, options, start_date, end_date )
+    selected_months = list(options[start_date-1:end_date])
 
     # Display the selected range
     st.write(f"The period chosen goes from {MONTHS_LIST[selected_months[0]-1]} to {MONTHS_LIST[selected_months[-1]-1]}")
-
-
     return start_date, end_date
+
+def select_data_contained_in_season(data, season_start, season_end):
+
+    return data[(data.index.month >= season_start) & (data.index.month <= season_end)].copy()
+
+
 
 def daily_threshold_init():
     """

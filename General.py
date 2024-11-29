@@ -1,7 +1,7 @@
 from utils.imports import *
 from utils.variables import DATAFRAME_HEIGHT
 from lib.data_process import * 
-from lib.parametrization import *
+from indicators.parametrization import *
 from lib.plot import *
 from layouts.layout import *
 
