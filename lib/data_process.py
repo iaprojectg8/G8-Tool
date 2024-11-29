@@ -1,4 +1,5 @@
 from utils.imports import *
+from layouts.layout import *
 
 # --- Main functions ---
 def loads_data(filename):
@@ -74,6 +75,19 @@ def filtered_data(data:pd.DataFrame, chosen_variables, period):
     # Display the dataframe
     st.dataframe(data=data_to_diplay,use_container_width=True)
     return data_to_keep
+
+
+def select_period():
+    set_title_1("Period")
+    period_start= 1950
+    period_end= 2050
+
+    period_start, period_end = st.slider(
+        "Select the data period:",
+        min_value=period_start, 
+        max_value=period_end,
+        value=(period_start, period_end))      
+    return period_start, period_end
 
 
 def split_into_periods(period_length, start_year, end_year):

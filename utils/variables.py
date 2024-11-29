@@ -11,5 +11,7 @@ PERIOD_LENGTH = [10,15,20,25,30,35,40,45,50,55,60]
 
 PDF_FILENAME = "general_plot_export.pdf"
 
-COLORSCALE = ["Spectral", "RdYlBu", "RdYlGn"]
+COLORSCALE = ["Spectral", "RdYlBu", "RdYlGn", "Picnic"]
 VARIATION_THRESHOLD = 0.05
+
+AGG_FUNC = ["mean", "sum", "min", "max"]
