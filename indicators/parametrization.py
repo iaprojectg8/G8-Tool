@@ -12,7 +12,7 @@ def create_empty_dataframe():
 
 def create_dynamic_dataframe(df:pd.DataFrame,columns_chosen):
     if df is None or df.empty:
-        df = pd.DataFrame(columns=["Name", "Variable", 
+        df = pd.DataFrame(columns=["Name","Type", "Variable", 
                                     "Daily Threshold Min","Daily Threshold Max", "Monthly Agg", 
                                     "Yearly Threshold Min", "Yearly Threshold Max", "Yearly Agg", 
                                     "Cumulated Days Threshold",
@@ -21,6 +21,10 @@ def create_dynamic_dataframe(df:pd.DataFrame,columns_chosen):
         
     column_config={
         'Name': st.column_config.TextColumn(
+            max_chars=50,
+            default=str(),
+        ),
+        'Type': st.column_config.TextColumn(
             max_chars=50,
             default=str(),
         ),
@@ -91,7 +95,7 @@ def select_season():
     start_date, end_date = st.select_slider(
         "Select a date range:",
         options = options,
-        value=(start, end),
+        value=(6, 10),
         format_func=lambda x:MONTHS_LIST[x-1]  # Displays full month name, day, and year
     )
     selected_months = list(options[start_date-1:end_date])
