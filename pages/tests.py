@@ -70,6 +70,7 @@ tab1, tab2 = st.tabs(["Create/Update Indicator", "Edit Existing Indicators"])
 with tab1:
     st.subheader("Create indicators")
     with st.expander("Indicator template"):
+        
         st.subheader("General Information")
         st.session_state.indicator["Name"] = st.text_input("Indicator Name", value=st.session_state.indicator["Name"])
         st.session_state.indicator["Variable"] = st.selectbox("Variable", ["precipitation_sum", "temperature_max_2m"], key="variable")
@@ -213,8 +214,7 @@ with tab2:
                 # Display the same form as used for creating indicators, pre-fill with the existing values
                 updated_indicator = row.to_dict()
                 updated_checkbox = row_checkbox.to_dict()
-                print(j)
-                print(updated_checkbox)
+    
         
 
                 updated_indicator["Name"] = st.text_input("Indicator Name", updated_indicator["Name"], key=f"edit_name_{i}")
@@ -275,7 +275,7 @@ with tab2:
                 if st.button(f"Update Indicator: {row['Name']}", key=f"edit_update_{i}"):
                     st.session_state.df_indicators.loc[i] = updated_indicator
 
-                st.button(label = "Delete Indicator",key=f"delete_{i}",on_click=lambda : delete_indicator(i))
+                st.button(label = "Delete Indicator",key=f"delete_{i}",on_click=lambda index=i: delete_indicator(index))
 
 
     else:

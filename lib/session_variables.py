@@ -23,6 +23,7 @@ if "checkbox" not in st.session_state:
 
 def delete_indicator(index):
 # Remove the row with index 2
+    print("index", index)
     st.session_state.df_indicators = st.session_state.df_indicators.drop(index).reset_index(drop=True)
 
 # def reset_indicator():
