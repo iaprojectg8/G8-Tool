@@ -15,4 +15,7 @@ COLORSCALE = ["Spectral", "RdYlBu", "RdYlGn", "Picnic"]
 VARIATION_THRESHOLD = 0.05
 
 AGG_FUNC = ["mean", "sum", "min", "max"]
-INDICATOR_TYPES = ["Outlier Days Sum", "Consecutive Outlier Days Sum", "Season Sum", "Monthly Variation Coefficient"]
+INDICATOR_TYPES = ["Outlier Days", "Consecutive Outlier Days", "Season Sum", "Monthly Variation Coefficient"]
+
+# This is very useful to chose the right indicator in the function
+INDICATOR_AGG = {"Outlier Days":[1, 1], "Consecutive Outlier Days": [3,1], "Season Sum": [1, 1], "Monthly Variation Coefficient":[0,0]}

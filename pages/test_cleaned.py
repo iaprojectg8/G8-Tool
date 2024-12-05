@@ -6,63 +6,6 @@ from lib.session_variables import *
 
 st.set_page_config(layout="wide")
 
-# -------------------------------
-# --- Handle session variable ---
-# -------------------------------
-
-if "indicator" not in st.session_state:
-    st.session_state.indicator = {
-        "Name": "",
-        "Variable": None,
-        "Indicator Type": None,
-        "Daily Threshold Min": None,
-        "Daily Threshold Max": None,
-        "Yearly Threshold Min": None,
-        "Yearly Threshold Max": None,
-        "Yearly Aggregation": None,
-        "Season Start Shift": None,
-        "Season End Shift": None
-    }
-    # print(st.session_state.indicator
-
-if "checkbox_defaults" not in st.session_state:
-    st.session_state.checkbox_defaults = {
-        "min_daily_checkbox": False,
-        "max_daily_checkbox": False,
-        "min_yearly_checkbox": False,
-        "max_yearly_checkbox": False,
-        "shift_start_checkbox": False,
-        "shift_end_checkbox": False
-    }
-
-
-def reset_indicator():
-    st.session_state.indicator = {
-        "Name": "",
-        "Variable": None,
-        "Indicator Type": None,
-        "Daily Threshold Min": None,
-        "Daily Threshold Max": None,
-        "Yearly Threshold Min": None,
-        "Yearly Threshold Max": None,
-        "Yearly Aggregation": None,
-        "Season Start Shift": None,
-        "Season End Shift": None
-    }
-    st.session_state.min_daily_checkbox = False
-    st.session_state.max_daily_checkbox = False
-    st.session_state.min_yearly_checkbox = False
-    st.session_state.max_yearly_checkbox = False
-    st.session_state.shift_start_checkbox = False
-    st.session_state.shift_end_checkbox = False
-    
-if 'df_indicators' not in st.session_state:
-    st.session_state.df_indicators = pd.DataFrame(columns=st.session_state.indicator.keys())
-
-if "df_checkbox" not in st.session_state:
-    st.session_state.df_checkbox = pd.DataFrame(columns=st.session_state.checkbox_defaults.keys())
-
-
 # -------------------------
 # --- Handle input part ---
 # -------------------------
@@ -101,8 +44,12 @@ def handle__season_shift_input():
 def handle_yearly_aggregation_input():
     st.subheader("Aggregation functions")
     st.session_state.indicator["Yearly Aggregation"] = st.selectbox(
-        label="Yearly Aggregation", options=AGG_FUNC, key="yearly_aggregation"
-    )
+            label="Yearly Aggregation",
+            options=AGG_FUNC,
+            index=INDICATOR_AGG[st.session_state.indicator["Indicator Type"]][0], 
+            key="yearly_aggregation", 
+            disabled=INDICATOR_AGG[st.session_state.indicator["Indicator Type"]][1]
+        )
     
 def handle_buttons():
     if st.button(label="Add Indicator"):
@@ -130,7 +77,7 @@ def indicator_building():
     with st.expander("Indicator template",expanded=True):
         
         indicator_type = general_information()
-        if indicator_type in ["Outlier Days Sum", "Consecutive Outlier Days Sum"]:
+        if indicator_type in ["Outlier Days", "Consecutive Outlier Days"]:
             handle_threshold_input()
 
         handle_yearly_aggregation_input()
@@ -170,7 +117,7 @@ def handle_input_update(updated_indicator, updated_checkbox_value,label, i):
 def handle_threshold_update(updated_indicator, updated_checkbox, i):
 
     # Handle all the threshold update
-    if updated_indicator["Indicator Type"] in ["Outlier Days Sum", "Consecutive Outlier Days Sum"]:
+    if updated_indicator["Indicator Type"] in ["Outlier Days", "Consecutive Outlier Days"]:
         st.subheader("Thresholds")
         handle_input_update(updated_indicator, updated_checkbox["min_daily_checkbox"],"Daily Threshold Min", i)
         handle_input_update(updated_indicator, updated_checkbox["max_daily_checkbox"],"Daily Threshold Max", i)
@@ -192,8 +139,9 @@ def handle_aggregation_update(updated_indicator, i):
     st.subheader("Aggregation functions")
     updated_indicator["Yearly Aggregation"] = st.selectbox(label="Yearly Aggregation",
                                                             options=AGG_FUNC,
-                                                            index=AGG_FUNC.index(updated_indicator["Yearly Aggregation"]),
-                                                            key=f"edit_yearly_aggregation_{i}")
+                                                            index=INDICATOR_AGG[updated_indicator["Indicator Type"]][0],
+                                                            key=f"edit_yearly_aggregation_{i}",
+                                                            disabled=INDICATOR_AGG[updated_indicator["Indicator Type"]][1])
     
 def handle_button_update(updated_indicator, row, i):
     if st.button(f"Update Indicator: {row['Name']}", key=f"edit_update_{i}"):
