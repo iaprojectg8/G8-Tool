@@ -173,7 +173,7 @@ def yearly_threshold_init():
         "Yearly Heat Days Stress Threshold": 15,
         "Yearly Wind Stress Threshold": 10,
     }.items():
-        col1, col2 = st.columns([1, 1])  # Adjust the column width ratios
+        col1, col2 = st.columns([1, 4])  # Adjust the column width ratios
         with col1:
             if st.checkbox(label):
                 with col2:
