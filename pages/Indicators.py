@@ -50,6 +50,7 @@ def main():
     # Faire une function pour différencier les seuils mettre en place l'ordre du comptage
 
     set_title_1("Indicators Calculation")
+    yearly_threshold_init()
 
         # # The threshold init
         # st.subheader("Daily threshold definition")
