@@ -10,21 +10,9 @@ def calculate_score(df, df_indicators_parameters: pd.DataFrame):
     for _, row in df_indicators_parameters.iterrows():
         variable = row["Variable"]
         score_name = row["Name"]
-
-        # If daily thresholds are provided, you can calculate daily scores here if needed
-        if row["Daily Threshold Min"]!="nan" or row["Daily Threshold Max"]!="nan":
-            print(row["Daily Threshold Min"], row["Daily Threshold Max"])
-            print("You should calculate something about day (optional)")
-            df_daily = daily_indicators(df, variable,score_name, row["Daily Threshold Min"], row["Daily Threshold Max"])
-            st.dataframe(df_daily,height=DATAFRAME_HEIGHT, use_container_width=True)
-        # If yearly thresholds are provided, calculate the yearly score
-        if row["Yearly Threshold Min"] or row["Yearly Threshold Max"]:
-            print("You should calculate yearly score")
-
+        if row["Indicator Type"] == "Season Sum":
             # Perform yearly aggregation
-            df_yearly_var = make_yearly_agg(df, score_name,variable, row["Yearly Agg"])
-
-            # Calculate indicator score based on yearly thresholds
+            df_yearly_var = make_yearly_agg(df, score_name,variable, row["Yearly Aggregation"])
             df_yearly_var = indicator_score(
                 df_yearly_var,
                 variable,
@@ -32,7 +20,29 @@ def calculate_score(df, df_indicators_parameters: pd.DataFrame):
                 row["Yearly Threshold Min"],
                 row["Yearly Threshold Max"]
             )
-            print(df_yearly_var)
+        elif row["Indicator Type"] == "Consecutive "
+        # If daily thresholds are provided, you can calculate daily scores here if needed
+        # if row["Daily Threshold Min"]!="nan" or row["Daily Threshold Max"]!="nan":
+        #     print(row["Daily Threshold Min"], row["Daily Threshold Max"])
+        #     print("You should calculate something about day (optional)")
+        #     df_daily = daily_indicators(df, variable,score_name, row["Daily Threshold Min"], row["Daily Threshold Max"])
+        #     st.dataframe(df_daily,height=DATAFRAME_HEIGHT, use_container_width=True)
+        # # If yearly thresholds are provided, calculate the yearly score
+        # if row["Yearly Threshold Min"] or row["Yearly Threshold Max"]:
+        #     print("You should calculate yearly score")
+
+        #     # Perform yearly aggregation
+        #     df_yearly_var = make_yearly_agg(df, score_name,variable, row["Yearly Agg"])
+
+        #     # Calculate indicator score based on yearly thresholds
+        #     df_yearly_var = indicator_score(
+        #         df_yearly_var,
+        #         variable,
+        #         score_name,
+        #         row["Yearly Threshold Min"],
+        #         row["Yearly Threshold Max"]
+        #     )
+        #     print(df_yearly_var)
             df_yearly = pd.concat([df_yearly, df_yearly_var],axis=1)    
 
     set_title_2("Yearly result for the moment")    
@@ -43,6 +53,8 @@ def make_yearly_agg(df: pd.DataFrame,score, variable, yearly_aggregation):
     
     # Resample to yearly frequency and perform aggregation
     st.dataframe(df)
+    st.write(yearly_aggregation)
+    st.write(variable)
     if f"daily_indicators_{score}" in df:
         df_yearly = df.resample("YE").agg({f"daily_indicators_{score}": yearly_aggregation})
     else:

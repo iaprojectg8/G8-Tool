@@ -37,17 +37,17 @@ def main():
         
         
         # Initialize indicators
-        st.subheader("Parametrize indicators")
+        set_title_2("Parametrize Indictors")
         # Create tabs to separate the two parts
         tab1, tab2 = st.tabs(["Create/Update Indicator", "Edit Existing Indicators"])
 
         # Tab 1: Create or Update an Indicator
         with tab1:
-            indicator_building()
+            indicator_building(df_season)
 
         # Tab 2: Display and Edit Existing Indicators
         with tab2:
-            indicator_editing()
+            indicator_editing(df_season)
 
         # Show the dataframe
         if not st.session_state.df_indicators.empty:
@@ -65,7 +65,8 @@ def main():
         
 
         # Need to calculate score with this parameters
-        # calculate_score(df_season, df_indicator_paramters)
+        set_title_2("Indicators calculation")
+        calculate_score(df_season, st.session_state.df_indicators)
 
     set_title_2("Exposure or suitability")
     # Faire une function pour différencier les seuils mettre en place l'ordre du comptage
