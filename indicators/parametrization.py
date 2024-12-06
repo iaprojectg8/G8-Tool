@@ -216,9 +216,8 @@ def yearly_threshold_init():
 def handle_checkbox_and_input(label : str, checkbox_key):
     col1, col2 = st.columns([0.2, 0.8])
     with col1:
-        print(st.session_state.checkbox_defaults[checkbox_key])
-
         st.session_state.checkbox_defaults[checkbox_key] = st.checkbox(label=label, key=checkbox_key)
+        
     if st.session_state.checkbox_defaults[checkbox_key]:
         with col2:
             st.session_state.indicator[label] = st.number_input(label, value=None, label_visibility="collapsed", key="_".join(label.lower().split(" ")))
@@ -303,7 +302,6 @@ def indicator_building(df_chosen:pd.DataFrame):
 
 def general_information_update(updated_indicator,i, df_chosen:pd.DataFrame):
     
-    print(list(df_chosen.columns))
     updated_indicator["Name"] = st.text_input("Indicator Name", updated_indicator["Name"], key=f"edit_name_{i}")
     updated_indicator["Variable"] = st.selectbox("Variable", options =df_chosen.columns,
                                                  index=list(df_chosen.columns).index(updated_indicator["Variable"]), 
@@ -317,7 +315,7 @@ def general_information_update(updated_indicator,i, df_chosen:pd.DataFrame):
 def handle_input_update(updated_indicator, updated_checkbox_value,label, i):
     col1, col2 = st.columns([0.2, 0.8])
     with col1:
-        print(f"edit_{"_".join(label.lower().split(" "))}_checkbox_{i}")
+        
         if st.checkbox(label=label, value=updated_checkbox_value, key=f"edit_{"_".join(label.lower().split(" "))}_checkbox_{i}"):
             with col2:
                 updated_indicator[label] = st.number_input(label=label, value=updated_indicator[label], label_visibility="collapsed", key=f"edit_{"_".join(label.lower().split(" "))}_{i}")
@@ -392,9 +390,43 @@ def indicator_editing(df_chosen : pd.DataFrame):
     else:
         st.write("No indicators available yet.")
 
+def get_frequency_threshold_inputs():
+    col1, col2, col3 = st.columns([1,5,1])
+    with col2:
+        with st.container(border=True):
+            set_title_5("Set your frequency threshold as you wish")
+            col11, col12, col13 = st.columns(3)
+            with col11:
+                st.number_input(label="Low_bottom", min_value=0.0, max_value=1.0, value=0.0, disabled=True, label_visibility="collapsed")
+            with col12:
+                set_frequency_label("Low")
+            with col13:
+                threshold1 = st.number_input(label="Low_top", min_value=0.0, max_value=1.0, value=0.25, disabled=False, label_visibility="collapsed")
 
+            col11, col12, col13 = st.columns(3)
+            with col11:
+                st.number_input(label="Moderate_bottom", min_value=0.0, max_value=1.0, value=threshold1, disabled=True, label_visibility="collapsed")
+            with col12:
+                set_frequency_label("Moderate")
+            with col13:
+                threshold2 = st.number_input(label="Moderate_top", min_value=0.0, max_value=1.0, value=0.5, disabled=False, label_visibility="collapsed")
 
+            col11, col12, col13 = st.columns(3)
+            with col11:
+                st.number_input(label="High_bottom", min_value=0.0, max_value=1.0, value=threshold2, disabled=True, label_visibility="collapsed")
+            with col12:
+                set_frequency_label("High")
+            with col13:
+                threshold3 = st.number_input(label="High_top", min_value=0.0, max_value=1.0, value=0.75, disabled=False, label_visibility="collapsed")
 
+            col11, col12, col13 = st.columns(3)
+            with col11:
+                st.number_input(label="Very_High_bottom", min_value=0.0, max_value=1.0, value=threshold3, disabled=True, label_visibility="collapsed")
+            with col12:
+                set_frequency_label("Very High")
+            with col13:
+                st.number_input(label="Very_High_top", min_value=0.0, max_value=1.0, value=1.0, disabled=True, label_visibility="collapsed")
+    return threshold1, threshold2, threshold3
 
 # Indicateurs
 # Les basiques
