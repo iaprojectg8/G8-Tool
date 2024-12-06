@@ -185,6 +185,28 @@ def yearly_threshold_init():
         df = pd.DataFrame(yearly_threshold.items(), columns=["Threshold", "Value"]).reset_index(drop=True)
         st.dataframe(yearly_threshold, column_config=[""])
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Real part start there
 # -------------------------
 # --- Handle input part ---
 # -------------------------
@@ -211,6 +233,12 @@ def handle_threshold_input():
     handle_checkbox_and_input(label="Daily Threshold Max", checkbox_key="max_daily_checkbox")
     handle_checkbox_and_input(label="Yearly Threshold Min", checkbox_key="min_yearly_checkbox")
     handle_checkbox_and_input(label="Yearly Threshold Max", checkbox_key="max_yearly_checkbox")
+
+def handle_yearly_threshold_input():
+    st.subheader("Thresholds")
+    handle_checkbox_and_input(label="Yearly Threshold Min", checkbox_key="min_yearly_checkbox")
+    handle_checkbox_and_input(label="Yearly Threshold Max", checkbox_key="max_yearly_checkbox")
+
 
 def handle__season_shift_input():
 
@@ -244,20 +272,22 @@ def handle_buttons():
             st.warning("This indicator already exists in your indicators list")
     st.button(label="Reset Indicator", on_click=reset_indicator)
 
-def general_information():
+def general_information(df_chosen :pd.DataFrame):
     st.subheader("General Information")
     st.session_state.indicator["Name"] = st.text_input("Indicator Name", value=st.session_state.indicator["Name"])
-    st.session_state.indicator["Variable"] = st.selectbox("Variable", ["precipitation_sum", "temperature_max_2m"], key="variable")
+    st.session_state.indicator["Variable"] = st.selectbox("Variable", options=df_chosen.columns,key="variable")
     indicator_type = st.session_state.indicator["Indicator Type"] = st.selectbox("Indicator Type", options=INDICATOR_TYPES, key="indicator_type")
     return indicator_type
 
-def indicator_building():
+def indicator_building(df_chosen:pd.DataFrame):
     st.subheader("Create indicators")
     with st.expander("Indicator template",expanded=True):
         
-        indicator_type = general_information()
+        indicator_type = general_information(df_chosen)
         if indicator_type in ["Outlier Days", "Consecutive Outlier Days"]:
             handle_threshold_input()
+        elif indicator_type == "Season Sum":
+            handle_yearly_threshold_input()
 
         handle_yearly_aggregation_input()
         handle__season_shift_input()
@@ -271,11 +301,12 @@ def indicator_building():
 # --- Handle upadate part ---
 # ---------------------------
 
-def general_information_update(updated_indicator,i):
+def general_information_update(updated_indicator,i, df_chosen:pd.DataFrame):
     
+    print(list(df_chosen.columns))
     updated_indicator["Name"] = st.text_input("Indicator Name", updated_indicator["Name"], key=f"edit_name_{i}")
-    updated_indicator["Variable"] = st.selectbox("Variable", ["precipitation_sum", "temperature_max_2m"], 
-                                                 index=["precipitation_sum", "temperature_max_2m"].index(updated_indicator["Variable"]), 
+    updated_indicator["Variable"] = st.selectbox("Variable", options =df_chosen.columns,
+                                                 index=list(df_chosen.columns).index(updated_indicator["Variable"]), 
                                                  key=f"edit_variable_{i}")
     
     updated_indicator["Indicator Type"] = st.selectbox("Indicator Type", options=INDICATOR_TYPES, 
@@ -302,6 +333,19 @@ def handle_threshold_update(updated_indicator, updated_checkbox, i):
         handle_input_update(updated_indicator, updated_checkbox["max_daily_checkbox"],"Daily Threshold Max", i)
         handle_input_update(updated_indicator, updated_checkbox["min_yearly_checkbox"],"Yearly Threshold Min", i)
         handle_input_update(updated_indicator, updated_checkbox["max_yearly_checkbox"],"Yearly Threshold Max", i)
+    elif updated_indicator["Indicator Type"] == "Season Sum":
+        st.subheader("Thresholds")
+        handle_threshold_yearly_update(updated_indicator, updated_checkbox, i)
+
+def handle_threshold_yearly_update(updated_indicator, updated_checkbox, i):
+    
+    handle_input_update(updated_indicator, updated_checkbox["min_yearly_checkbox"],"Yearly Threshold Min", i)
+    handle_input_update(updated_indicator, updated_checkbox["max_yearly_checkbox"],"Yearly Threshold Max", i)
+
+def handle_threshold_daily_update(updated_indicator, updated_checkbox, i):
+    handle_input_update(updated_indicator, updated_checkbox["min_daily_checkbox"],"Daily Threshold Min", i)
+    handle_input_update(updated_indicator, updated_checkbox["max_daily_checkbox"],"Daily Threshold Max", i)
+
 
 def handle_shift_update(updated_indicator, updated_checkbox, i):
     
@@ -330,7 +374,7 @@ def handle_button_update(updated_indicator, row, i):
 
     
     
-def indicator_editing():
+def indicator_editing(df_chosen : pd.DataFrame):
     if not st.session_state.df_indicators.empty:
         st.subheader("Edit Indicators")
         for (i, row), (j, row_checkbox) in zip(st.session_state.df_indicators.iterrows(), st.session_state.df_checkbox.iterrows()):
@@ -339,7 +383,7 @@ def indicator_editing():
                 updated_indicator = row.to_dict()
                 updated_checkbox = row_checkbox.to_dict()
     
-                general_information_update(updated_indicator, i)
+                general_information_update(updated_indicator, i, df_chosen)
                 handle_threshold_update(updated_indicator, updated_checkbox, i)
                 handle_aggregation_update(updated_indicator, i)
                 handle_shift_update(updated_indicator, updated_checkbox, i)
