@@ -6,17 +6,26 @@ from layouts.layout import *
 from lib.widget import * 
 from indicators.calculation import *
 from lib.session_variables import *
+from lib.data_process import *
+from lib.plot import *
+from indicators.plot import *
+
 
 def main():
     """Basic Streamlit app with a title."""
     # Set some layout parameters for the page 
     st.set_page_config(layout="wide")
     set_page_title("Indicators Customization")
-    set_title_1("First Selection")
-    set_title_2("Variable Summary")
+    set_title_2("Period")
     # Loading CSV 
+    long_period = (long_period_start, long_period_end) = select_period()
+
+    # Period cut
+    smaller_period_length  = st.select_slider("Choose the length of smaller period to see the evolution of your data on them:",options=PERIOD_LENGTH)
+    periods = split_into_periods_indicators(smaller_period_length, long_period_start, long_period_end)
     filename = "CSV_files/cmip6_era5_data_daily_0.csv"
     data = loads_data(filename=filename)
+    data = period_filter(data, period=long_period)
     st.dataframe(data, height=DATAFRAME_HEIGHT, use_container_width=True)
 
     set_title_2("Variable Choice")
@@ -62,23 +71,42 @@ def main():
         # else :
         #     df = create_empty_dataframe()
         # df_indicator_paramters = create_dynamic_dataframe(df, df_season.columns)
-        
 
         # Need to calculate score with this parameters
         set_title_2("Indicators calculation")
-        calculate_score(df_season, st.session_state.df_indicators)
+        df_yearly = calculate_score(df_season, st.session_state.df_indicators)
+        if not df_yearly.empty:
+            df_yearly["year"] = df_yearly.index.year
+            df_yearly = add_periods_to_df(df_yearly, periods)
+            set_title_2("Frequency thresholds")
+            threshold1, threshold2, threshold3 = get_frequency_threshold_inputs()
+        
+            df_yearly = df_yearly.groupby("period").sum().filter(like="yearly_indicator").div(df_yearly.groupby("period").size(), axis=0)
+            st.dataframe(df_yearly, height=DATAFRAME_HEIGHT, use_container_width=True)
 
-    set_title_2("Exposure or suitability")
-    # Faire une function pour différencier les seuils mettre en place l'ordre du comptage
+            # Apply the function and separate results
+            # This is just for the user 
+            df_yearly_background = copy(df_yearly)
+            for col in df_yearly.columns:
+                df_yearly[f"{col}_Category"] = df_yearly[col].apply(
+                    lambda x: classify_exposure(x, threshold1, threshold2, threshold3)
+                )
+            df_yearly_background = df_yearly_background.map(lambda x: classify_frequency_by_exposure(x, threshold1, threshold2, threshold3))
 
-    set_title_1("Indicators Calculation")
-    # yearly_threshold_init()
+            if not df_yearly_background.empty :# df_yearly = df_yearly.applymap(lambda x: classify_frequency_by_exposure(x, threshold1, threshold2, threshold3))
+                st.dataframe(df_yearly,height=DATAFRAME_HEIGHT, use_container_width=True)      
 
-        # # The threshold init
-        # st.subheader("Daily threshold definition")
-        # daily_thresh_dict = daily_threshold_init()
-        # yearly_thresh_dict = yearly_threshold_init()
-    
+                # df_yearly = df_yearly.apply(classify_desirability_score)
+
+                set_title_2("Exposure Plot")
+                plot_exposure_through_period(df_yearly_background)
+        # yearly_threshold_init()
+
+            # # The threshold init
+            # st.subheader("Daily threshold definition")
+            # daily_thresh_dict = daily_threshold_init()
+            # yearly_thresh_dict = yearly_threshold_init()
+        
 
 
 

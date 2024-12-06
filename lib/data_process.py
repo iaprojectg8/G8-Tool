@@ -43,6 +43,10 @@ def column_choice(data : pd.DataFrame):
 
     return df_final
 
+def period_filter(data,period):
+    data_in_right_period = data[(data.index.year>=period[0]) & (data.index.year<=period[-1])]
+    return data_in_right_period
+
 def filtered_data(data:pd.DataFrame, chosen_variables, period):
     """
     Filters a DataFrame based on selected variables and a specified time period, 
@@ -78,7 +82,7 @@ def filtered_data(data:pd.DataFrame, chosen_variables, period):
 
 
 def select_period():
-    set_title_1("Period")
+    
     period_start= 1950
     period_end= 2050
 
@@ -89,6 +93,36 @@ def select_period():
         value=(period_start, period_end))      
     return period_start, period_end
 
+
+def split_into_periods_indicators(period_length, start_year, end_year):
+    """
+    Splits a given time range into multiple periods of a specified length.
+
+    Args:
+        period_length (int): The length of each period in years.
+        start_year (int): The starting year of the entire time range.
+        end_year (int): The ending year of the entire time range.
+
+    Returns:
+        list of tuples: A list of tuples where each tuple represents a period
+                        with the format (period_start, period_end).
+    """
+    whole_period_length = end_year - start_year + 1
+    amount_of_periods = whole_period_length // period_length + 1
+    periods = []
+
+    # Loop through each period index and calculate start and end years
+    for period_index in range(amount_of_periods):
+        period_start = start_year + period_index * period_length   # Start year of the current period
+        period_end = period_start + period_length -1  # End year of the current period
+
+        # Append the period to the list, ensuring it does not exceed the end year
+        if period_end <= end_year:
+            periods.append((period_start, period_end))
+        else:
+            periods.append((period_start, end_year))
+
+    return periods
 
 def split_into_periods(period_length, start_year, end_year):
     """
