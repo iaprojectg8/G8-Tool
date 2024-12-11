@@ -1,7 +1,8 @@
 from utils.imports import *
 from utils.variables import * 
 from layouts.layout import * 
-
+from lib.plot import add_periods_to_df
+from indicators.plot import plot_period_categorization, plot_exposure
 
 def reset_cumsum(group):
     cumsum = 0
@@ -14,7 +15,7 @@ def reset_cumsum(group):
         result.append(cumsum)
     return result
 
-def calculate_score(df, df_indicators_parameters: pd.DataFrame):
+def calculate_score(df_season, df_indicators_parameters: pd.DataFrame,all_year_data, season_start, season_end,periods):
     
     # Store all newly created columns in a dictionary to merge later
 
@@ -22,48 +23,91 @@ def calculate_score(df, df_indicators_parameters: pd.DataFrame):
     for _, row in df_indicators_parameters.iterrows():
         variable = row["Variable"]
         score_name = row["Name"]
-        if row["Indicator Type"] == "Season Sum":
+        season_start_shift=row["Season Start Shift"]
+        season_end_shift= row["Season End Shift"]
+        # if row["Season Shift Start"] is not None:
+        if season_start_shift is not None and season_end_shift is not None:
+            print("iam in the double condition ")
+            st.dataframe(all_year_data, height=DATAFRAME_HEIGHT, use_container_width=True) 
+            df_season = all_year_data[(all_year_data.index.month >= season_start-season_start_shift) 
+                                      & (all_year_data.index.month <= season_end+season_end_shift)]
+        elif season_start_shift is not None:
+            st.dataframe(all_year_data, height=DATAFRAME_HEIGHT, use_container_width=True) 
+            df_season = all_year_data[(all_year_data.index.month >= season_start-season_start_shift) & (all_year_data.index.month <= season_end)]
+        elif season_end_shift is not None:
+            st.dataframe(all_year_data, height=DATAFRAME_HEIGHT, use_container_width=True) 
+            df_season = all_year_data[(all_year_data.index.month >= season_start) & (all_year_data.index.month <= season_end+season_end_shift)]
+
+
+        if row["Indicator Type"] == "Season Aggregation":
             # Perform yearly aggregation
-            df_yearly_var, aggregated_column_name = make_yearly_agg(df, score_name,variable, row["Yearly Aggregation"])
+            df_yearly_var, aggregated_column_name = make_yearly_agg(df_season, score_name,variable, row["Yearly Aggregation"])
+
+    
             df_yearly_var = indicator_score(
                 df_yearly_var,
                 aggregated_column_name,
                 score_name,
-                row["Yearly Threshold Min"],
-                row["Yearly Threshold Max"]
+                row["Yearly Threshold Min List"],
+                row["Yearly Threshold Max List"]
             )
 
         elif row["Indicator Type"] == "Outlier Days":
-            df_daily, indicator_column = daily_indicators(df, variable,score_name, row["Daily Threshold Min"], row["Daily Threshold Max"])
+            df_daily, indicator_column = daily_indicators(df_season, variable, row["Daily Threshold Min"], row["Daily Threshold Max"])
             # st.dataframe(df_daily, use_container_width=True)
-            df_yearly_var, aggregated_column_name = make_yearly_agg(df, score_name,indicator_column, row["Yearly Aggregation"])
+            st.dataframe(df_daily)
+            df_yearly_var, aggregated_column_name = make_yearly_agg(df_season, score_name,indicator_column, row["Yearly Aggregation"])
             df_yearly_var = indicator_score(
                 df_yearly_var,
                 aggregated_column_name,
                 score_name,
-                row["Yearly Threshold Min"],
-                row["Yearly Threshold Max"]
+                row["Yearly Threshold Min List"],
+                row["Yearly Threshold Max List"]
             )
+            
 
         elif row["Indicator Type"] == "Consecutive Outlier Days":
-            df_daily, indicator_column = daily_indicators(df, variable,score_name, row["Daily Threshold Min"], row["Daily Threshold Max"])
-            df_daily["cumulated_days_sum"] = df.groupby(df.index.year)[indicator_column].transform(reset_cumsum)
+            df_daily, indicator_column = daily_indicators(df_season, variable, row["Daily Threshold Min"], row["Daily Threshold Max"])
+            df_daily["cumulated_days_sum"] = df_season.groupby(df_season.index.year)[indicator_column].transform(reset_cumsum)
                                         
-            # st.dataframe(df_daily, use_container_width=True)
-            df_yearly_var, aggregated_column_name = make_yearly_agg(df, score_name,"cumulated_days_sum", row["Yearly Aggregation"])
+            st.dataframe(df_daily, use_container_width=True)
+
+            df_yearly_var, aggregated_column_name = make_yearly_agg(df_season, score_name,"cumulated_days_sum", row["Yearly Aggregation"])
             df_yearly_var = indicator_score(
                 df_yearly_var,
                 aggregated_column_name,
                 score_name,
-                row["Yearly Threshold Min"],
-                row["Yearly Threshold Max"]
+                row["Yearly Threshold Min List"],
+                row["Yearly Threshold Max List"]
             )
-  
-        df_yearly = pd.concat([df_yearly, df_yearly_var],axis=1)    
 
-    set_title_2("Yearly result for the moment")    
-    st.dataframe(df_yearly, height=DATAFRAME_HEIGHT, use_container_width=True)
+        # print(df_yearly_var)
+        df_yearly_var["year"] = df_yearly_var.index.year
+        df_yearly_var = add_periods_to_df(df_yearly_var, periods)
+        df_yearly_var["period"] = df_yearly_var["period"].apply(lambda x: f"{x[0]}-{x[1]}")
+
+        score_counts = df_yearly_var.groupby('period')[f"yearly_indicator_{score_name}"].value_counts().unstack(fill_value=0)
+        # Define color and risk mapping
+        
+        # plot_period_categorization(score_counts)
+        plot_exposure(df_yearly_var, score_name, row["Yearly Threshold Min List"], row["Yearly Threshold Max List"])
+
+        set_title_2("Yearly result for the moment")    
+        st.dataframe(df_yearly, height=DATAFRAME_HEIGHT, use_container_width=True)
     return df_yearly
+
+
+def map_risk(score):
+    if score in [-4, 4]:
+        return "Very High Risk"
+    elif score in [-3, 3]:
+        return "High Risk"
+    elif score in [-2, 2]:
+        return "Moderate Risk"
+    elif score in [-1, 1]:
+        return "Low Risk"
+    elif score == 0:
+        return "Very Low Risk"
 
 
 def make_yearly_agg(df: pd.DataFrame,score, variable, yearly_aggregation):
@@ -78,26 +122,94 @@ def make_yearly_agg(df: pd.DataFrame,score, variable, yearly_aggregation):
     # st.dataframe(df_yearly)
     return df_yearly, f"{variable}_{yearly_aggregation}_{score}"
 
-def daily_indicators(df:pd.DataFrame, variable,score, daily_thresh_min, daily_thresh_max):
+def daily_indicators(df:pd.DataFrame, variable, daily_thresh_min, daily_thresh_max):
     indicator_column = f"daily_indicator"
-    if daily_thresh_min is not None and daily_thresh_max is not None:
-        df[indicator_column] =  (~df[variable].between(daily_thresh_min, daily_thresh_max)).astype(int)   
-    elif daily_thresh_min is not None:
+  
+    if daily_thresh_min is not None and not math.isnan(daily_thresh_min) and daily_thresh_max is not None and not math.isnan(daily_thresh_max):
+        print("between,")
+        df[indicator_column] =  (df[variable].between(daily_thresh_min, daily_thresh_max)).astype(int)   
+    elif  daily_thresh_min is not None and not math.isnan(daily_thresh_min):
+        print("daily min")
         df[indicator_column] =  (df[variable] < daily_thresh_min).astype(int)
-    elif daily_thresh_max is not None:
+    elif  daily_thresh_max is not None and not math.isnan(daily_thresh_max):
+        print("daily_max")
         df[indicator_column] =  (df[variable] > daily_thresh_max).astype(int)
     else:
         df = df
     return df, indicator_column
 
-def indicator_score(df: pd.DataFrame, variable, score, yearly_tresh_min, yearly_thresh_max):
-    # Create a new column for the yearly indicator
-    if yearly_tresh_min is not None and yearly_thresh_max is not None:
-        df[f"yearly_indicator_{score}"] = (~df[variable].between(yearly_tresh_min, yearly_thresh_max)).astype(int)
-    elif yearly_tresh_min is not None:
-        df[f"yearly_indicator_{score}"] = (df[variable] < yearly_tresh_min).astype(int)
-    elif yearly_thresh_max is not None:
-        df[f"yearly_indicator_{score}"] = (df[variable] > yearly_thresh_max).astype(int)
+
+# Create a new column for the yearly indicator
+def categorize_above(value, above_thresholds):
+    if above_thresholds[0] <= value < above_thresholds[1]:
+        return 1
+    elif above_thresholds[1] <= value < above_thresholds[2]:
+        return 2
+    elif above_thresholds[2] <= value < above_thresholds[3]:
+        return 3
+    elif value > above_thresholds[3]:
+        return 4
+    else :
+        return 0
+
+def categorize_below(value, below_thresholds):
+    if below_thresholds[0] >= value > below_thresholds[1]:
+        return -1
+    elif below_thresholds[1] >= value > below_thresholds[2]:
+        return -2
+    elif below_thresholds[2] >= value > below_thresholds[3]:
+        return -3
+    elif value < below_thresholds[3]:
+        return -4
+    else: 
+        return 0
+    
+def categorize_both(value, below_thresholds=None,above_thresholds=None):
+    """
+    Categorizes a value based on both above and below thresholds.
+    
+    Args:
+        value (float): The value to categorize.
+        above_thresholds (list, optional): A sorted list of thresholds for values above the normal range.
+        below_thresholds (list, optional): A sorted list of thresholds for values below the normal range (in descending order).
+    
+    Returns:
+        int: The category, positive for above thresholds, negative for below thresholds, and 0 for normal.
+    """
+    # Check if value is above thresholds
+    if above_thresholds:
+        if above_thresholds[0] <= value < above_thresholds[1]:
+            return 1
+        elif above_thresholds[1] <= value < above_thresholds[2]:
+            return 2
+        elif above_thresholds[2] <= value < above_thresholds[3]:
+            return 3
+        elif value >= above_thresholds[3]:
+            return 4
+
+    # Check if value is below thresholds
+    if below_thresholds:
+        if below_thresholds[0] >= value > below_thresholds[1]:
+            return -1
+        elif below_thresholds[1] >= value > below_thresholds[2]:
+            return -2
+        elif below_thresholds[2] >= value > below_thresholds[3]:
+            return -3
+        elif value <= below_thresholds[3]:
+            return -4
+
+    # Value is within the normal range
+    return 0
+
+def indicator_score(df: pd.DataFrame, variable, score, yearly_trehsholds_min: list, yearly_trehsholds_max:list):
+    below_thresholds = yearly_trehsholds_min
+    above_thresholds = yearly_trehsholds_max
+    
+    df[f"yearly_indicator_{score}"] =(df[variable].apply(lambda x:categorize_both(x,below_thresholds, above_thresholds) )).astype(int)
+    # elif yearly_tresh_min is not None:
+    #     df[f"yearly_indicator_{score}"] = (df[variable] < yearly_tresh_min).astype(int)
+    # elif yearly_thresh_max is not None:
+    #     df[f"yearly_indicator_{score}"] = (df[variable] > yearly_thresh_max).astype(int)
 
     return df
 

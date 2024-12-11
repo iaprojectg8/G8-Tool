@@ -1,11 +1,5 @@
 from utils.imports import * 
 
-if "start_date" not in st.session_state:
-    st.session_state.start_date = None
-
-if "end_date" not in st.session_state:
-    st.session_state.end_date = None
-
 
 if "indicator" not in st.session_state:
     st.session_state.indicator = {
@@ -16,6 +10,10 @@ if "indicator" not in st.session_state:
         "Daily Threshold Max": None,
         "Yearly Threshold Min": None,
         "Yearly Threshold Max": None,
+        "Yearly Threshold Min Step" : None,
+        "Yearly Threshold Min List": [],
+        "Yearly Threshold Max Step" : None,
+        "Yearly Threshold Max List" : [],
         "Yearly Aggregation": None,
         "Season Start Shift": None,
         "Season End Shift": None
@@ -37,7 +35,8 @@ if "checkbox_defaults" not in st.session_state:
 if "df_checkbox" not in st.session_state:
     st.session_state.df_checkbox = pd.DataFrame(columns=st.session_state.checkbox_defaults.keys())
     
-
+if "columns_chosen" not in st.session_state:
+    st.session_state.columns_chosen = None
 
 def delete_indicator(index):
 # Remove the row with index 2
@@ -56,6 +55,10 @@ def reset_indicator():
         "Daily Threshold Max": None,
         "Yearly Threshold Min": None,
         "Yearly Threshold Max": None,
+        "Yearly Threshold Min Step" : None,
+        "Yearly Threshold Min List": [],
+        "Yearly Threshold Max Step" : None,
+        "Yearly Threshold Max List" : [],
         "Yearly Aggregation": None,
         "Season Start Shift": None,
         "Season End Shift": None
