@@ -110,102 +110,6 @@ def select_data_contained_in_season(data, season_start, season_end):
 
 
 
-def daily_threshold_init():
-    """
-    Initializes daily thresholds based on user input.
-    Users can select thresholds via checkboxes and set values through number inputs.
-    
-    Returns:
-        dict: A dictionary of selected thresholds and their corresponding values.
-    """
-    daily_threshold = {}
-
-    # Thresholds with their default values
-    thresholds = {
-        "GDD Base Temp": 10,
-        "Daily Extreme Precipitation Threshold": 40,
-        "Daily Dry Day Threshold": 1,
-        "Daily Heat Stress Threshold": 35,
-        "Daily Wind Stress Threshold": 10,
-        "Daily Soil Moisture Threshold": 0.2,
-        "Daily Humidity Risk": 90,
-    }
-
-    # Loop through thresholds and create UI elements
-    for label, default_value in thresholds.items():
-        col1, col2 = st.columns([1, 1])  # Adjust the column width ratios if needed
-        with col1:
-            if st.checkbox(label):
-                with col2:
-                    daily_threshold[label] = st.number_input(label="1", value=default_value,  label_visibility="collapsed")
-
-    # Display the selected thresholds as a summary table
-    if daily_threshold:
-        st.write("### Thresholds array  summary")
-        df = pd.DataFrame(daily_threshold.items(), columns=["Threshold", "Value"]).reset_index(drop=True)
-        st.dataframe(df)
-    
-    return daily_threshold
-
-
-
-
-def yearly_threshold_init():
-    yearly_threshold = {}
-
-    # Créer deux colonnes pour les checkboxes et les inputs
-    st.write("### Yearly Threshold Configuration")
-    for label, default_value in {
-        "Yearly Min Temp Suitability Threshold": 24,
-        "Yearly Max Temp Suitability Threshold": 30,
-        "Yearly Max CV Temp Suitability": 10,
-        "Yearly Min GDD Suitability Threshold": 2200,
-        "Yearly Min Prec Suitability Threshold": 650,
-        "Yearly Max Prec Suitability Threshold": 1500,
-        "Yearly Max Extreme Prec Days Threshold": 15,
-        "Yearly Max CV Prec Suitability": 150,
-        "Yearly Max Soil Moisture Deficit Threshold": 1.5,
-        "Yearly Min Solar Radiation Suitability Threshold": 450,
-        "Yearly Max Season Start Shift": 10,
-        "Yearly Min Season Length": 120,
-        "Yearly Humidity Stress Threshold": 30,
-        "Yearly Dry Days Stress Threshold": 25,
-        "Yearly Heat Days Stress Threshold": 15,
-        "Yearly Wind Stress Threshold": 10,
-    }.items():
-        col1, col2 = st.columns([1, 4])  # Adjust the column width ratios
-        with col1:
-            if st.checkbox(label):
-                with col2:
-                    yearly_threshold[label] = st.number_input(label="1", value=default_value, label_visibility="collapsed")  # Empty label for cleaner layout
-
-    # Afficher les valeurs pour vérification
-    if yearly_threshold:
-        st.write("### Summary of the Selected Thresholds")
-        df = pd.DataFrame(yearly_threshold.items(), columns=["Threshold", "Value"]).reset_index(drop=True)
-        st.dataframe(yearly_threshold, column_config=[""])
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # Real part start there
 # -------------------------
 # --- Handle input part ---
@@ -224,27 +128,110 @@ def handle_checkbox_and_input(label : str, checkbox_key):
     else:
         st.session_state.indicator[label] = None
 
+def handle_checkbox_and_input_yearly_agg_min(label : str, checkbox_key):
+    col1, col2 = st.columns([0.2, 0.8])
+    with col1:
+        st.session_state.checkbox_defaults[checkbox_key] = st.checkbox(label=label, key=checkbox_key)
+        print(st.session_state.checkbox_defaults)
+        
+    if st.session_state.checkbox_defaults[checkbox_key]:
+        with col2:
+            st.session_state.indicator[label] = st.number_input(label, value=None, label_visibility="collapsed", key="_".join(label.lower().split(" ")))
+        if st.session_state.indicator[label] is not None:
+            st.subheader("Step below")
+            col1, col2 = st.columns([0.8, 0.2])
+            with col1:
+                st.write("""Choose a step value to define additional thresholds below the current one. 
+                         Each step will determine the range for hazard levels (e.g., Low, Moderate, High, Very High).
+                         Starting from the current threshold, each subsequent range will be created by substracting the step value.""")
+            
+            with col2:
+                st.session_state.indicator[label+ " Step"] = step = st.number_input(label="Step",key="step below", label_visibility="collapsed")
+
+                st.session_state.indicator[label+" List"] = [st.session_state.indicator[label] - step * i for i in range(NUM_THRESHOLDS + 1)]
+        st.write("Your ohter threshold will be the ones there ", st.session_state.indicator[label+" List"])
+    else:
+        st.session_state.indicator[label] = None
+
+def handle_checkbox_and_input_yearly_agg_max(label : str, checkbox_key):
+    col1, col2 = st.columns([0.2, 0.8])
+    with col1:
+        st.session_state.checkbox_defaults[checkbox_key] = st.checkbox(label=label, key=checkbox_key)
+        
+    if st.session_state.checkbox_defaults[checkbox_key]:
+        with col2:
+            st.session_state.indicator[label] = step = st.number_input(label, value=None, label_visibility="collapsed", key="_".join(label.lower().split(" ")))
+        if st.session_state.indicator[label] is not None:
+            col1, col2 = st.columns([0.8, 0.2])
+            st.subheader("Step above")
+            with col1:
+                st.write("""Choose a step value to define additional thresholds above the current one. 
+                         Each step will determine the range for hazard levels (e.g., Low, Moderate, High, Very High).
+                         Starting from the current threshold, each subsequent range will be created by adding the step value.""")
+            
+            with col2:
+                st.session_state.indicator[label+ " Step"] = step = st.number_input(label="Step", key="step above", label_visibility="collapsed")
+
+                st.session_state.indicator[label+" List"] = [st.session_state.indicator[label] + step * i for i in range(NUM_THRESHOLDS + 1)]
+        st.write("Your ohter threshold will be the ones there ", st.session_state.indicator[label+" List"])
+    else:
+        st.session_state.indicator[label] = None
+
+
+def handle_checkbox_input_season_shift_start(label:str, checkbox_key, season_start):
+    col1, col2 = st.columns([0.2, 0.8])
+    with col1:
+        st.session_state.checkbox_defaults[checkbox_key] = st.checkbox(label=label, key=checkbox_key)
+        
+    if st.session_state.checkbox_defaults[checkbox_key]:
+        with col2:
+            st.session_state.indicator[label] = st.number_input(label, value=None,
+                                                                 min_value=0, max_value=season_start,
+                                                                 label_visibility="collapsed", 
+                                                                 key="_".join(label.lower().split(" ")))
+    else:
+        st.session_state.indicator[label] = None
+
+def handle_checkbox_input_season_shift_end(label:str, checkbox_key, season_end):
+    col1, col2 = st.columns([0.2, 0.8])
+    with col1:
+        st.session_state.checkbox_defaults[checkbox_key] = st.checkbox(label=label, key=checkbox_key)
+        
+    if st.session_state.checkbox_defaults[checkbox_key]:
+        with col2:
+            st.session_state.indicator[label] = st.number_input(label, value=None,
+                                                                 min_value=0, max_value=12 - season_end,
+                                                                 label_visibility="collapsed", 
+                                                                 key="_".join(label.lower().split(" ")))
+    else:
+        st.session_state.indicator[label] = None
+
 def handle_threshold_input():
 
     # Thresholds init
-    st.subheader("Thresholds")
+    
+    handle_daily_threshold_input()
+    handle_yearly_threshold_input()
+
+
+def handle_daily_threshold_input():
+    st.subheader("Daily Thresholds")
     handle_checkbox_and_input(label="Daily Threshold Min", checkbox_key="min_daily_checkbox")
     handle_checkbox_and_input(label="Daily Threshold Max", checkbox_key="max_daily_checkbox")
-    handle_checkbox_and_input(label="Yearly Threshold Min", checkbox_key="min_yearly_checkbox")
-    handle_checkbox_and_input(label="Yearly Threshold Max", checkbox_key="max_yearly_checkbox")
 
 def handle_yearly_threshold_input():
-    st.subheader("Thresholds")
-    handle_checkbox_and_input(label="Yearly Threshold Min", checkbox_key="min_yearly_checkbox")
-    handle_checkbox_and_input(label="Yearly Threshold Max", checkbox_key="max_yearly_checkbox")
+    st.subheader("Yearly Thresholds")
+    handle_checkbox_and_input_yearly_agg_min(label="Yearly Threshold Min", checkbox_key="min_yearly_checkbox")
+    handle_checkbox_and_input_yearly_agg_max(label="Yearly Threshold Max", checkbox_key="max_yearly_checkbox")
 
 
-def handle__season_shift_input():
+def handle_season_shift_input(season_start, season_end):
 
     # Season shift init 
     st.subheader("Season shift")
-    handle_checkbox_and_input(label="Season Start Shift", checkbox_key="shift_start_checkbox")
-    handle_checkbox_and_input(label="Season End Shift", checkbox_key="shift_end_checkbox")
+    if season_start is not None and season_end is not None:
+        handle_checkbox_input_season_shift_start(label="Season Start Shift", checkbox_key="shift_start_checkbox",season_start=season_start )
+        handle_checkbox_input_season_shift_end(label="Season End Shift", checkbox_key="shift_end_checkbox", season_end=season_end)
 
 
 def handle_yearly_aggregation_input():
@@ -278,18 +265,20 @@ def general_information(df_chosen :pd.DataFrame):
     indicator_type = st.session_state.indicator["Indicator Type"] = st.selectbox("Indicator Type", options=INDICATOR_TYPES, key="indicator_type")
     return indicator_type
 
-def indicator_building(df_chosen:pd.DataFrame):
+def indicator_building(df_chosen:pd.DataFrame, season_start, season_end):
     st.subheader("Create indicators")
     with st.expander("Indicator template",expanded=True):
         
         indicator_type = general_information(df_chosen)
         if indicator_type in ["Outlier Days", "Consecutive Outlier Days"]:
             handle_threshold_input()
-        elif indicator_type == "Season Sum":
+        elif indicator_type == "Season Aggregation":
             handle_yearly_threshold_input()
+            print(st.session_state.indicator)
+            print(st.session_state.checkbox_defaults)
 
         handle_yearly_aggregation_input()
-        handle__season_shift_input()
+        handle_season_shift_input(season_start, season_end)
 
         # Button 
         handle_buttons()
@@ -318,39 +307,140 @@ def handle_input_update(updated_indicator, updated_checkbox_value,label, i):
         
         if st.checkbox(label=label, value=updated_checkbox_value, key=f"edit_{"_".join(label.lower().split(" "))}_checkbox_{i}"):
             with col2:
-                updated_indicator[label] = st.number_input(label=label, value=updated_indicator[label], label_visibility="collapsed", key=f"edit_{"_".join(label.lower().split(" "))}_{i}")
+                updated_indicator[label] = st.number_input(label=label, 
+                                                           value=updated_indicator[label], 
+                                                           label_visibility="collapsed", 
+                                                           key=f"edit_{"_".join(label.lower().split(" "))}_{i}")
         else:
             updated_indicator[label] = None
+
+    
+def handle_input_update_season_shift_start(updated_indicator, updated_checkbox_value,label, i, season_start):
+    col1, col2 = st.columns([0.2, 0.8])
+    with col1:
+        
+        if st.checkbox(label=label, value=updated_checkbox_value, key=f"edit_{"_".join(label.lower().split(" "))}_checkbox_{i}"):
+            with col2:
+                updated_indicator[label] = st.number_input(label=label, 
+                                                           value=updated_indicator[label], 
+                                                           min_value=0,
+                                                           max_value = season_start,
+                                                           label_visibility="collapsed", 
+                                                           key=f"edit_{"_".join(label.lower().split(" "))}_{i}")
+        else:
+            updated_indicator[label] = None
+
+def handle_input_update_season_shift_end(updated_indicator, updated_checkbox_value,label, i, season_end):
+    col1, col2 = st.columns([0.2, 0.8])
+    with col1:
+        
+        if st.checkbox(label=label, value=updated_checkbox_value, key=f"edit_{"_".join(label.lower().split(" "))}_checkbox_{i}"):
+            with col2:
+                updated_indicator[label] = st.number_input(label=label, 
+                                                           value=updated_indicator[label], 
+                                                           min_value=0,
+                                                           max_value = 12 - season_end,
+                                                           label_visibility="collapsed", 
+                                                           key=f"edit_{"_".join(label.lower().split(" "))}_{i}")
+        else:
+            updated_indicator[label] = None
+
+def handle_update_checkbox_and_input_yearly_agg_min(updated_indicator, updated_checkbox_value, label, i):
+    col1, col2 = st.columns([0.2, 0.8])
+    print(updated_indicator[label])
+    with col1:
+        if st.checkbox(label=label,value=updated_checkbox_value, key=f"edit_{"_".join(label.lower().split(" "))}_checkbox_{i}"):
+            with col2:
+                st.write(updated_indicator[label])
+                updated_indicator[label] = st.number_input(label, value=updated_indicator[label], label_visibility="collapsed", key=f"edit{"_".join(label.lower().split(" "))}_{i}")
+        else:
+            updated_indicator[label] = None
+            updated_indicator[label+" Step"] = None
+            updated_indicator[label+" List"] = None
+    if updated_indicator[label] is not None:
+        st.subheader("Step below")
+        col1, col2 = st.columns([0.8, 0.2])
+        with col1:
+            st.write("""Choose a step value to define additional thresholds below the current one. 
+                    Each step will determine the range for hazard levels (e.g., Low, Moderate, High, Very High).
+                    Starting from the current threshold, each subsequent range will be created by substracting the step value.""")
+        
+        with col2:
+            updated_indicator[label+" Step"] = step = st.number_input(label="Step",
+                                                                        value=updated_indicator[label+" Step"],
+                                                                        key=f"edit step below {i}",
+                                                                        label_visibility="collapsed")
+
+            updated_indicator[label+" List"] = [updated_indicator[label] - step * i for i in range(NUM_THRESHOLDS + 1)]
+        st.write("Your ohter threshold will be the ones there ", updated_indicator[label+" List"])
+    else:
+        updated_indicator[label] = None
+
+def handle_update_checkbox_and_input_yearly_agg_max(updated_indicator, updated_checkbox_value, label, i):
+    col1, col2 = st.columns([0.2, 0.8])
+    with col1:
+ 
+        if st.checkbox(label=label, value=updated_checkbox_value, key=f"edit_{"_".join(label.lower().split(" "))}_checkbox_{i}"):
+            with col2:
+                st.write(updated_indicator[label])
+                updated_indicator[label] = st.number_input(label, value=updated_indicator[label], label_visibility="collapsed",  key=f"edit{"_".join(label.lower().split(" "))}_{i}")
+        else:
+            updated_indicator[label] = None
+            updated_indicator[label+" Step"] = None
+            updated_indicator[label+" List"] = None
+    if updated_indicator[label] is not None:
+        col1, col2 = st.columns([0.8, 0.2])
+        st.subheader("Step above")
+        with col1:
+            st.write("""Choose a step value to define additional thresholds above the current one. 
+                    Each step will determine the range for hazard levels (e.g., Low, Moderate, High, Very High).
+                    Starting from the current threshold, each subsequent range will be created by adding the step value.""")
+        
+        with col2:
+            st.write(updated_indicator[label+" Step"])
+            updated_indicator[label+" Step"] = step = st.number_input(label="Step",
+                                                                        value=updated_indicator[label+" Step"],
+                                                                        key=f"edit step above {i}",
+                                                                        label_visibility="collapsed")
+
+            updated_indicator[label+" List"] = [updated_indicator[label] + step * i for i in range(NUM_THRESHOLDS + 1)]
+        st.write("Your ohter threshold will be the ones there ", updated_indicator[label+" List"])
+    
+    print(updated_indicator)
+
 
 def handle_threshold_update(updated_indicator, updated_checkbox, i):
 
     # Handle all the threshold update
     if updated_indicator["Indicator Type"] in ["Outlier Days", "Consecutive Outlier Days"]:
-        st.subheader("Thresholds")
-        handle_input_update(updated_indicator, updated_checkbox["min_daily_checkbox"],"Daily Threshold Min", i)
-        handle_input_update(updated_indicator, updated_checkbox["max_daily_checkbox"],"Daily Threshold Max", i)
-        handle_input_update(updated_indicator, updated_checkbox["min_yearly_checkbox"],"Yearly Threshold Min", i)
-        handle_input_update(updated_indicator, updated_checkbox["max_yearly_checkbox"],"Yearly Threshold Max", i)
-    elif updated_indicator["Indicator Type"] == "Season Sum":
-        st.subheader("Thresholds")
+        
+        handle_threshold_daily_update(updated_indicator, updated_checkbox, i)
+        handle_threshold_yearly_update(updated_indicator, updated_checkbox, i)
+    elif updated_indicator["Indicator Type"] == "Season Aggregation":
         handle_threshold_yearly_update(updated_indicator, updated_checkbox, i)
 
-def handle_threshold_yearly_update(updated_indicator, updated_checkbox, i):
-    
-    handle_input_update(updated_indicator, updated_checkbox["min_yearly_checkbox"],"Yearly Threshold Min", i)
-    handle_input_update(updated_indicator, updated_checkbox["max_yearly_checkbox"],"Yearly Threshold Max", i)
-
 def handle_threshold_daily_update(updated_indicator, updated_checkbox, i):
+    st.subheader("Daily Thresholds")
     handle_input_update(updated_indicator, updated_checkbox["min_daily_checkbox"],"Daily Threshold Min", i)
     handle_input_update(updated_indicator, updated_checkbox["max_daily_checkbox"],"Daily Threshold Max", i)
 
+def handle_threshold_yearly_update(updated_indicator, updated_checkbox, i):
+    st.subheader("Yearly Thresholds")
+    print("\n In the upadated part")
+    print(updated_indicator)
+    print(updated_checkbox)
+    handle_update_checkbox_and_input_yearly_agg_min(updated_indicator, updated_checkbox["min_yearly_checkbox"],"Yearly Threshold Min", i)
+    handle_update_checkbox_and_input_yearly_agg_max(updated_indicator, updated_checkbox["max_yearly_checkbox"],"Yearly Threshold Max", i)
 
-def handle_shift_update(updated_indicator, updated_checkbox, i):
+
+
+
+def handle_shift_update(updated_indicator, updated_checkbox, i,season_start, season_end):
     
     # Handle all the shift update
     st.subheader("Season shift")
-    handle_input_update(updated_indicator, updated_checkbox["shift_start_checkbox"],"Season Start Shift", i)
-    handle_input_update(updated_indicator, updated_checkbox["shift_end_checkbox"],"Season End Shift", i)
+    handle_input_update_season_shift_start(updated_indicator, updated_checkbox["shift_start_checkbox"],"Season Start Shift", i, season_start)
+    handle_input_update_season_shift_end(updated_indicator, updated_checkbox["shift_end_checkbox"],"Season End Shift", i, season_end)
 
 
 
@@ -372,7 +462,7 @@ def handle_button_update(updated_indicator, row, i):
 
     
     
-def indicator_editing(df_chosen : pd.DataFrame):
+def indicator_editing(df_chosen : pd.DataFrame, season_start, season_end):
     if not st.session_state.df_indicators.empty:
         st.subheader("Edit Indicators")
         for (i, row), (j, row_checkbox) in zip(st.session_state.df_indicators.iterrows(), st.session_state.df_checkbox.iterrows()):
@@ -384,7 +474,7 @@ def indicator_editing(df_chosen : pd.DataFrame):
                 general_information_update(updated_indicator, i, df_chosen)
                 handle_threshold_update(updated_indicator, updated_checkbox, i)
                 handle_aggregation_update(updated_indicator, i)
-                handle_shift_update(updated_indicator, updated_checkbox, i)
+                handle_shift_update(updated_indicator, updated_checkbox, i, season_start, season_end)
                 handle_button_update(updated_indicator, row, i)
                 
     else:
@@ -436,3 +526,8 @@ def get_frequency_threshold_inputs():
 #     Faire la sum de toute la growing season et voir si c'est entre des seuil
 # A voir pour mettre un shift (growing season)
 # + indicateur de variabilité
+
+
+# Classe pour les yearly threshold:
+# Low hazard
+# Lets add so much thresholds that we will not be able to go back there

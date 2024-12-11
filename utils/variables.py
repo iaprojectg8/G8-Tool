@@ -15,7 +15,29 @@ COLORSCALE = ["Spectral", "RdYlBu", "RdYlGn", "Picnic"]
 VARIATION_THRESHOLD = 0.05
 
 AGG_FUNC = ["mean", "sum", "min", "max"]
-INDICATOR_TYPES = ["Outlier Days", "Consecutive Outlier Days", "Season Sum", "Monthly Variation Coefficient"]
+INDICATOR_TYPES = ["Outlier Days", "Consecutive Outlier Days", "Season Aggregation", "Monthly Variation Coefficient"]
 
 # This is very useful to chose the right indicator in the function
-INDICATOR_AGG = {"Outlier Days":[1, 1], "Consecutive Outlier Days": [3,1], "Season Sum": [1, 1], "Monthly Variation Coefficient":[0,0]}
+INDICATOR_AGG = {"Outlier Days":[1, 1], "Consecutive Outlier Days": [3,1], "Season Aggregation": [1, 0], "Monthly Variation Coefficient":[0,0]}
+NUM_THRESHOLDS = 3
+
+# Plot variable
+RISK_MAP = {
+        "red": "Very High Risk",
+        "orange": "High Risk",
+        "yellow": "Moderate Risk",
+        "green": "Low Risk",
+        "blue": "No Risk",
+    }
+CATEGORY_TO_COLOR_MAP = {
+        -4: "red",
+        -3: "orange",
+        -2: "yellow",
+        -1: "green",
+        0: "blue",
+        1: "green",
+        2: "yellow",
+        3: "orange",
+        4: "red",
+    }
+THRESHOLD_COLORS = ["blue", "green", "yellow", "orange", "red"]

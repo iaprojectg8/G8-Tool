@@ -12,6 +12,7 @@ import requests
 import geopandas as gpd
 import tempfile
 import numpy as np
+import math
 
 import base64
 import matplotlib.pyplot as plt
