@@ -29,6 +29,30 @@ RISK_MAP = {
         "green": "Low Risk",
         "blue": "No Risk",
     }
+
+CATEGORY_TO_RISK = {
+        -4: "Very High Risk",
+        4: "Very High Risk",
+        -3 : "High Risk",
+        3: "High Risk",
+        -2 : "Moderate Risk",
+        2: "Moderate Risk",
+        -1 : "Low Risk",
+        1: "Low Risk",
+        0: "No Risk",
+    }
+
+GET_RIGHT_COLOR = {
+        -4: -1,
+        -3: -2,
+        -2: -3,
+        -1: -4,
+        1 : 3,
+        2 : 2,
+        3 : 1,
+        4 : 0
+}
+
 CATEGORY_TO_COLOR_MAP = {
         -4: "red",
         -3: "orange",
@@ -41,3 +65,5 @@ CATEGORY_TO_COLOR_MAP = {
         4: "red",
     }
 THRESHOLD_COLORS = ["blue", "green", "yellow", "orange", "red"]
+
+EXPOSURE_AGGREGATION=["Category Max", "Variable Mean Category" ]

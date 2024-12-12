@@ -267,7 +267,7 @@ def general_information(df_chosen :pd.DataFrame):
 
 def indicator_building(df_chosen:pd.DataFrame, season_start, season_end):
     st.subheader("Create indicators")
-    with st.expander("Indicator template",expanded=True):
+    with st.expander("Indicator template",expanded=False):
         
         indicator_type = general_information(df_chosen)
         if indicator_type in ["Outlier Days", "Consecutive Outlier Days"]:
