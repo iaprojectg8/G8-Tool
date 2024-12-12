@@ -80,9 +80,9 @@ def main():
         # Need to calculate score with this parameters
         set_title_2("Indicators calculation")
         df_yearly = calculate_score(df_season, st.session_state.df_indicators,all_year_data, season_start, season_end, periods)
-        if not df_yearly.empty:
-            df_yearly["year"] = df_yearly.index.year
-            df_yearly = add_periods_to_df(df_yearly, periods)
+        # if not df_yearly.empty:
+        #     df_yearly["year"] = df_yearly.index.year
+        #     df_yearly = add_periods_to_df(df_yearly, periods)
 
             # set_title_2("Frequency thresholds")
             # threshold1, threshold2, threshold3 = get_frequency_threshold_inputs()
@@ -107,14 +107,6 @@ def main():
 
             #     set_title_2("Exposure Plot")
             #     plot_exposure_through_period(df_yearly_background)
-        # yearly_threshold_init()
-
-            # # The threshold init
-            # st.subheader("Daily threshold definition")
-            # daily_thresh_dict = daily_threshold_init()
-            # yearly_thresh_dict = yearly_threshold_init()
-        
-
 
 
 if "__main__":

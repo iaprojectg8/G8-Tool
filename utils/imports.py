@@ -52,3 +52,4 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import landscape, A4
 import plotly.io as pio
 from reportlab.lib.utils import ImageReader
+from math import *
