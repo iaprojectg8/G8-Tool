@@ -28,8 +28,9 @@ def main():
     print(periods)
     
     # Loading CSV, this will almost surely be replaced by 
-    filename = "CSV_files/cmip6_era5_data_daily_0.csv"
-    data = loads_data(filename=filename)
+    filename = "South_Bengale_coords_mean.csv"
+    path = f"CSV_files/{filename}"
+    data = loads_data(filename=path)
 
     # st.write("Possibility to upload a CSV file")
 
@@ -37,7 +38,9 @@ def main():
     data_to_keep = filtered_data(data, chosen_variables, long_period)
 
     # Plot part with monthly means and regression through all time
-    general_plot(data_to_keep, periods, chosen_variables)
+    filename = filename.split(".")[0]
+    print(filename)
+    general_plot(data_to_keep, periods, chosen_variables, filename)
 
 if __name__== "__main__":
     main()

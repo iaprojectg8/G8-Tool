@@ -38,6 +38,14 @@ if "df_checkbox" not in st.session_state:
 if "columns_chosen" not in st.session_state:
     st.session_state.columns_chosen = None
 
+
+if "season_start" not in st.session_state:
+    st.session_state.season_start = 6
+
+
+if "season_end" not in st.session_state:
+    st.session_state.season_end = 10
+
 def delete_indicator(index):
 # Remove the row with index 2
     print("index", index)

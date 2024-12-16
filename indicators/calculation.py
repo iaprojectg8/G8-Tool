@@ -20,7 +20,7 @@ def calculate_score(df_season, df_indicators_parameters: pd.DataFrame,all_year_d
     # Store all newly created columns in a dictionary to merge later
 
     df_yearly = pd.DataFrame()
-    for _, row in df_indicators_parameters.iterrows():
+    for i, row in df_indicators_parameters.iterrows():
         variable = row["Variable"]
         score_name = row["Name"]
         season_start_shift=row["Season Start Shift"]
@@ -96,7 +96,7 @@ def calculate_score(df_season, df_indicators_parameters: pd.DataFrame,all_year_d
         st.dataframe(df_yearly_var, height=DATAFRAME_HEIGHT, use_container_width=True)
         plot_years_exposure(df_yearly_var, aggregated_column_name, row["Yearly Threshold Min List"], row["Yearly Threshold Max List"], variable)
         plot_exposure_through_period(df_yearly_var, score_name)
-        plot_global_exposure(df_yearly_var, score_name)
+        plot_global_exposure(df_yearly_var, score_name, i)
 
     return df_yearly
 

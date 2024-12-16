@@ -95,7 +95,7 @@ def select_season():
     start_date, end_date = st.select_slider(
         "Select a date range:",
         options = options,
-        value=(6, 10),
+        value=(st.session_state.season_start, st.session_state.season_end),
         format_func=lambda x:MONTHS_LIST[x-1]  # Displays full month name, day, and year
     )
     selected_months = list(options[start_date-1:end_date])

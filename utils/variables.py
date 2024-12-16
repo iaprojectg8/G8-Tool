@@ -30,6 +30,25 @@ RISK_MAP = {
         "blue": "No Risk",
     }
 
+
+PROB_MAP = {
+        "Very High Risk": 1,
+        "High Risk":0.75,
+        "Moderate Risk":  0.5,
+        "Low Risk":  0.25,
+        "No Risk" :0.01,
+    }
+
+
+RISK_TO_COLOR = {
+        "Very High Risk": "red",
+        "High Risk":"orange",
+        "Moderate Risk":  "yellow",
+        "Low Risk":  "green",
+        "No Risk" : "blue",
+    }
+
+
 CATEGORY_TO_RISK = {
         -4: "Very High Risk",
         4: "Very High Risk",
