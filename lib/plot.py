@@ -611,7 +611,7 @@ def wrap_into_pdf(fig1, fig2, fig3):
 # --- Main plot function ---
 # --------------------------
 
-def general_plot(data: pd.DataFrame, periods, chosen_variable):
+def general_plot(data: pd.DataFrame, periods, chosen_variable, filename):
     """
     Generates a plot for the selected variable and period, including monthly and yearly means,
     trends, and the option to download the plots as a PDF.
@@ -651,7 +651,7 @@ def general_plot(data: pd.DataFrame, periods, chosen_variable):
             st.download_button(
                 label="Download PDF",
                 data=pdf,
-                file_name=PDF_FILENAME,
+                file_name=f"{filename}_{variable_choice}.pdf",
                 mime="application/pdf"
             )
 

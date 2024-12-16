@@ -85,6 +85,7 @@ def plot_exposure_through_period(df:pd.DataFrame,score_name):
                     xanchor="center",
                     font_size=25),
         xaxis=dict(tickfont_size=15,
+                   tickangle=45,
                     title = dict(
                         text="Periods",
                         font_size=17,
@@ -97,7 +98,7 @@ def plot_exposure_through_period(df:pd.DataFrame,score_name):
                         font_size=17,
                         standoff=50),
                     ticklabelstandoff = 20),
-        legend=dict(title=dict(text="Risk Levels \t",
+        legend=dict(title=dict(text="Risk Levels",
                                font=dict(size=20, color="white",weight=900),
                                side="top center",
     
@@ -119,6 +120,10 @@ def plot_exposure_through_period(df:pd.DataFrame,score_name):
 
 
 
+
+
+
+
 def plot_years_exposure(df, aggregated_column_name, min_thresholds, max_thresholds, variable):
     
     
@@ -134,32 +139,35 @@ def plot_years_exposure(df, aggregated_column_name, min_thresholds, max_threshol
     
     
     
-    # Add threshold backgrounds as shapes
-    
-    last_min=min_thresholds[-1]-abs(min_thresholds[-1]-max_thresholds[-1])
-    last_max=max_thresholds[-1]+abs(min_thresholds[-1]-max_thresholds[-1])
+    # # Add threshold backgrounds as shapes
+    # print(min_thresholds)
+    # print(max_thresholds)
+    # if min_thresholds!=[]:
+    #     last_min=min_thresholds[-1]-diff*0.05
+    # if max_thresholds!=[]:
+    #     last_max=max_thresholds[-1]+diff*0.05
 
-    if len(min_thresholds)<5:
-        min_thresholds.append(last_min)
-    if len(max_thresholds)<5:
-        max_thresholds.append(last_max)
+    # if min_thresholds!= [] and len(min_thresholds)<5:
+    #     min_thresholds.append(last_min)
+    # if max_thresholds!= [] and len(max_thresholds)<5:
+    #     max_thresholds.append(last_max)
 
-    for threshold_index in range(len(max_thresholds)):
-        if threshold_index == 0 :
-            add_background_color(fig, threshold_index, 
-                                 y0=min_thresholds[threshold_index], 
-                                 y1=max_thresholds[threshold_index])
+    # for threshold_index in range(len(max_thresholds)):
+    #     if threshold_index == 0 :
+    #         add_background_color(fig, threshold_index, 
+    #                              y0=min_thresholds[threshold_index], 
+    #                              y1=max_thresholds[threshold_index])
         
-        else:
+    #     else:
             
-
-            add_background_color(fig, threshold_index, 
-                                 y0=min_thresholds[threshold_index], 
-                                 y1=min_thresholds[threshold_index-1])
-    
-            add_background_color(fig, threshold_index, 
-                                 y0=max_thresholds[threshold_index-1], 
-                                 y1=max_thresholds[threshold_index])
+    #         if min_thresholds:
+    #             add_background_color(fig, threshold_index, 
+    #                                 y0=min_thresholds[threshold_index], 
+    #                                 y1=min_thresholds[threshold_index-1])
+    #         if max_thresholds:
+    #             add_background_color(fig, threshold_index, 
+    #                                 y0=max_thresholds[threshold_index-1], 
+    #                                 y1=max_thresholds[threshold_index])
     update_scatter_layout(fig, data_min, data_max, diff, aggregated_column_name, variable)
         
     st.plotly_chart(fig)
@@ -218,23 +226,30 @@ def update_scatter_layout(fig:go.Figure, data_min, data_max, diff, aggregated_co
                     xanchor="center",
                     font_size=25),
         xaxis=dict(tickfont_size=15,
+                   tickangle=45 ,
                     title = dict(
                         text="Periods",
-                        font_size=17,
+                        font_size=15,
                         standoff=50),       
                     ticklabelstandoff =20),
-        yaxis=dict(tickfont_size=15,
+        yaxis=dict(tickfont_size=17,
                     range=[data_min - 0.05 * diff, data_max + 0.05 * diff],
                     title=dict(
                         text=legend_name,
                         font_size=17,
                         standoff=50),
                     ticklabelstandoff = 20),
-        legend=dict(
-            title="Categories",
-            orientation="v", 
-            x=1.05,            
-            y=0.5),
+        legend=dict(title=dict(text="Categories",
+                       font=dict(size=20, color="white",weight=900),
+                               side="top center",
+    
+                               ),
+                    
+                    orientation="v", 
+                    traceorder="grouped",
+                    x=1.05,           
+                    y=0.5,
+                    ),
         font=dict(
             size=17),
     )
@@ -246,13 +261,13 @@ def calculate_category_score(value):
         return -value
     else :
         return value
-def apply_my_dict(value):
-    return CATEGORY_TO_RISK[value]
+def apply_my_dict(value, dico):
+    return dico[value]
 
 
-def plot_global_exposure(df_yearly:pd.DataFrame, score_name):
+def plot_global_exposure(df_yearly:pd.DataFrame, score_name, index):
     score_column = f"yearly_indicator_{score_name}"
-    st.selectbox(label="Aggregation Type", options=EXPOSURE_AGGREGATION )
+    st.selectbox(label="Aggregation Type", options=EXPOSURE_AGGREGATION, key=f"aggregation_type{index}")
     print(df_yearly)
     df_yearly["absolute_score"] = df_yearly[score_column].apply(calculate_category_score)
     
@@ -262,8 +277,23 @@ def plot_global_exposure(df_yearly:pd.DataFrame, score_name):
     df_period["absolute_score"] = np.round(df_period["absolute_score"])
     
     # Map the "absolute_score" to the category
-    df_period["category"] = df_period["absolute_score"].apply(apply_my_dict)
+    df_period["category"] = df_period["absolute_score"].apply(lambda x : apply_my_dict(x, CATEGORY_TO_RISK))
+    df_period["color"] = df_period["category"].apply(lambda x : apply_my_dict(x, RISK_TO_COLOR))
+    df_period["exposure_prob"] = df_period["category"].apply(lambda x : apply_my_dict(x, PROB_MAP))
     st.dataframe(df_period)
+
+
+    fig = px.bar(
+        data_frame=df_period,
+        x="period",              # X-axis: Time period
+        y="exposure_prob",       # Y-axis: Exposure probability
+        color="category",        # Color groups based on category
+        color_discrete_map=RISK_TO_COLOR,  # Map colors explicitly
+        title="Bar Plot Example",
+        labels={"category": "Risk Level", "period": "Time Period", "exposure_prob": "Exposure Probability"}
+    )
+    
+    st.plotly_chart(fig)
     return 0
 
 
