@@ -252,7 +252,7 @@ def plot_exposure_through_period(df:pd.DataFrame,score_name):
     # Customize layout
     fig.update_layout(
         barmode="relative",  # Stack bars relatively
-        title=dict(text="Stacked Bar Chart with Line for Zero Scores",
+        title=dict(text=f"Period Budget about {score_name}",
                     x=0.5,
                     xanchor="center",
                     font_size=25),
@@ -361,8 +361,11 @@ def plot_global_exposure(df_yearly:pd.DataFrame, score_name, index, variable, be
                 x=filtered_data["period"],
                 y=filtered_data["exposure_prob"],
                 name=category,  # Use category as the legend name
-                marker_color=RISK_TO_COLOR.get(category, "#000000")  # Map color or fallback to black
-            )
+                marker_color=RISK_TO_COLOR.get(category, "#000000"),  # Map color or fallback to black
+                hovertemplate=(
+                    f"Category: {category}<br>" +
+                    "Probability: %{y}<br>")
+            ),
         )
 
     # Create the figure
