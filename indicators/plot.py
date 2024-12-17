@@ -61,18 +61,34 @@ def plot_years_exposure(df, aggregated_column_name, min_thresholds, max_threshol
 
 
 
-def main_scatter_plot(fig:go.Figure, df, aggregated_column_name):
 
+def main_scatter_plot(fig: go.Figure, df, aggregated_column_name):
+    """
+    Add scatter plot traces to the given figure for each category, ensuring
+    that the legend is ordered according to the provided `risk_order`.
+
+    Args:
+        fig (go.Figure): The figure to which the traces are added.
+        df (pd.DataFrame): DataFrame containing the data to be plotted.
+        aggregated_column_name (str): The column in the DataFrame to be plotted on the Y-axis.
+        risk_order (list): The desired order of the categories for the legend (e.g., ["Low", "Medium", "High"]).
+    """
     legend_column_name = " ".join(aggregated_column_name.split("_")).title()
-    for category in df["category"].unique():
+
+    # Ensure that the 'category' column is ordered according to risk_order
+    risk_order  = sorted(PROB_MAP, key=PROB_MAP.get)
+    df["category"] = pd.Categorical(df["category"], categories=risk_order, ordered=True)
+
+    # Iterate over the categories in the desired order (risk_order)
+    for category in risk_order:
         category_data = df[df["category"] == category]
+        
         fig.add_trace(
             go.Scatter(
                 x=category_data["period"],
                 y=category_data[aggregated_column_name],
                 mode="markers",
                 marker=dict(
-                    # symbol="x",
                     size=10,
                     color=category_data["color"],  # Assuming color column exists
                     opacity=0.9,
@@ -89,6 +105,7 @@ def main_scatter_plot(fig:go.Figure, df, aggregated_column_name):
                 showlegend=True
             )
         )
+
 
 def add_background_color(fig:go.Figure, threshold_index, y0, y1):
     fig.add_shape(
@@ -170,6 +187,24 @@ def plot_exposure_through_period(df:pd.DataFrame,score_name):
 
     # Plot negative scores
     fig = go.Figure()
+
+    # Plot zero scores as a line
+    if not zero_df.empty:
+        zero_values = zero_df.iloc[:, 0]  # Assuming only one column for zeros
+        fig.add_trace(
+            go.Scatter(
+                x=zero_df.index,
+                y=zero_values,
+                mode="lines+markers",
+                name="No Risk",
+                line=dict(color="green"),
+                marker=dict(size=6),
+                showlegend=True,
+                hovertemplate=(
+                    "Category: No Risk<br>" +
+                    "Count: %{y}<br>"),
+            )
+        )
     for column in negative_df.columns:
         values = negative_df[column]
         score = int(column)  # Get the score as an integer
@@ -212,23 +247,7 @@ def plot_exposure_through_period(df:pd.DataFrame,score_name):
             )
         )
 
-    # Plot zero scores as a line
-    if not zero_df.empty:
-        zero_values = zero_df.iloc[:, 0]  # Assuming only one column for zeros
-        fig.add_trace(
-            go.Scatter(
-                x=zero_df.index,
-                y=zero_values,
-                mode="lines+markers",
-                name="No Risk",
-                line=dict(color="green"),
-                marker=dict(size=6),
-                showlegend=True,
-                hovertemplate=(
-                    "Category: No Risk<br>" +
-                    "Count: %{y}<br>"),
-            )
-        )
+    
 
     # Customize layout
     fig.update_layout(
@@ -325,8 +344,17 @@ def plot_global_exposure(df_yearly:pd.DataFrame, score_name, index, variable, be
     desired_order = list(df_period["period"].unique())
     # Create a list of traces (one for each category)
     traces = []
-    categories = df_period["category"].unique()
-    for category in categories:
+    # categories = df_period["category"].unique()
+    risk_order  = sorted(PROB_MAP, key=PROB_MAP.get)
+
+    # df_period["category"] = pd.Categorical(df_period["category"], categories=categories, ordered=True)
+    df_period["period"] = pd.Categorical(df_period["period"], categories=sorted(df_period["period"].unique()), ordered=True)
+
+    # Ensure 'category' is ordered correctly for the legend (risk order)
+    df_period["category"] = pd.Categorical(df_period["category"], categories=risk_order, ordered=True)
+
+    # print(categories)
+    for category in risk_order:
         filtered_data = df_period[df_period["category"] == category]
         traces.append(
             go.Bar(
@@ -351,7 +379,7 @@ def plot_global_exposure(df_yearly:pd.DataFrame, score_name, index, variable, be
                         text="Periods",
                         font_size=17,
                         standoff=50), 
-                        categoryorder="array", 
+                        # categoryorder="array", 
                         categoryarray=desired_order,     
                     ticklabelstandoff =20),
         yaxis=dict(tickfont_size=15,

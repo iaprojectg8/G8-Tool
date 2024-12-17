@@ -8,9 +8,9 @@ def calculate_score(df_season, df_indicators_parameters: pd.DataFrame,all_year_d
     # Store all newly created columns in a dictionary to merge later
 
     df_yearly = pd.DataFrame()
-    print(df_indicators_parameters["Name"].values)
     tabs = st.tabs(list(df_indicators_parameters["Name"].values))
-    print(tabs)
+
+
 
     for i, row in df_indicators_parameters.iterrows():
         with tabs[i]:
@@ -20,22 +20,25 @@ def calculate_score(df_season, df_indicators_parameters: pd.DataFrame,all_year_d
             season_end_shift= row["Season End Shift"]
             below_thresholds=row["Yearly Threshold Min List"]
             above_thresholds= row["Yearly Threshold Max List"]
+
+            df_season_temp=df_season[[variable]]
             # if row["Season Shift Start"] is not None:
             if season_start_shift is not None and season_end_shift is not None:
                 st.dataframe(all_year_data, height=DATAFRAME_HEIGHT, use_container_width=True) 
-                df_season = all_year_data[(all_year_data.index.month >= season_start-season_start_shift) 
+                df_season_temp = all_year_data[(all_year_data.index.month >= season_start-season_start_shift) 
                                         & (all_year_data.index.month <= season_end+season_end_shift)]
             elif season_start_shift is not None:
                 st.dataframe(all_year_data, height=DATAFRAME_HEIGHT, use_container_width=True) 
-                df_season = all_year_data[(all_year_data.index.month >= season_start-season_start_shift) & (all_year_data.index.month <= season_end)]
+                df_season_temp = all_year_data[(all_year_data.index.month >= season_start-season_start_shift) & (all_year_data.index.month <= season_end)]
             elif season_end_shift is not None:
                 st.dataframe(all_year_data, height=DATAFRAME_HEIGHT, use_container_width=True) 
-                df_season = all_year_data[(all_year_data.index.month >= season_start) & (all_year_data.index.month <= season_end+season_end_shift)]
+                df_season_temp = all_year_data[(all_year_data.index.month >= season_start) & (all_year_data.index.month <= season_end+season_end_shift)]
 
 
             if row["Indicator Type"] == "Season Aggregation":
                 # Perform yearly aggregation
-                df_yearly_var, aggregated_column_name = make_yearly_agg(df_season, score_name,variable, row["Yearly Aggregation"])
+
+                df_yearly_var, aggregated_column_name = make_yearly_agg(df_season_temp, score_name,variable, row["Yearly Aggregation"])
 
         
                 df_yearly_var = indicator_score(
@@ -47,11 +50,11 @@ def calculate_score(df_season, df_indicators_parameters: pd.DataFrame,all_year_d
                 )
 
             elif row["Indicator Type"] == "Outlier Days":
-                df_daily, indicator_column = daily_indicators(df_season, variable, row["Daily Threshold Min"], row["Daily Threshold Max"])
+                df_daily, indicator_column = daily_indicators(df_season_temp, variable, row["Daily Threshold Min"], row["Daily Threshold Max"])
                 with st.expander("Show Daily Dataframe"):
                     st.dataframe(df_daily, height=DATAFRAME_HEIGHT,use_container_width=True)
 
-                df_yearly_var, aggregated_column_name = make_yearly_agg(df_season, score_name,indicator_column, row["Yearly Aggregation"])
+                df_yearly_var, aggregated_column_name = make_yearly_agg(df_season_temp, score_name,indicator_column, row["Yearly Aggregation"])
                 df_yearly_var = indicator_score(
                     df_yearly_var,
                     aggregated_column_name,
@@ -62,13 +65,13 @@ def calculate_score(df_season, df_indicators_parameters: pd.DataFrame,all_year_d
                 
 
             elif row["Indicator Type"] == "Consecutive Outlier Days":
-                df_daily, indicator_column = daily_indicators(df_season, variable, row["Daily Threshold Min"], row["Daily Threshold Max"])
-                df_daily["cumulated_days_sum"] = df_season.groupby(df_season.index.year)[indicator_column].transform(reset_cumsum)
+                df_daily, indicator_column = daily_indicators(df_season_temp, variable, row["Daily Threshold Min"], row["Daily Threshold Max"])
+                df_daily["cumulated_days_sum"] = df_season_temp.groupby(df_season_temp.index.year)[indicator_column].transform(reset_cumsum)
 
                 with st.expander("Show Daily Dataframe"):
                     st.dataframe(df_daily, height=DATAFRAME_HEIGHT,use_container_width=True)
 
-                df_yearly_var, aggregated_column_name = make_yearly_agg(df_season, score_name,"cumulated_days_sum", row["Yearly Aggregation"])
+                df_yearly_var, aggregated_column_name = make_yearly_agg(df_season_temp, score_name,"cumulated_days_sum", row["Yearly Aggregation"])
                 df_yearly_var = indicator_score(
                     df_yearly_var,
                     aggregated_column_name,

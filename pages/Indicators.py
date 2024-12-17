@@ -65,7 +65,7 @@ def main():
         # Tab 2: Display and Edit Existing Indicators
         with tab2:
             indicator_editing(df_season, season_start, season_end)
-
+        print(df_season)
         # Show the dataframe
         if not st.session_state.df_indicators.empty:
             st.dataframe(st.session_state.df_indicators, use_container_width=True)
