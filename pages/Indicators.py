@@ -9,8 +9,10 @@ from lib.session_variables import *
 from lib.data_process import *
 from lib.plot import *
 from indicators.plot import *
+from indicators.main_calculation import calculate_score
 
-
+if "columns_chosen" not in st.session_state:
+    st.session_state.columns_chosen = None
 def main():
     """Basic Streamlit app with a title."""
     # Set some layout parameters for the page 
@@ -41,7 +43,8 @@ def main():
         
 
         set_title_2("Season Choice")
-        if st.checkbox("Need a season or a period study", value=True):
+        
+        if st.checkbox("Need a season or a period study", value=st.session_state.season_checkbox):
             season_start, season_end = select_season()
             df_season = select_data_contained_in_season(df_chosen, season_start, season_end)
         else:
@@ -77,9 +80,9 @@ def main():
         #     df = create_empty_dataframe()
         # df_indicator_paramters = create_dynamic_dataframe(df, df_season.columns)
 
-        # Need to calculate score with this parameters
-        set_title_2("Indicators calculation")
-        df_yearly = calculate_score(df_season, st.session_state.df_indicators,all_year_data, season_start, season_end, periods)
+            # Need to calculate score with this parameters
+            set_title_2("Indicators calculation")
+            df_yearly = calculate_score(df_season, st.session_state.df_indicators,all_year_data, season_start, season_end, periods)
         # if not df_yearly.empty:
         #     df_yearly["year"] = df_yearly.index.year
         #     df_yearly = add_periods_to_df(df_yearly, periods)
