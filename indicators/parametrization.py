@@ -132,7 +132,6 @@ def handle_checkbox_and_input_yearly_agg_min(label : str, checkbox_key):
     col1, col2 = st.columns([0.2, 0.8])
     with col1:
         st.session_state.checkbox_defaults[checkbox_key] = st.checkbox(label=label, key=checkbox_key)
-        print(st.session_state.checkbox_defaults)
         
     if st.session_state.checkbox_defaults[checkbox_key]:
         with col2:
@@ -274,11 +273,10 @@ def indicator_building(df_chosen:pd.DataFrame, season_start, season_end):
             handle_threshold_input()
         elif indicator_type == "Season Aggregation":
             handle_yearly_threshold_input()
-            print(st.session_state.indicator)
-            print(st.session_state.checkbox_defaults)
 
         handle_yearly_aggregation_input()
-        handle_season_shift_input(season_start, season_end)
+        if season_start is not None and season_end is not None:
+            handle_season_shift_input(season_start, season_end)
 
         # Button 
         handle_buttons()
@@ -355,8 +353,8 @@ def handle_update_checkbox_and_input_yearly_agg_min(updated_indicator, updated_c
                 updated_indicator[label] = st.number_input(label, value=updated_indicator[label], label_visibility="collapsed", key=f"edit{"_".join(label.lower().split(" "))}_{i}")
         else:
             updated_indicator[label] = None
-            updated_indicator[label+" Step"] = None
-            updated_indicator[label+" List"] = None
+            updated_indicator[label+" Step"] = 0
+            updated_indicator[label+" List"] = []
     if updated_indicator[label] is not None:
         st.subheader("Step below")
         col1, col2 = st.columns([0.8, 0.2])
@@ -386,8 +384,8 @@ def handle_update_checkbox_and_input_yearly_agg_max(updated_indicator, updated_c
                 updated_indicator[label] = st.number_input(label, value=updated_indicator[label], label_visibility="collapsed",  key=f"edit{"_".join(label.lower().split(" "))}_{i}")
         else:
             updated_indicator[label] = None
-            updated_indicator[label+" Step"] = None
-            updated_indicator[label+" List"] = None
+            updated_indicator[label+" Step"] = 0
+            updated_indicator[label+" List"] = []
     if updated_indicator[label] is not None:
         col1, col2 = st.columns([0.8, 0.2])
         st.subheader("Step above")
@@ -426,9 +424,6 @@ def handle_threshold_daily_update(updated_indicator, updated_checkbox, i):
 
 def handle_threshold_yearly_update(updated_indicator, updated_checkbox, i):
     st.subheader("Yearly Thresholds")
-    print("\n In the upadated part")
-    print(updated_indicator)
-    print(updated_checkbox)
     handle_update_checkbox_and_input_yearly_agg_min(updated_indicator, updated_checkbox["min_yearly_checkbox"],"Yearly Threshold Min", i)
     handle_update_checkbox_and_input_yearly_agg_max(updated_indicator, updated_checkbox["max_yearly_checkbox"],"Yearly Threshold Max", i)
 
@@ -474,7 +469,8 @@ def indicator_editing(df_chosen : pd.DataFrame, season_start, season_end):
                 general_information_update(updated_indicator, i, df_chosen)
                 handle_threshold_update(updated_indicator, updated_checkbox, i)
                 handle_aggregation_update(updated_indicator, i)
-                handle_shift_update(updated_indicator, updated_checkbox, i, season_start, season_end)
+                if season_start is not None and season_end is not None:
+                    handle_shift_update(updated_indicator, updated_checkbox, i, season_start, season_end)
                 handle_button_update(updated_indicator, row, i)
                 
     else:

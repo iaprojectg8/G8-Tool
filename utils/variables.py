@@ -85,4 +85,4 @@ CATEGORY_TO_COLOR_MAP = {
     }
 THRESHOLD_COLORS = ["blue", "green", "yellow", "orange", "red"]
 
-EXPOSURE_AGGREGATION=["Category Max", "Variable Mean Category" ]
+EXPOSURE_AGGREGATION=["Category Mean", "Most Frequent Category", "Variable Mean Category" ]

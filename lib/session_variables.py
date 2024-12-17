@@ -10,9 +10,9 @@ if "indicator" not in st.session_state:
         "Daily Threshold Max": None,
         "Yearly Threshold Min": None,
         "Yearly Threshold Max": None,
-        "Yearly Threshold Min Step" : None,
+        "Yearly Threshold Min Step" : 0,
         "Yearly Threshold Min List": [],
-        "Yearly Threshold Max Step" : None,
+        "Yearly Threshold Max Step" : 0,
         "Yearly Threshold Max List" : [],
         "Yearly Aggregation": None,
         "Season Start Shift": None,
@@ -45,6 +45,9 @@ if "season_start" not in st.session_state:
 
 if "season_end" not in st.session_state:
     st.session_state.season_end = 10
+
+if "season_checkbox" not in st.session_state:
+    st.session_state.season_checkbox = False
 
 def delete_indicator(index):
 # Remove the row with index 2
