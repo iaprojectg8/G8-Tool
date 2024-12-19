@@ -371,7 +371,7 @@ def handle_update_window_aggregation(updated_indicator, i, label):
     with col1:
 
         st.write(label)
-        
+
     with col2:
         updated_indicator[label] = st.selectbox(label=label,
                                                 options=AGG_FUNC,
@@ -530,13 +530,13 @@ def handle_button_update(updated_indicator, row, i):
     
 def indicator_editing(df_chosen : pd.DataFrame, season_start, season_end):
     if not st.session_state.df_indicators.empty:
+        print(st.session_state.df_checkbox)
         st.subheader("Edit Indicators")
         for (i, row), (j, row_checkbox) in zip(st.session_state.df_indicators.iterrows(), st.session_state.df_checkbox.iterrows()):
             with st.expander(f"Edit Indicator: {row['Name']}"):
 
                 updated_indicator = row.to_dict()
                 updated_checkbox = row_checkbox.to_dict()
-    
                 general_information_update(updated_indicator, i, df_chosen)
                 handle_threshold_update(updated_indicator, updated_checkbox, i)
                 handle_aggregation_update(updated_indicator, i, label="Yearly Aggregation")
@@ -547,6 +547,12 @@ def indicator_editing(df_chosen : pd.DataFrame, season_start, season_end):
     else:
         st.write("No indicators available yet.")
 
+
+
+
+
+
+# Structure like a form with several columns and buttons to chose their thresholds
 def get_frequency_threshold_inputs():
     col1, col2, col3 = st.columns([1,5,1])
     with col2:

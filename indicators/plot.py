@@ -78,7 +78,6 @@ def plot_years_exposure(df, aggregated_column_name, min_thresholds, max_threshol
         else:
             
             if min_thresholds:
-                print(min_thresholds)
                 add_background_color(fig, threshold_index, 
                                     y0=min_thresholds[threshold_index], 
                                     y1=min_thresholds[threshold_index-1])
@@ -109,7 +108,6 @@ def main_scatter_plot(fig: go.Figure, df, aggregated_column_name, score_name, un
     # Ensure that the 'category' column is ordered according to risk_order
     risk_order  = sorted(PROB_MAP, key=PROB_MAP.get)
     df["category"] = pd.Categorical(df["category"], categories=risk_order, ordered=True)
-    print(df["period"])
     df["period"] = pd.Categorical(df["period"], categories=sorted(df["period"].unique()), ordered=True)
 
     # Iterate over the categories in the desired order (risk_order)
