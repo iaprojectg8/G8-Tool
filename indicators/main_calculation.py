@@ -20,7 +20,6 @@ def calculate_score(df_season, df_indicators_parameters: pd.DataFrame,all_year_d
             season_end_shift= row["Season End Shift"]
             below_thresholds=row["Yearly Threshold Min List"]
             above_thresholds= row["Yearly Threshold Max List"]
-            print(above_thresholds, below_thresholds)
 
             df_season_temp=df_season[[variable]]
             # if row["Season Shift Start"] is not None:

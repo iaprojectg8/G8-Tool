@@ -1,0 +1,13 @@
+Discussion le matin du 19/12/2024 sur l'outil avec Loeiz.
+Pour la suite des évènements concernant l'outil:
+Il va falloir développer plusieurs autres caractéristiques pour l'outil, notamment une partie de définition des variables, une partie de requêtes, et une partie d'import de forme ainsi que de l'indexation sur celle-ci afin de pouvoir aller visé la forme qui correspond à la région que l'on veut voir en terme de graphique
+
+Un process type serai:
+- Définition de la requête : variables, période, modèle, shape, résolution.
+- Si possible indexer les différentes shape, pour pouvoir y avoir accès facilement et faire le traitement des données uniquement sur ces données.
+- Utiliser la shape et la résolution pour créer la liste de latitudes, longitudes qui va servir à faire la requête. (voir aussi s'il n'est pas possible de faire des requêtes avec le CDS de Copernicus)
+- Une fois la requête effectuée, définir les indicateurs qui vont permettre les traitement des données.
+- Faire une boucle sur toutes les coordonnées extraites afin de calculer les indicateurs pour chaque point de la shape.
+- Sortir les graphes pour la moyenne des points de la shape sélectionnée.
+- Faire des rasters d'indicateurs comme on a pu le faire sur la Gambie peut-être avec la même caractéristique des graphes en matplotlib, c'est à dire que lorsque l'on clique sur un point, on a directement les graphes des indicateurs qui apparaissent.
+- Peut-être générer aussi directement les différentes cartes en fonctions du découpage d'époque que l'on a effectué.
