@@ -20,6 +20,7 @@ def calculate_score(df_season, df_indicators_parameters: pd.DataFrame,all_year_d
             season_end_shift= row["Season End Shift"]
             below_thresholds=row["Yearly Threshold Min List"]
             above_thresholds= row["Yearly Threshold Max List"]
+            print(above_thresholds, below_thresholds)
 
             df_season_temp=df_season[[variable]]
             # if row["Season Shift Start"] is not None:
@@ -37,10 +38,10 @@ def calculate_score(df_season, df_indicators_parameters: pd.DataFrame,all_year_d
 
             if row["Indicator Type"] == "Season Aggregation":
                 # Perform yearly aggregation
+                unit = UNIT_FROM_VARIABLE[row["Variable"]]
 
                 df_yearly_var, aggregated_column_name = make_yearly_agg(df_season_temp, score_name,variable, row["Yearly Aggregation"])
 
-        
                 df_yearly_var = indicator_score(
                     df_yearly_var,
                     aggregated_column_name,
@@ -50,6 +51,7 @@ def calculate_score(df_season, df_indicators_parameters: pd.DataFrame,all_year_d
                 )
 
             elif row["Indicator Type"] == "Outlier Days":
+                unit = "days"
                 df_daily, indicator_column = daily_indicators(df_season_temp, variable, row["Daily Threshold Min"], row["Daily Threshold Max"])
                 with st.expander("Show Daily Dataframe"):
                     st.dataframe(df_daily, height=DATAFRAME_HEIGHT,use_container_width=True)
@@ -65,6 +67,7 @@ def calculate_score(df_season, df_indicators_parameters: pd.DataFrame,all_year_d
                 
 
             elif row["Indicator Type"] == "Consecutive Outlier Days":
+                unit = "days"
                 df_daily, indicator_column = daily_indicators(df_season_temp, variable, row["Daily Threshold Min"], row["Daily Threshold Max"])
                 df_daily["cumulated_days_sum"] = df_season_temp.groupby(df_season_temp.index.year)[indicator_column].transform(reset_cumsum)
 
@@ -72,6 +75,22 @@ def calculate_score(df_season, df_indicators_parameters: pd.DataFrame,all_year_d
                     st.dataframe(df_daily, height=DATAFRAME_HEIGHT,use_container_width=True)
 
                 df_yearly_var, aggregated_column_name = make_yearly_agg(df_season_temp, score_name,"cumulated_days_sum", row["Yearly Aggregation"])
+                df_yearly_var = indicator_score(
+                    df_yearly_var,
+                    aggregated_column_name,
+                    score_name,
+                    row["Yearly Threshold Min List"],
+                    row["Yearly Threshold Max List"]
+                )
+            elif row["Indicator Type"] == "Sliding Windows Aggregation":
+                unit = UNIT_FROM_VARIABLE[row["Variable"]]
+                df_daily, indicator_column = rolling_period_indicator(df_season_temp, variable, row["Windows Length"], row["Windows Aggregation"])
+  
+
+                with st.expander("Show Daily Dataframe"):
+                    st.dataframe(df_daily, height=DATAFRAME_HEIGHT,use_container_width=True)
+
+                df_yearly_var, aggregated_column_name = make_yearly_agg(df_season_temp, score_name,variable, row["Yearly Aggregation"])
                 df_yearly_var = indicator_score(
                     df_yearly_var,
                     aggregated_column_name,
@@ -94,7 +113,8 @@ def calculate_score(df_season, df_indicators_parameters: pd.DataFrame,all_year_d
             with st.expander("Show Yearly Dataframe"):
                 st.dataframe(df_yearly_var, height=DATAFRAME_HEIGHT, use_container_width=True)
 
-            plot_years_exposure(df_yearly_var, aggregated_column_name, row["Yearly Threshold Min List"], row["Yearly Threshold Max List"], variable)
+            plot_daily_data(all_year_data, variable)
+            plot_years_exposure(df_yearly_var, aggregated_column_name, row["Yearly Threshold Min List"], row["Yearly Threshold Max List"], score_name,unit)
             plot_exposure_through_period(df_yearly_var, score_name)
             plot_global_exposure(df_yearly_var, score_name, i, aggregated_column_name, below_thresholds, above_thresholds)
 

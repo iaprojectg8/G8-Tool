@@ -7,6 +7,25 @@ MONTHS_LIST = [
 AVAILABLE_VARIABLES = ["Temperature", "Precipitation", "Wind", "Shortwave Radiation", "Relative Humidity", "Soil Moisture"]
 UNIT_DICT={"Temperature":"°C","Precipitation":"mm", "Wind":"km/h", "Shortwave Radiation":"MJ/m²","Relative Humidity":"%","Soil Moisture": "m³/m³"}
 
+
+
+FILENAME = "Sundarbans_coords_mean.csv"
+
+
+UNIT_FROM_VARIABLE = {
+    "temperature_2m_mean": "°C",  # Mean temperature at 2 meters above ground
+    "temperature_2m_max": "°C",   # Maximum temperature at 2 meters
+    "temperature_2m_min": "°C",   # Minimum temperature at 2 meters
+    "wind_speed_10m_mean": "m/s", # Mean wind speed at 10 meters above ground
+    "wind_speed_10m_max": "m/s",  # Maximum wind speed at 10 meters
+    "shortwave_radiation_sum": "W/m²", # Sum of shortwave radiation (solar energy)
+    "relative_humidity_2m_mean": "%",  # Mean relative humidity at 2 meters
+    "relative_humidity_2m_max": "%",   # Maximum relative humidity at 2 meters
+    "relative_humidity_2m_min": "%",   # Minimum relative humidity at 2 meters
+    "precipitation_sum": "mm",         # Total precipitation
+    "soil_moisture_0_to_10cm_mean": "m³/m³" # Volumetric soil moisture content (0-10cm depth)
+}
+
 PERIOD_LENGTH = [10,15,20,25,30,35,40,45,50,55,60]
 
 PDF_FILENAME = "general_plot_export.pdf"
@@ -15,10 +34,16 @@ COLORSCALE = ["Spectral", "RdYlBu", "RdYlGn", "Picnic"]
 VARIATION_THRESHOLD = 0.05
 
 AGG_FUNC = ["mean", "sum", "min", "max"]
-INDICATOR_TYPES = ["Outlier Days", "Consecutive Outlier Days", "Season Aggregation", "Monthly Variation Coefficient"]
+INDICATOR_TYPES = ["Outlier Days", "Consecutive Outlier Days", "Season Aggregation", "Monthly Variation Coefficient", "Sliding Windows Aggregation"]
 
 # This is very useful to chose the right indicator in the function
-INDICATOR_AGG = {"Outlier Days":[1, 1], "Consecutive Outlier Days": [3,1], "Season Aggregation": [1, 0], "Monthly Variation Coefficient":[0,0]}
+INDICATOR_AGG = {"Outlier Days":[1, 1], 
+                 "Consecutive Outlier Days": [3,1], 
+                 "Season Aggregation": [1, 0], 
+                 "Monthly Variation Coefficient":[0,0], 
+                 "Sliding Windows Aggregation": [0,0]
+                }
+ 
 NUM_THRESHOLDS = 3
 
 # Plot variable
@@ -86,3 +111,16 @@ CATEGORY_TO_COLOR_MAP = {
 THRESHOLD_COLORS = ["blue", "green", "yellow", "orange", "red"]
 
 EXPOSURE_AGGREGATION=["Category Mean", "Most Frequent Category", "Variable Mean Category" ]
+
+
+
+
+# Ajout de la fenêtre mobile pour faire des calculs sur plusieurs jours glissants
+# Paramètres qu'impliquent cet indicateur
+# - type d'agrégation sur les jours glissants
+# - choix du nombre de jours glissant 
+# - choix du type d'aggregation sur l'année
+# Il ne semble pas que de daily threshold soit nécessaire je vois ce calcul plus comme une moyenne ou une 
+# somme de valeurs pendant plusieurs jours mais sans la nécessité d'avoir des seuils journarliers, je n'arrive pas expliquer pourquoi
+# Mais voici un exemple surement plus parlant : à quoi sert-il d'avoir la connaissance d'une période de 5 jour où les seuils sont dépassé? Et
+# quelle type d'agrégation mettre place la dessus, rien d'où la non pertinence du seuil.

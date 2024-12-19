@@ -224,6 +224,39 @@ def handle_yearly_threshold_input():
     handle_checkbox_and_input_yearly_agg_max(label="Yearly Threshold Max", checkbox_key="max_yearly_checkbox")
 
 
+def handle_rolling_window():
+    handle_window_lenght(label = "Windows Length")
+    handle_window_aggregation(label = "Windows Aggregation")
+
+def handle_window_lenght(label):
+
+    st.subheader("Rolling Window Parameters")
+    col1, col2 = st.columns([0.2, 0.8])
+    with col1:
+        st.write(label)
+    with col2:
+        st.session_state.indicator[label] = st.number_input(label, value=None,
+                                                            min_value=2, max_value=365,
+                                                            label_visibility="collapsed", 
+                                                            key="_".join(label.lower().split(" ")))
+        
+def handle_window_aggregation(label):
+    col1, col2 = st.columns([0.2, 0.8])
+    with col1:
+
+        st.write(label)
+    with col2:
+        st.session_state.indicator[label] = st.selectbox(label=label,
+                                                        options=AGG_FUNC,
+                                                        index=INDICATOR_AGG[st.session_state.indicator["Indicator Type"]][0], 
+                                                        key="_".join(label.lower().split(" ")), 
+                                                        disabled=INDICATOR_AGG[st.session_state.indicator["Indicator Type"]][1],
+                                                        label_visibility="collapsed"
+                                                    )
+
+    
+
+
 def handle_season_shift_input(season_start, season_end):
 
     # Season shift init 
@@ -271,6 +304,9 @@ def indicator_building(df_chosen:pd.DataFrame, season_start, season_end):
         indicator_type = general_information(df_chosen)
         if indicator_type in ["Outlier Days", "Consecutive Outlier Days"]:
             handle_threshold_input()
+        elif indicator_type == "Sliding Windows Aggregation":
+            handle_rolling_window()
+            handle_yearly_threshold_input()
         elif indicator_type == "Season Aggregation":
             handle_yearly_threshold_input()
 
@@ -312,6 +348,40 @@ def handle_input_update(updated_indicator, updated_checkbox_value,label, i):
         else:
             updated_indicator[label] = None
 
+        
+def update_rolling_window(updated_indicator, i):
+    if updated_indicator["Indicator Type"] == "Sliding Windows Aggregation":
+        handle_update_window_lenght(updated_indicator, i, label = "Windows Length")
+        handle_update_window_aggregation(updated_indicator, i, label = "Windows Aggregation")
+
+def handle_update_window_lenght(updated_indicator, i, label):
+
+    st.subheader("Rolling Window Parameters")
+    col1, col2 = st.columns([0.2, 0.8])
+    with col1:
+        st.write(label)
+    with col2:
+        updated_indicator[label] = st.number_input(label, value=updated_indicator[label],
+                                                            min_value=2, max_value=365,
+                                                            label_visibility="collapsed", 
+                                                            key=f"edit_window_length_{i}")
+        
+def handle_update_window_aggregation(updated_indicator, i, label):
+    col1, col2 = st.columns([0.2, 0.8])
+    with col1:
+
+        st.write(label)
+        
+    with col2:
+        updated_indicator[label] = st.selectbox(label=label,
+                                                options=AGG_FUNC,
+                                                index=AGG_FUNC.index(updated_indicator[label]), 
+                                                key=f"edit_window_aggregation_{i}", 
+                                                disabled=INDICATOR_AGG[updated_indicator["Indicator Type"]][1],
+                                                label_visibility="collapsed"
+                                            )
+
+
     
 def handle_input_update_season_shift_start(updated_indicator, updated_checkbox_value,label, i, season_start):
     col1, col2 = st.columns([0.2, 0.8])
@@ -345,7 +415,6 @@ def handle_input_update_season_shift_end(updated_indicator, updated_checkbox_val
 
 def handle_update_checkbox_and_input_yearly_agg_min(updated_indicator, updated_checkbox_value, label, i):
     col1, col2 = st.columns([0.2, 0.8])
-    print(updated_indicator[label])
     with col1:
         if st.checkbox(label=label,value=updated_checkbox_value, key=f"edit_{"_".join(label.lower().split(" "))}_checkbox_{i}"):
             with col2:
@@ -403,8 +472,7 @@ def handle_update_checkbox_and_input_yearly_agg_max(updated_indicator, updated_c
 
             updated_indicator[label+" List"] = [updated_indicator[label] + step * i for i in range(NUM_THRESHOLDS + 1)]
         st.write("Your ohter threshold will be the ones there ", updated_indicator[label+" List"])
-    
-    print(updated_indicator)
+
 
 
 def handle_threshold_update(updated_indicator, updated_checkbox, i):
@@ -415,6 +483,9 @@ def handle_threshold_update(updated_indicator, updated_checkbox, i):
         handle_threshold_daily_update(updated_indicator, updated_checkbox, i)
         handle_threshold_yearly_update(updated_indicator, updated_checkbox, i)
     elif updated_indicator["Indicator Type"] == "Season Aggregation":
+        handle_threshold_yearly_update(updated_indicator, updated_checkbox, i)
+    if updated_indicator["Indicator Type"] == "Sliding Windows Aggregation":
+        update_rolling_window(updated_indicator, i)
         handle_threshold_yearly_update(updated_indicator, updated_checkbox, i)
 
 def handle_threshold_daily_update(updated_indicator, updated_checkbox, i):
@@ -439,13 +510,13 @@ def handle_shift_update(updated_indicator, updated_checkbox, i,season_start, sea
 
 
 
-def handle_aggregation_update(updated_indicator, i):
+def handle_aggregation_update(updated_indicator, i, label):
     
     # Handle aggregation function
     st.subheader("Aggregation functions")
-    updated_indicator["Yearly Aggregation"] = st.selectbox(label="Yearly Aggregation",
+    updated_indicator[label] = st.selectbox(label="Yearly Aggregation",
                                                             options=AGG_FUNC,
-                                                            index=INDICATOR_AGG[updated_indicator["Indicator Type"]][0],
+                                                            index=AGG_FUNC.index(updated_indicator[label]),
                                                             key=f"edit_yearly_aggregation_{i}",
                                                             disabled=INDICATOR_AGG[updated_indicator["Indicator Type"]][1])
     
@@ -468,7 +539,7 @@ def indicator_editing(df_chosen : pd.DataFrame, season_start, season_end):
     
                 general_information_update(updated_indicator, i, df_chosen)
                 handle_threshold_update(updated_indicator, updated_checkbox, i)
-                handle_aggregation_update(updated_indicator, i)
+                handle_aggregation_update(updated_indicator, i, label="Yearly Aggregation")
                 if season_start is not None and season_end is not None:
                     handle_shift_update(updated_indicator, updated_checkbox, i, season_start, season_end)
                 handle_button_update(updated_indicator, row, i)

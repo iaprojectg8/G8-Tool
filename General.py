@@ -1,5 +1,5 @@
 from utils.imports import *
-from utils.variables import DATAFRAME_HEIGHT
+from utils.variables import DATAFRAME_HEIGHT, FILENAME
 from lib.data_process import * 
 from indicators.parametrization import *
 from lib.plot import *
@@ -28,8 +28,7 @@ def main():
     print(periods)
     
     # Loading CSV, this will almost surely be replaced by 
-    filename = "South_Bengale_coords_mean.csv"
-    path = f"CSV_files/{filename}"
+    path = f"CSV_files/{FILENAME}"
     data = loads_data(filename=path)
 
     # st.write("Possibility to upload a CSV file")
@@ -38,7 +37,7 @@ def main():
     data_to_keep = filtered_data(data, chosen_variables, long_period)
 
     # Plot part with monthly means and regression through all time
-    filename = filename.split(".")[0]
+    filename = FILENAME.split(".")[0]
     print(filename)
     general_plot(data_to_keep, periods, chosen_variables, filename)
 

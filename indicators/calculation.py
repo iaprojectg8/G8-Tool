@@ -58,6 +58,14 @@ def daily_indicators(df:pd.DataFrame, variable, daily_thresh_min, daily_thresh_m
         df = df
     return df, indicator_column
 
+def rolling_period_indicator(df:pd.DataFrame, variable, window_length, window_aggregation):
+    indicator_column = f"{variable}_window_{window_aggregation}"
+    df[indicator_column] = df[variable].rolling(window=window_length).agg(window_aggregation)
+
+
+    return df, indicator_column
+
+
 
 # Create a new column for the yearly indicator
 def categorize_above(value, above_thresholds):
@@ -205,6 +213,6 @@ def classify_desirability_score(frequency):
 #- celui où l'on calcule la somme des jours qui dépassent un certain seuil 
 
 
-# Info Dans la cumulated sum les suites que nous avons sont calculé à partir des 1
+# Info Dans la cumulated sum les suites que nous avons calculé à partir des 1
 # Les 1 correpondent dans tous les cas à ce que l'on considère viable c'est à dire dans les intervalles
 # Définis, c'est à dire en dessous des seuils max et au dessus de seuils min

@@ -135,7 +135,7 @@ def monthly_scatter(fig: go.Figure, monthly_mean, column, unit):
             color=monthly_mean["period_index"],  # Color by the period_index
             colorscale="agsunset_r",  # Use correct colorscale name
             showscale=True,  # Show color scale
-            opacity=0.5,
+            opacity=0.8,
             line_width=1,
             line_color="black",
             colorbar=dict(

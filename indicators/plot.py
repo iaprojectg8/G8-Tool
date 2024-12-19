@@ -4,13 +4,43 @@ from indicators.calculation import categorize_both
 
 
 
-def plot_years_exposure(df, aggregated_column_name, min_thresholds, max_thresholds, variable):
+def plot_daily_data(df, variable):
+    df = df[variable].reset_index()
+    fig = go.Figure()
+
+    fig.add_trace(
+        go.Scatter(
+            x=df["date"],
+            y=df[variable],
+            marker=dict(color="skyblue"),
+            name= variable
+        )
+    )
+
+    fig.update_layout(
+        title=f"Daily {variable}",
+        xaxis_title="Date",
+        yaxis_title=variable,
+        xaxis=dict(showgrid=False),
+        yaxis=dict(showgrid=True),
+        template="plotly_white"
+    )
+    st.plotly_chart(fig)
+
+
+
+
+
+
+
+
+def plot_years_exposure(df, aggregated_column_name, min_thresholds, max_thresholds, score_name, unit):
     
     
 
     # print(df["precipitation_sum_sum_season_precipitation"].min())
     fig = go.Figure()
-    main_scatter_plot(fig, df, aggregated_column_name)
+    main_scatter_plot(fig, df, aggregated_column_name, score_name, unit)
 
     # Customize Layout
     data_min=df[aggregated_column_name].min()
@@ -48,6 +78,7 @@ def plot_years_exposure(df, aggregated_column_name, min_thresholds, max_threshol
         else:
             
             if min_thresholds:
+                print(min_thresholds)
                 add_background_color(fig, threshold_index, 
                                     y0=min_thresholds[threshold_index], 
                                     y1=min_thresholds[threshold_index-1])
@@ -55,14 +86,14 @@ def plot_years_exposure(df, aggregated_column_name, min_thresholds, max_threshol
                 add_background_color(fig, threshold_index, 
                                     y0=max_thresholds[threshold_index-1], 
                                     y1=max_thresholds[threshold_index])
-    update_scatter_layout(fig, data_min, data_max, diff, aggregated_column_name, variable)
+    update_scatter_layout(fig, data_min, data_max, diff, df, score_name, unit)
         
     st.plotly_chart(fig)
 
 
 
 
-def main_scatter_plot(fig: go.Figure, df, aggregated_column_name):
+def main_scatter_plot(fig: go.Figure, df, aggregated_column_name, score_name, unit):
     """
     Add scatter plot traces to the given figure for each category, ensuring
     that the legend is ordered according to the provided `risk_order`.
@@ -78,6 +109,8 @@ def main_scatter_plot(fig: go.Figure, df, aggregated_column_name):
     # Ensure that the 'category' column is ordered according to risk_order
     risk_order  = sorted(PROB_MAP, key=PROB_MAP.get)
     df["category"] = pd.Categorical(df["category"], categories=risk_order, ordered=True)
+    print(df["period"])
+    df["period"] = pd.Categorical(df["period"], categories=sorted(df["period"].unique()), ordered=True)
 
     # Iterate over the categories in the desired order (risk_order)
     for category in risk_order:
@@ -97,7 +130,7 @@ def main_scatter_plot(fig: go.Figure, df, aggregated_column_name):
                 text=category_data["category"],  # Hover text
                 customdata=category_data["year"],
                 hovertemplate=(
-                    f"{legend_column_name}: %{{y}}<br>" +
+                    f"{score_name}: %{{y}}<br>" +
                     "Category: %{text}<br>" +
                     "Year: %{customdata}<br>"
                 ),
@@ -122,16 +155,18 @@ def add_background_color(fig:go.Figure, threshold_index, y0, y1):
     )
 
 
-def update_scatter_layout(fig:go.Figure, data_min, data_max, diff, aggregated_column_name, variable):
-    legend_name = " ".join(aggregated_column_name.split("_")).title()
-    variable_legend_name = " ".join(variable.split("_")).title()
+def update_scatter_layout(fig:go.Figure, data_min, data_max, diff, df,score_name, unit):
+    legend_name = f"{score_name} ({unit})"
+    # variable_legend_name = " ".join(variable.split("_")).title()
     fig.update_layout(
-        title=dict(text=f"Yearly {variable_legend_name} Exposure over Periods ",
+        title=dict(text=f"Yearly {score_name} over Periods ",
                     x=0.5,
                     xanchor="center",
                     font_size=25),
         xaxis=dict(tickfont_size=15,
-                   tickangle=37 ,
+                    tickangle=37 ,
+                    categoryorder="array",
+                    categoryarray=list(df["period"].cat.categories),  # Explicit period order
                     title = dict(
                         text="Periods",
                         font_size=17,

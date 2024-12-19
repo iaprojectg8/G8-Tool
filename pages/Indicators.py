@@ -25,8 +25,9 @@ def main():
     # Period cut
     smaller_period_length  = st.select_slider("Choose the length of smaller period to see the evolution of your data on them:",options=PERIOD_LENGTH)
     periods = split_into_periods_indicators(smaller_period_length, long_period_start, long_period_end)
-    filename = "CSV_files/cmip6_era5_data_daily_0.csv"
-    all_data = loads_data(filename=filename)
+
+    path = f"CSV_files/{FILENAME}"
+    all_data = loads_data(filename=path)
     data_long_period_filtered = period_filter(all_data, period=long_period)
     st.dataframe(data_long_period_filtered, height=DATAFRAME_HEIGHT, use_container_width=True)
     
