@@ -5,7 +5,19 @@ MONTHS_LIST = [
     "July", "August", "September", "October", "November", "December"
 ]
 AVAILABLE_VARIABLES = ["Temperature", "Precipitation", "Wind", "Shortwave Radiation", "Relative Humidity", "Soil Moisture"]
-UNIT_DICT={"Temperature":"°C","Precipitation":"mm", "Wind":"km/h", "Shortwave Radiation":"MJ/m²","Relative Humidity":"%","Soil Moisture": "m³/m³"}
+UNIT_DICT= {
+    "temperature_2m_mean": "°C",
+    "temperature_2m_max": "°C",
+    "temperature_2m_min": "°C",
+    "wind_speed_10m_mean": "m/s",
+    "wind_speed_10m_max": "m/s",
+    "shortwave_radiation_sum": "MJ/m²",
+    "relative_humidity_2m_mean": "%",
+    "relative_humidity_2m_max": "%",
+    "relative_humidity_2m_min": "%",
+    "precipitation_sum": "mm",
+    "soil_moisture_0_to_10cm_mean": "m³/m³"
+}
 
 
 
