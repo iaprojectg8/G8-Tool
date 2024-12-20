@@ -154,11 +154,11 @@ def monthly_scatter(fig: go.Figure, monthly_mean, column, unit):
         hovertemplate=(
             f"Temperature: %{{y:.2f}} {unit}<br>" +
             "Year: %{text}<br>"+
-            "Decade: %{customdata}<br>"
+            "Period: %{customdata}<br>"
         ),
         showlegend=False))
 
-def layout_monthly_plot(fig:go.Figure, variable):
+def layout_monthly_plot(fig:go.Figure, column, column_name,  unit):
     """
     Updates the layout of the Plotly figure for the monthly plot.
 
@@ -166,14 +166,15 @@ def layout_monthly_plot(fig:go.Figure, variable):
         fig (go.Figure): The Plotly figure to update.
         variable (str): The name of the variable being plotted, used for title and axis labels.
     """
+    
     fig.update_layout(
         width=1500, height=500,
-        title=dict(text=f'Monthly Mean {variable} through years',
+        title=dict(text=f'Monthly Mean {column_name} through years',
                 x=0.5,
                 xanchor="center",
                 font_size=25),
         xaxis_title='Month',
-        yaxis_title=f'{variable} - {UNIT_DICT[variable]}',
+        yaxis_title=f'{column_name} - {unit}',
         legend_title='',
         template='plotly_dark',
         autosize=True,
@@ -196,14 +197,12 @@ def plot_monthly_mean(column, monthly_mean, monthly_data):
 
     # Mean blue line
     mean_line_monthly_plot(fig, monthly_data, column)
-
-    # Get the variable name corresponding to the column
-    variable = [variable for variable in AVAILABLE_VARIABLES if "_".join(variable.lower().split()) in column][0]
-    unit=UNIT_DICT[variable]
+    unit = UNIT_DICT[column]
+    column_name = " ".join(column.split("_")).title()
 
     # Make the monthly plot
     monthly_scatter(fig, monthly_mean, column, unit)
-    layout_monthly_plot(fig, variable)
+    layout_monthly_plot(fig, column, column_name, unit)
     
     # Display the plot in Streamlit
     st.plotly_chart(fig)
@@ -240,7 +239,7 @@ def get_period_trend(df : pd.DataFrame,column, start, stop):
         
         # Create the trend using the line parameters got
         trend_line = slope * years + intercept
-        return trend_line, years
+        return trend_line, years, slope
 
 def build_trend_plot(year_mean_df, periods, column):
     """
@@ -256,20 +255,22 @@ def build_trend_plot(year_mean_df, periods, column):
     """
     trend_lines = []
     years_all = []
+    slopes = []
     
     # Loop to go through each period in order to get the trend line for them
     for period in periods: 
         start, end = period
         if start != end:
             print(start, end)
-            trend_line, years = get_period_trend(year_mean_df,column, int(start), int(end))
+            trend_line, years, slope = get_period_trend(year_mean_df,column, int(start), int(end))
             trend_lines.append(trend_line)
             years_all.append(years)
+            slopes.append(slope)
         
-    return trend_lines, years_all
+    return trend_lines, years_all, slopes
 
 
-def plot_yearly_curve(fig:go.Figure, yearly_mean, column, variable):
+def plot_yearly_curve(fig:go.Figure, yearly_mean, column, column_name):
     """
     Adds a line plot for the yearly mean of a variable to the figure.
 
@@ -283,11 +284,11 @@ def plot_yearly_curve(fig:go.Figure, yearly_mean, column, variable):
         x=yearly_mean["year"],
         y=yearly_mean[column],
         mode='lines',
-        name=f"Year Average {variable}",
+        name=f"Year Average {column_name}",
         line=dict(color="blue"),
     ))
 
-def yearly_layout(fig:go.Figure, variable):
+def yearly_layout(fig:go.Figure, column_name, unit):
     """
     Updates the layout of the Plotly figure for the yearly curve plot.
 
@@ -297,12 +298,12 @@ def yearly_layout(fig:go.Figure, variable):
     """
     fig.update_layout(
         width=1500, height=500,
-        title=dict(text=f'Mean Year {variable} and Trends from Different Periods',
+        title=dict(text=f'Mean Year {column_name} and Trends from Different Periods',
                     x=0.5,
                     xanchor="center",
                     font_size=25),
         xaxis_title="Year",
-        yaxis_title=f"{variable} - {UNIT_DICT[variable]}",
+        yaxis_title=f"{column_name} - {unit}",
         autosize=True,
         template='plotly_dark',
         showlegend=True,
@@ -313,7 +314,7 @@ def yearly_layout(fig:go.Figure, variable):
         )
     )
 
-def plot_all_trend_lines(fig:go.Figure, yearly_mean, periods, column, variable):
+def plot_all_trend_lines(fig:go.Figure, yearly_mean, monthly_mean, periods, column, column_name, unit):
     """
     Adds multiple trend lines for different periods to the figure.
 
@@ -324,7 +325,7 @@ def plot_all_trend_lines(fig:go.Figure, yearly_mean, periods, column, variable):
         column (str): The column name for which the trend lines are plotted.
         variable (str): The variable name for labeling and title purposes.
     """
-    trend_lines, years_all = build_trend_plot(yearly_mean, periods, column)
+    trend_lines, years_all, slope = build_trend_plot(yearly_mean, periods, column)
     colorscale = px.colors.sequential.YlOrRd  # Choose the desired colorscale
     num_trends = len(trend_lines)
     color_indices = np.linspace(0, 1, num_trends)  # Generate equally spaced values between 0 and 1
@@ -335,11 +336,16 @@ def plot_all_trend_lines(fig:go.Figure, yearly_mean, periods, column, variable):
             x=years_all[i],
             y=trend_line,
             mode='lines',
-            name=f"{periods[i][0]}-{periods[i][1]} {variable} Trend",
+            name=f"{periods[i][0]}-{periods[i][1]} {column_name} Trend",
             line=dict(color=color),
-        ))
+            customdata= monthly_mean["customdata"],
+                hovertemplate=(
+                f"Slope: {round(slope[i],3)} {unit}/year<br>" +
+                "Period: %{customdata}<br>"
+            ),
+            ))
 
-def plot_yearly_curve_and_period_trends(yearly_mean, column, periods):
+def plot_yearly_curve_and_period_trends(yearly_mean,monthly_mean, column, periods):
     """
     Plots the yearly curve along with trend lines for different periods.
 
@@ -353,14 +359,14 @@ def plot_yearly_curve_and_period_trends(yearly_mean, column, periods):
     """
     fig = go.Figure()
 
-    variable = [variable for variable in AVAILABLE_VARIABLES if "_".join(variable.lower().split()) in column][0]
-
+    unit = UNIT_DICT[column]
+    column_name = " ".join(column.split("_")).title()
     # Plot yearly curve and trend lines
-    plot_yearly_curve(fig, yearly_mean, column, variable)
-    plot_all_trend_lines(fig, yearly_mean, periods, column, variable)
+    plot_yearly_curve(fig, yearly_mean, column, column_name)
+    plot_all_trend_lines(fig, yearly_mean,monthly_mean, periods, column, column_name, unit)
 
     # Update layout with titles and labels
-    yearly_layout(fig, variable)
+    yearly_layout(fig,column_name, unit)
     st.plotly_chart(fig)
 
     return fig
@@ -434,7 +440,7 @@ def monthly_variation_calculation(monthly_mean, monthly_data, column):
     return monthly_mean
 
 
-def monthly_variation_plot(fig:go.Figure, monthly_mean, unit, color_scale, variable):
+def monthly_variation_plot(fig:go.Figure, monthly_mean, color_scale, column_name, unit):
     """
     Adds a heatmap trace to the figure showing the variation of a specified variable.
 
@@ -466,11 +472,11 @@ def monthly_variation_plot(fig:go.Figure, monthly_mean, unit, color_scale, varia
         hovertemplate=(
             "Month:  %{x}<br>" +
             "Period: %{y}<br>"+
-            f"{variable} "+"Variation: %{z}"+f" {unit}"
+            f"{column_name} "+"Variation: %{z}"+f" {unit}"
         ),
     ))
 
-def monthly_variation_layout(fig:go.Figure, graph_part, variable):
+def monthly_variation_layout(fig:go.Figure, graph_part, column_name):
     """
     Updates the layout of the Plotly figure to customize its appearance.
 
@@ -481,7 +487,7 @@ def monthly_variation_layout(fig:go.Figure, graph_part, variable):
     """
     fig.update_layout(
         width=1500*graph_part, height=1000*graph_part,
-        title=dict(text=f"Monthly {variable} Variation over Periods ",
+        title=dict(text=f"Monthly {column_name} Variation over Periods ",
                     x=0.5,
                     xanchor="center",
                     font_size=25),
@@ -533,15 +539,15 @@ def plot_monthly_period_variation(monthly_mean: pd.DataFrame, monthly_data: pd.D
     fig = go.Figure()
 
     # Determine the variable name and unit from the column name
-    variable = [v for v in AVAILABLE_VARIABLES if "_".join(v.lower().split()) in column][0]
-    unit = UNIT_DICT[variable]
+    unit = UNIT_DICT[column]
+    column_name = " ".join(column.split("_")).title()
 
     # Calculate the monthly variation
     monthly_mean = monthly_variation_calculation(monthly_mean, monthly_data, column)
 
     # Plot the heatmap and update layout
-    monthly_variation_plot(fig, monthly_mean, unit, color_scale, variable)
-    monthly_variation_layout(fig, graph_part, variable)
+    monthly_variation_plot(fig, monthly_mean, color_scale, column_name, unit)
+    monthly_variation_layout(fig, graph_part, column_name)
 
     # Display the figure on the right
     with col2:
@@ -611,7 +617,7 @@ def wrap_into_pdf(fig1, fig2, fig3):
 # --- Main plot function ---
 # --------------------------
 
-def general_plot(data: pd.DataFrame, periods, chosen_variable, filename):
+def general_plot(data: pd.DataFrame, periods, filename):
     """
     Generates a plot for the selected variable and period, including monthly and yearly means,
     trends, and the option to download the plots as a PDF.
@@ -626,21 +632,27 @@ def general_plot(data: pd.DataFrame, periods, chosen_variable, filename):
     """
     # Define columns to keep from the original dataframe
     columns_to_keep = data.columns
+    chosen_variables = [" ".join(column.split("_")).title() for column in columns_to_keep]
+    
 
     # Calculate monthly and yearly mean data
     monthly_data, monthly_mean = calculate_mothly_mean_through_year(copy(data), periods)
     yearly_mean = calculate_yearly_mean_through_year(data, periods)
     
+    
     # Create a select box for users to choose the variable they want to plot
-    variable_choice = st.selectbox("Choose the variable on which you want to see the plot", options=chosen_variable)
+    variable_choice = st.selectbox("Choose the variable on which you want to see the plot", options=chosen_variables)
     
     # Loop through columns to find and plot data matching the selected variable
     for column in data.columns:
-        if column in columns_to_keep and "min" not in column and "max" not in column and "_".join(variable_choice.lower().split(" ")) in column:
+        print(variable_choice)
+        if "_".join(variable_choice.lower().split(" ")) in column:
+            print("_".join(variable_choice.lower().split(" ")))
+            print(column)
             
             # Generate the monthly and yearly plots for the selected column
             fig1 = plot_monthly_mean(column, monthly_mean, monthly_data)
-            fig2 = plot_yearly_curve_and_period_trends(yearly_mean, column, periods)
+            fig2 = plot_yearly_curve_and_period_trends(yearly_mean,monthly_mean, column, periods)
             fig3 = plot_monthly_period_variation(monthly_mean,monthly_data, column)
 
             

@@ -36,10 +36,10 @@ def main():
     st.write("Here is your dataset with the relevant variables following your precedent choices:")
     data_to_keep = filtered_data(data, chosen_variables, long_period)
 
+    
     # Plot part with monthly means and regression through all time
     filename = FILENAME.split(".")[0]
-    print(filename)
-    general_plot(data_to_keep, periods, chosen_variables, filename)
+    general_plot(data_to_keep, periods, filename)
 
 if __name__== "__main__":
     main()
