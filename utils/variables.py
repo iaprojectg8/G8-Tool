@@ -124,15 +124,3 @@ THRESHOLD_COLORS = ["blue", "green", "yellow", "orange", "red"]
 
 EXPOSURE_AGGREGATION=["Category Mean", "Most Frequent Category", "Variable Mean Category" ]
 
-
-
-
-# Ajout de la fenêtre mobile pour faire des calculs sur plusieurs jours glissants
-# Paramètres qu'impliquent cet indicateur
-# - type d'agrégation sur les jours glissants
-# - choix du nombre de jours glissant 
-# - choix du type d'aggregation sur l'année
-# Il ne semble pas que de daily threshold soit nécessaire je vois ce calcul plus comme une moyenne ou une 
-# somme de valeurs pendant plusieurs jours mais sans la nécessité d'avoir des seuils journarliers, je n'arrive pas expliquer pourquoi
-# Mais voici un exemple surement plus parlant : à quoi sert-il d'avoir la connaissance d'une période de 5 jour où les seuils sont dépassé? Et
-# quelle type d'agrégation mettre place la dessus, rien d'où la non pertinence du seuil.

@@ -1,5 +1,5 @@
 from utils.imports import *
-from indicators.parametrization import select_season
+from indicators.parametrization.parametrization import select_season
 
 
 # Define the test function
