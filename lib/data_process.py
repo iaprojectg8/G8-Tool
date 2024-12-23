@@ -1,6 +1,8 @@
 from utils.imports import *
 from layouts.layout import *
 
+
+
 # --- Main functions ---
 def loads_data(filename):
     """
@@ -10,17 +12,10 @@ def loads_data(filename):
     filename (str): The path to the CSV file.
     
     Returns:
-    tuple:
-        - (pd.DataFrame): Loaded data with 'date' as the index.
-        - (float): Latitude of the data point.
-        - (float): Longitude of the data point.
+    data : (pd.DataFrame): Loaded data with 'date' as the index.
     """
     # Load the CSV data with daily timestamps
     data = pd.read_csv(filename, parse_dates=['date'], index_col=0)
-    
-    # Extract the lat and lon and the point to identify it later to make the raster
-    lat = data.loc[0, "lat"]
-    lon = data.loc[0, "lon"]
 
     # Set the index to the date for the process to be easier
     data = data.set_index("date")
@@ -38,13 +33,29 @@ def column_choice(data : pd.DataFrame):
     """
     not_a_variable = [ "lat", "lon"]
     columns_list = [column  for column in data.columns if column not in not_a_variable]
+
+    # Widget that allows the user to select the variable he wants to see plotted
     columns_chosen = st.session_state.columns_chosen = st.multiselect("Chose variable of interest", options=columns_list, default=st.session_state.columns_chosen)
+
+    # Restrict the dataframe to the user selected columns
     df_final = data[columns_chosen]
 
     return df_final
 
-def period_filter(data,period):
-    data_in_right_period = data[(data.index.year>=period[0]) & (data.index.year<=period[-1])]
+def period_filter(data, period):
+    """
+    Filters the input data to include only rows within the specified period.
+
+    Args:
+        data (DataFrame): A pandas DataFrame with a DateTime index.
+        period (list or tuple): A list or tuple containing the start and end years [start_year, end_year].
+
+    Returns:
+        DataFrame: A filtered DataFrame containing only rows within the specified period.
+    """
+    # Select rows where the year in the index is between the start and end years of the period
+    data_in_right_period = data[(data.index.year >= period[0]) & (data.index.year <= period[-1])]
+    
     return data_in_right_period
 
 def filtered_data(data:pd.DataFrame, chosen_variables, period):
