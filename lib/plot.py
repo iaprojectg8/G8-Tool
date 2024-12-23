@@ -20,7 +20,7 @@ def add_periods_to_df(df:pd.DataFrame, periods):
     df["period"] = df["year"].apply(lambda x: next((period for period in periods if period[0] <= x <= period[1]), None))
     return df
 
-def add_month_name_to_df(df):
+def add_month_name_to_df(df:pd.DataFrame):
     """
     Adds a 'month_name' column to the DataFrame based on the numeric 'month' column.
 
@@ -158,7 +158,7 @@ def monthly_scatter(fig: go.Figure, monthly_mean, column, unit):
         ),
         showlegend=False))
 
-def layout_monthly_plot(fig:go.Figure, column, column_name,  unit):
+def layout_monthly_plot(fig:go.Figure, column_name,  unit):
     """
     Updates the layout of the Plotly figure for the monthly plot.
 
@@ -202,7 +202,7 @@ def plot_monthly_mean(column, monthly_mean, monthly_data):
 
     # Make the monthly plot
     monthly_scatter(fig, monthly_mean, column, unit)
-    layout_monthly_plot(fig, column, column_name, unit)
+    layout_monthly_plot(fig, column_name, unit)
     
     # Display the plot in Streamlit
     st.plotly_chart(fig)
@@ -294,7 +294,8 @@ def yearly_layout(fig:go.Figure, column_name, unit):
 
     Args:
         fig (go.Figure): The Plotly figure to update.
-        variable (str): The variable name used for title and axis labels.
+        column_name (str): The column name used for title and axis labels.
+        unit (str) : The unit that corresponds to the variable ploted
     """
     fig.update_layout(
         width=1500, height=500,
@@ -305,7 +306,6 @@ def yearly_layout(fig:go.Figure, column_name, unit):
         xaxis_title="Year",
         yaxis_title=f"{column_name} - {unit}",
         autosize=True,
-        template='plotly_dark',
         showlegend=True,
         legend=dict(
             orientation="v",  # Horizontal orientation
@@ -320,10 +320,12 @@ def plot_all_trend_lines(fig:go.Figure, yearly_mean, monthly_mean, periods, colu
 
     Args:
         fig (go.Figure): The Plotly figure to which the trend lines will be added.
-        yearly_mean (pd.DataFrame): DataFrame containing the yearly mean data.
+        yearly_mean (pd.DataFrame): DataFrame containing yearly mean data.
+        monthly_mean (pd.Dataframe) : Dataframe containing monthly mean data 
         periods (list of tuples): List of periods (start, end) for which trends are calculated.
         column (str): The column name for which the trend lines are plotted.
-        variable (str): The variable name for labeling and title purposes.
+        column_name (str): The column name for labeling and title purposes.
+        unit (str): The unit that corresponds to the variables ploted
     """
     trend_lines, years_all, slope = build_trend_plot(yearly_mean, periods, column)
     colorscale = px.colors.sequential.YlOrRd  # Choose the desired colorscale
@@ -345,12 +347,13 @@ def plot_all_trend_lines(fig:go.Figure, yearly_mean, monthly_mean, periods, colu
             ),
             ))
 
-def plot_yearly_curve_and_period_trends(yearly_mean,monthly_mean, column, periods):
+def plot_yearly_curve_and_period_trends(yearly_mean, monthly_mean, column, periods):
     """
     Plots the yearly curve along with trend lines for different periods.
 
     Args:
         yearly_mean (pd.DataFrame): DataFrame containing the yearly mean data.
+        monthly_mean (pd.DataFrame) : Dataframe containing period-specific means.
         column (str): The column name for which the yearly curve and trends are plotted.
         periods (list of tuples): List of periods (start, end) for which trends are calculated.
 
@@ -358,9 +361,10 @@ def plot_yearly_curve_and_period_trends(yearly_mean,monthly_mean, column, period
         go.Figure: The Plotly figure containing the yearly curve and trend lines.
     """
     fig = go.Figure()
-
+    # Initializing column name and unit for the plot's layout
     unit = UNIT_DICT[column]
     column_name = " ".join(column.split("_")).title()
+
     # Plot yearly curve and trend lines
     plot_yearly_curve(fig, yearly_mean, column, column_name)
     plot_all_trend_lines(fig, yearly_mean,monthly_mean, periods, column, column_name, unit)
@@ -447,19 +451,11 @@ def monthly_variation_plot(fig:go.Figure, monthly_mean, color_scale, column_name
     Args:
         fig (go.Figure): The Plotly figure to update.
         monthly_mean (pd.DataFrame): DataFrame containing the monthly variations.
-        unit (str): Unit of the variable being plotted.
         color_scale (str): Color scale used for the heatmap.
-        variable (str): The variable name.
+        column_name (str): The column name.
+        unit (str): Unit of the variable being plotted.
     """
-    colorscale = px.colors.diverging.Spectral
-    print(type(colorscale))
-    # custom_colorscale = [
-    #     [0, colorscale[0]],  # Start of the original colorscale
-    #     [0.4999999999999999, colorscale[4]],
-    #     [0.5, 'rgb(169,169,169)'],        # Midpoint
-    #     [0.5000000000000001, colorscale[4]],
-    #     [1, colorscale[-1]]           # Full color scale
-    # ]
+
     fig.add_trace(go.Heatmap(
         name=f"",
         z=round(monthly_mean["difference"],3),
@@ -483,7 +479,7 @@ def monthly_variation_layout(fig:go.Figure, graph_part, column_name):
     Args:
         fig (go.Figure): The Plotly figure to update.
         graph_part (float): Proportion of the layout width allocated to the graph.
-        variable (str): The variable being plotted, used for the title.
+        column_name (str): The column name being plotted, used for the title.
     """
     fig.update_layout(
         width=1500*graph_part, height=1000*graph_part,
@@ -645,10 +641,7 @@ def general_plot(data: pd.DataFrame, periods, filename):
     
     # Loop through columns to find and plot data matching the selected variable
     for column in data.columns:
-        print(variable_choice)
         if "_".join(variable_choice.lower().split(" ")) in column:
-            print("_".join(variable_choice.lower().split(" ")))
-            print(column)
             
             # Generate the monthly and yearly plots for the selected column
             fig1 = plot_monthly_mean(column, monthly_mean, monthly_data)
