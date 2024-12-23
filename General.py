@@ -1,7 +1,7 @@
 from utils.imports import *
 from utils.variables import DATAFRAME_HEIGHT, FILENAME
 from lib.data_process import * 
-from indicators.parametrization import *
+from indicators.parametrization.parametrization import *
 from lib.plot import *
 from layouts.layout import *
 
@@ -30,8 +30,6 @@ def main():
     # Loading CSV, this will almost surely be replaced by 
     path = f"CSV_files/{FILENAME}"
     data = loads_data(filename=path)
-
-    # st.write("Possibility to upload a CSV file")
 
     st.write("Here is your dataset with the relevant variables following your precedent choices:")
     data_to_keep = filtered_data(data, chosen_variables, long_period)
