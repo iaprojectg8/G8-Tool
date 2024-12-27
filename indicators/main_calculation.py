@@ -49,7 +49,7 @@ def season_aggregation_calculation(row,df_season_temp, score_name, variable):
     Returns:
         tuple: A DataFrame with the aggregated yearly values and the name of the aggregated column.
     """
-    df_yearly_var, aggregated_column_name = make_yearly_agg(df_season_temp, score_name,variable, row["Yearly Aggregation"])
+    df_yearly_var, aggregated_column_name = make_yearly_agg(df_season_temp,variable, row["Yearly Aggregation"])
 
     df_yearly_var = indicator_score(
         df_yearly_var,
@@ -76,7 +76,7 @@ def outlier_days_calculation(row, df_season_temp, score_name, variable):
     with st.expander("Show Daily Dataframe"):
         st.dataframe(df_daily, height=DATAFRAME_HEIGHT,use_container_width=True)
 
-    df_yearly_var, aggregated_column_name = make_yearly_agg(df_season_temp, score_name,indicator_column, row["Yearly Aggregation"])
+    df_yearly_var, aggregated_column_name = make_yearly_agg(df_season_temp,indicator_column, row["Yearly Aggregation"])
     df_yearly_var = indicator_score(
         df_yearly_var,
         aggregated_column_name,
@@ -105,7 +105,7 @@ def consecutive_outlier_days_calculation(row, df_season_temp, score_name, variab
     with st.expander("Show Daily Dataframe"):
         st.dataframe(df_daily, height=DATAFRAME_HEIGHT,use_container_width=True)
 
-    df_yearly_var, aggregated_column_name = make_yearly_agg(df_season_temp, score_name,"cumulated_days_sum", row["Yearly Aggregation"])
+    df_yearly_var, aggregated_column_name = make_yearly_agg(df_season_temp,"cumulated_days_sum", row["Yearly Aggregation"])
     df_yearly_var = indicator_score(
         df_yearly_var,
         aggregated_column_name,
@@ -133,7 +133,7 @@ def sliding_window_calculation(row, df_season_temp, score_name, variable):
     with st.expander("Show Daily Dataframe"):
         st.dataframe(df_daily, height=DATAFRAME_HEIGHT,use_container_width=True)
 
-    df_yearly_var, aggregated_column_name = make_yearly_agg(df_season_temp, score_name,variable, row["Yearly Aggregation"])
+    df_yearly_var, aggregated_column_name = make_yearly_agg(df_season_temp, variable, row["Yearly Aggregation"])
     df_yearly_var = indicator_score(
         df_yearly_var,
         aggregated_column_name,
@@ -144,6 +144,9 @@ def sliding_window_calculation(row, df_season_temp, score_name, variable):
     return df_yearly_var, aggregated_column_name
 
 
+# -----------------------------------
+# --- Assembling all calculations ---
+# -----------------------------------
 
 def calculate_scores(row, df_season_temp, score_name, variable):
     """
