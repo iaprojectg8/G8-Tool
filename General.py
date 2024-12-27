@@ -29,15 +29,16 @@ def main():
     
     # Loading CSV, this will almost surely be replaced by 
     path = f"CSV_files/{FILENAME}"
-    data = loads_data(filename=path)
+    if chosen_variables : 
+        data = loads_data(filename=path)
 
-    st.write("Here is your dataset with the relevant variables following your precedent choices:")
-    data_to_keep = filtered_data(data, chosen_variables, long_period)
+        st.write("Here is your dataset with the relevant variables following your precedent choices:")
+        data_to_keep = filtered_data(data, chosen_variables, long_period)
 
-    
-    # Plot part with monthly means and regression through all time
-    filename = FILENAME.split(".")[0]
-    general_plot(data_to_keep, periods, filename)
+        
+        # Plot part with monthly means and regression through all time
+        filename = FILENAME.split(".")[0]
+        general_plot(data_to_keep, periods, filename)
 
 if __name__== "__main__":
     main()
