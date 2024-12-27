@@ -1,5 +1,6 @@
 from utils.imports import *
 from layouts.layout import *
+from utils.variables import DATAFRAME_HEIGHT
 
 
 
@@ -88,15 +89,22 @@ def filtered_data(data:pd.DataFrame, chosen_variables, period):
     data_to_diplay.index = data_to_diplay.index.date
 
     # Display the dataframe
-    st.dataframe(data=data_to_diplay,use_container_width=True)
+    st.dataframe(data=data_to_diplay,height=DATAFRAME_HEIGHT, use_container_width=True)
     return data_to_keep
 
 
 def select_period():
-    
+    """
+    Allows the user to select a data period using an interactive Streamlit slider.
+
+    Returns:
+        tuple: The start and end values of the selected period.
+    """
+    # Define the initial limits for the slider
     period_start= 1950
     period_end= 2050
 
+    # Display the slider that allows the user to select the bounds
     period_start, period_end = st.slider(
         "Select the data period:",
         min_value=period_start, 
