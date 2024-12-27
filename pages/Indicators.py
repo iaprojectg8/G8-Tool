@@ -9,7 +9,7 @@ from lib.session_variables import *
 from lib.data_process import *
 from lib.plot import *
 from indicators.plot import *
-from indicators.main_calculation import calculate_score
+from indicators.main_calculation import calculations_and_plots
 
 
 # # This is only because we use this session variable in a default value of a widget
@@ -75,7 +75,7 @@ def main():
 
             # Need to calculate score with this parameters
             set_title_2("Indicators calculation")
-            calculate_score(df_season, st.session_state.df_indicators,all_year_data, season_start, season_end, periods)
+            calculations_and_plots(df_season, st.session_state.df_indicators,all_year_data, season_start, season_end, periods)
 
 
 if "__main__":

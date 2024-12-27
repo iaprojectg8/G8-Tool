@@ -30,10 +30,6 @@ def plot_daily_data(df, variable):
 
 
 
-
-
-
-
 def plot_years_exposure(df, aggregated_column_name, min_thresholds, max_thresholds, score_name, unit):
     
     
