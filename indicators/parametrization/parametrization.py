@@ -94,20 +94,20 @@ def indicator_building(df_chosen:pd.DataFrame, season_start, season_end):
         indicator_type = general_information(df_chosen)
 
         if indicator_type in ["Outlier Days", "Consecutive Outlier Days"]:
-            handle_daily_threshold_input()
-            handle_yearly_threshold_input()
+            create_daily_threshold_input()
+            create_yearly_thresholds_input()
         elif indicator_type == "Sliding Windows Aggregation":
-            handle_rolling_window()
-            handle_yearly_threshold_input()
+            create_rolling_window_input()
+            create_yearly_thresholds_input()
         elif indicator_type == "Season Aggregation":
-            handle_yearly_threshold_input()
+            create_yearly_thresholds_input()
 
-        handle_yearly_aggregation_input()
+        create_yearly_aggregation()
         if season_start is not None and season_end is not None:
-            handle_season_shift_input(season_start, season_end)
+            create_season_shift_input(season_start, season_end)
 
         # Button 
-        handle_buttons()
+        create_buttons()
 
 
 def indicator_editing(df_chosen : pd.DataFrame, season_start, season_end):
@@ -130,32 +130,37 @@ def indicator_editing(df_chosen : pd.DataFrame, season_start, season_end):
                 updated_checkbox = row_checkbox.to_dict()
 
                 # Updating the different fields
-                general_information_update(updated_indicator, i, df_chosen)
-                handle_threshold_update(updated_indicator, updated_checkbox, i)
-                handle_aggregation_update(updated_indicator, i, label="Yearly Aggregation")
+                update_general_information(updated_indicator, i, df_chosen)
+
+
+                # Try to keep this logic that corresponds to the first part, the creation
+                # if indicator_type in ["Outlier Days", "Consecutive Outlier Days"]:
+                #     create_daily_threshold_input()
+                #     create_yearly_threshold_input()
+                # elif indicator_type == "Sliding Windows Aggregation":
+                #     create_rolling_window()
+                #     create_yearly_threshold_input()
+                # elif indicator_type == "Season Aggregation":
+                #     create_yearly_threshold_input()
+
+                # create_yearly_aggregation_input()
+                # if season_start is not None and season_end is not None:
+                #     create_season_shift_input(season_start, season_end)
+            
+                if updated_indicator["Indicator Type"] in ["Outlier Days", "Consecutive Outlier Days"]:
+                    update_daily_threshold_input(updated_indicator, updated_checkbox, i)
+                    update_yearly_thresholds_input(updated_indicator, updated_checkbox, i)
+                elif updated_indicator["Indicator Type"] == "Sliding Windows Aggregation":
+                    update_rolling_window_input(updated_indicator, i)
+                    update_yearly_thresholds_input(updated_indicator, updated_checkbox, i)
+                elif updated_indicator["Indicator Type"] == "Season Aggregation":
+                    update_yearly_thresholds_input(updated_indicator, updated_checkbox, i)
+
+
+                update_yearly_aggregation(updated_indicator, i, label="Yearly Aggregation")
                 if season_start is not None and season_end is not None:
-                    handle_shift_update(updated_indicator, updated_checkbox, i, season_start, season_end)
-                handle_button_update(updated_indicator, row, i)
+                    update_season_shift(updated_indicator, updated_checkbox, i, season_start, season_end)
+                update_buttons(updated_indicator, row, i)
                 
     else:
         st.write("No indicators available yet.")
-
-
-
-
-
-
-
-# Indicateurs
-# Les basiques
-#     compte le nombre de jour
-#     compte le nombre de jour consécutifs
-# Pour les variables à cumul
-#     Faire la sum de toute la growing season et voir si c'est entre des seuil
-# A voir pour mettre un shift (growing season)
-# + indicateur de variabilité
-
-
-# Classe pour les yearly threshold:
-# Low hazard
-# Lets add so much thresholds that we will not be able to go back there

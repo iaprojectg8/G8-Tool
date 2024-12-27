@@ -4,11 +4,11 @@ from utils.variables import *
 
 
 
-# ----------------------------
+# -----------------------------
 # --- Widgets building part ---
-# ----------------------------
+# -----------------------------
 
-
+## General
 def general_information(df_chosen :pd.DataFrame):
     """
     Display general information input fields and store the user-provided values in the session state.
@@ -26,7 +26,7 @@ def general_information(df_chosen :pd.DataFrame):
     return indicator_type
 
 ## Daily
-def handle_checkbox_and_daily_input(label : str, checkbox_key):
+def create_daily_threshold(label : str, checkbox_key):
     """
     Creates a UI component consisting of a checkbox and a corresponding number input field 
     that becomes visible when the checkbox is selected.
@@ -47,7 +47,7 @@ def handle_checkbox_and_daily_input(label : str, checkbox_key):
 
 
 ## Yearly
-def handle_checkbox_and_input_yearly_agg(label : str, checkbox_key, thresholds_position):    
+def create_yearly_thresholds(label : str, checkbox_key, thresholds_position):    
     """
     Handles the creation of a checkbox and a number input for setting a maximum yearly aggregation threshold.
     Allows defining additional thresholds above the entered value by specifying step values.
@@ -91,7 +91,7 @@ def handle_checkbox_and_input_yearly_agg(label : str, checkbox_key, thresholds_p
 
 
 ## Rolling window part
-def handle_window_lenght(label):
+def create_window_length(label):
     """
     Creates an input section for specifying the rolling window length.
 
@@ -107,7 +107,7 @@ def handle_window_lenght(label):
                                                             label_visibility="collapsed", 
                                                             key="_".join(label.lower().split(" ")))
         
-def handle_window_aggregation(label):
+def create_window_aggregation(label):
     """
     Creates an input section for selecting the aggregation function for a rolling window.
 
@@ -127,7 +127,7 @@ def handle_window_aggregation(label):
                                                         label_visibility="collapsed")
 
 ## Aggregations
-def handle_yearly_aggregation_input():
+def create_yearly_aggregation():
     """
     Displays an aggregation function selection for yearly data.
     """
@@ -143,7 +143,7 @@ def handle_yearly_aggregation_input():
     
 
 ## Season Shift
-def handle_checkbox_input_season_shift(label:str, checkbox_key, max_value):
+def create_season_shift(label:str, checkbox_key, max_value):
     """
     Handles the input for a checkbox and associated number input for seasonal shift.
 
@@ -167,7 +167,7 @@ def handle_checkbox_input_season_shift(label:str, checkbox_key, max_value):
 
 
 ## Buttons
-def handle_buttons():
+def create_buttons():
     """
     Handles the button actions for adding and resetting indicators.
     """
@@ -189,35 +189,35 @@ def handle_buttons():
 # --- Assembling part ---
 # -----------------------
 
-def handle_daily_threshold_input():
+def create_daily_threshold_input():
     """
     Handles the input for daily thresholds, including minimum and maximum thresholds.
     """
     st.subheader("Daily Thresholds")
-    handle_checkbox_and_daily_input(label="Daily Threshold Min", checkbox_key="min_daily_checkbox")
-    handle_checkbox_and_daily_input(label="Daily Threshold Max", checkbox_key="max_daily_checkbox")
+    create_daily_threshold(label="Daily Threshold Min", checkbox_key="min_daily_checkbox")
+    create_daily_threshold(label="Daily Threshold Max", checkbox_key="max_daily_checkbox")
 
-def handle_yearly_threshold_input():
+def create_yearly_thresholds_input():
     """
-    Handles the input for yearly thresholds, including minimum and maximum thresholds.
+    Creates the input for yearly thresholds, including minimum and maximum thresholds.
     """
     st.subheader("Yearly Thresholds")
-    handle_checkbox_and_input_yearly_agg(label="Yearly Threshold Min", checkbox_key="min_yearly_checkbox", thresholds_position="below")
-    handle_checkbox_and_input_yearly_agg(label="Yearly Threshold Max", checkbox_key="max_yearly_checkbox", thresholds_position="above")
+    create_yearly_thresholds(label="Yearly Threshold Min", checkbox_key="min_yearly_checkbox", thresholds_position="below")
+    create_yearly_thresholds(label="Yearly Threshold Max", checkbox_key="max_yearly_checkbox", thresholds_position="above")
 
 
-def handle_rolling_window():
+def create_rolling_window_input():
     """
-    Handles the input for rolling window parameters, including length and aggregation.
+    Creates the input for rolling window parameters, including length and aggregation.
     """
     st.subheader("Rolling Window Parameters")
-    handle_window_lenght(label = "Windows Length")
-    handle_window_aggregation(label = "Windows Aggregation")
+    create_window_length(label = "Windows Length")
+    create_window_aggregation(label = "Windows Aggregation")
 
 
-def handle_season_shift_input(season_start, season_end):
+def create_season_shift_input(season_start, season_end):
     """
-    Handles the input for season shift parameters, including season start and end shifts.
+    Creates the input for season shift parameters, including season start and end shifts.
 
     Args:
         season_start: The start of the season (used to limit max value for season start shift).
@@ -225,8 +225,8 @@ def handle_season_shift_input(season_start, season_end):
     """
     st.subheader("Season shift")
     if season_start is not None and season_end is not None:
-        handle_checkbox_input_season_shift(label="Season Start Shift", checkbox_key="shift_start_checkbox",max_value=season_start )
-        handle_checkbox_input_season_shift(label="Season End Shift", checkbox_key="shift_end_checkbox", max_value=12-season_end)
+        create_season_shift(label="Season Start Shift", checkbox_key="shift_start_checkbox",max_value=season_start )
+        create_season_shift(label="Season End Shift", checkbox_key="shift_end_checkbox", max_value=12-season_end)
 
 
 

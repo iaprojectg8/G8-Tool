@@ -128,7 +128,6 @@ def split_into_periods_indicators(period_length, start_year, end_year):
     """
     whole_period_length = end_year - start_year + 1
     amount_of_periods = whole_period_length // period_length + 1
-    print(amount_of_periods)
     periods = []
 
     # Loop through each period index and calculate start and end years
