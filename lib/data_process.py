@@ -127,7 +127,7 @@ def split_into_periods_indicators(period_length, start_year, end_year):
                         with the format (period_start, period_end).
     """
     whole_period_length = end_year - start_year + 1
-    amount_of_periods = whole_period_length // period_length + 1
+    amount_of_periods = ceil(whole_period_length / period_length)
     periods = []
 
     # Loop through each period index and calculate start and end years
@@ -136,11 +136,16 @@ def split_into_periods_indicators(period_length, start_year, end_year):
         period_end = period_start + period_length -1  # End year of the current period
 
         # Append the period to the list, ensuring it does not exceed the end year
-        if period_end <= end_year:
+        if period_end < end_year:
             periods.append((period_start, period_end))
+        elif abs(period_start - end_year)<0.3*period_length:
+            # Needs to create last tuple periods before to remove the last element of the list
+            last_period = (periods[-1][0], end_year)
+            periods.pop()
+            periods.append(last_period)
         else:
             periods.append((period_start, end_year))
-
+    print(periods)
     return periods
 
 def split_into_periods(period_length, start_year, end_year):

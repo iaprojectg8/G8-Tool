@@ -20,19 +20,56 @@ def plot_daily_data(df, variable):
     fig.update_layout(
         title=f"Daily {variable}",
         xaxis_title="Date",
-        yaxis_title=variable,
+        yaxis_title=f"Daily {variable}",
         xaxis=dict(showgrid=False),
         yaxis=dict(showgrid=True),
         template="plotly_white"
     )
+
+    fig.update_layout(
+        title=dict(text=f"Distribution of Daily {" ".join(variable.split("_")).title()}",
+                    x=0.5,
+                    xanchor="center",
+                    font_size=25),
+        xaxis=dict(tickfont_size=15,
+                    title = dict(
+                        text="Date",
+                        font_size=17,
+                        standoff=50),       
+                    ticklabelstandoff =20),
+        yaxis=dict(tickfont_size=15,
+                    title=dict(
+                        text=f"Daily {" ".join(variable.split("_")).title()}",
+                        font_size=17,
+                        standoff=50),
+                    ticklabelstandoff = 20),
+        legend=dict(title=dict(text="Risk Levels",
+                               font=dict(size=20, color="white",weight=900),
+                               side="top center",
+    
+                               ),
+                    
+                    orientation="v", 
+                    traceorder="reversed",
+                    x=1.05,           
+                    y=0.5,
+                    ),
+        font=dict(
+            size=17),
+        autosize=True,
+
+    )
     st.plotly_chart(fig)
+
+
+    
 
 
 
 
 def plot_years_exposure(df, aggregated_column_name, min_thresholds, max_thresholds, score_name, unit):
     
-    
+
 
     # print(df["precipitation_sum_sum_season_precipitation"].min())
     fig = go.Figure()
