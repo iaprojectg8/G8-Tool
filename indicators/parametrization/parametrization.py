@@ -88,29 +88,29 @@ def indicator_building(df_chosen:pd.DataFrame, season_start, season_end):
         season_start (int): Starting month of the season.
         season_end (int): Ending month of the season.
     """
-    st.subheader("Create indicators")
-    with st.expander("Indicator template",expanded=False):
+    # st.subheader("Create indicators")
+    # with st.expander("Indicator template",expanded=False):
         
-        indicator_type = general_information(df_chosen)
+    indicator_type = general_information(df_chosen)
 
-        if indicator_type in ["Outlier Days", "Consecutive Outlier Days"]:
-            create_daily_threshold_input()
-            create_yearly_thresholds_input()
-        elif indicator_type == "Sliding Windows Aggregation":
-            create_rolling_window_input()
-            create_yearly_thresholds_input()
-        elif indicator_type == "Season Aggregation":
-            create_yearly_thresholds_input()
+    if indicator_type in ["Outlier Days", "Consecutive Outlier Days"]:
+        create_daily_threshold_input()
+        create_yearly_thresholds_input()
+    elif indicator_type == "Sliding Windows Aggregation":
+        create_rolling_window_input()
+        create_yearly_thresholds_input()
+    elif indicator_type == "Season Aggregation":
+        create_yearly_thresholds_input()
 
-        create_yearly_aggregation()
-        if season_start is not None and season_end is not None:
-            create_season_shift_input(season_start, season_end)
+    create_yearly_aggregation()
+    if season_start is not None and season_end is not None:
+        create_season_shift_input(season_start, season_end)
 
-        # Buttons
-        create_buttons()
+    # Buttons
+    create_buttons()
 
 
-def indicator_editing(df_chosen : pd.DataFrame, season_start, season_end):
+def indicators_editing(df_chosen : pd.DataFrame, season_start, season_end):
     """
     Allows users to edit existing indicators.
 
@@ -151,3 +151,31 @@ def indicator_editing(df_chosen : pd.DataFrame, season_start, season_end):
                 
     else:
         st.write("No indicators available yet.")
+
+
+
+def indicator_editing(df_season, season_start, season_end, row, row_checkbox,i):
+    
+    with st.popover(f"Update :  {row["Name"]}", use_container_width = True):
+        updated_indicator = row.to_dict()
+        updated_checkbox = row_checkbox.to_dict()
+
+        # Updating the different fields
+        update_general_information(updated_indicator, i, df_season)
+
+        if updated_indicator["Indicator Type"] in ["Outlier Days", "Consecutive Outlier Days"]:
+            update_daily_threshold_input(updated_indicator, updated_checkbox, i)
+            update_yearly_thresholds_input(updated_indicator, updated_checkbox, i)
+        elif updated_indicator["Indicator Type"] == "Sliding Windows Aggregation":
+            update_rolling_window_input(updated_indicator, i)
+            update_yearly_thresholds_input(updated_indicator, updated_checkbox, i)
+        elif updated_indicator["Indicator Type"] == "Season Aggregation":
+            update_yearly_thresholds_input(updated_indicator, updated_checkbox, i)
+
+
+        update_yearly_aggregation(updated_indicator, i, label="Yearly Aggregation")
+        if season_start is not None and season_end is not None:
+            update_season_shift(updated_indicator, updated_checkbox, i, season_start, season_end)
+
+        # Buttons
+        update_buttons(updated_indicator, i)

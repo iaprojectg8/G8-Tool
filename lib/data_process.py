@@ -1,6 +1,7 @@
 from utils.imports import *
 from layouts.layout import *
 from utils.variables import DATAFRAME_HEIGHT
+from lib.session_variables import update_chosen_variable
 
 
 
@@ -36,7 +37,8 @@ def column_choice(data : pd.DataFrame):
     columns_list = [column  for column in data.columns if column not in not_a_variable]
 
     # Widget that allows the user to select the variable he wants to see plotted
-    columns_chosen = st.session_state.columns_chosen = st.multiselect("Chose variable of interest", options=columns_list, default=st.session_state.columns_chosen)
+    st.session_state.columns_chosen = st.multiselect("Chose variable of interest", options=columns_list)
+    columns_chosen = st.session_state.columns_chosen
 
     # Restrict the dataframe to the user selected columns
     df_final = data[columns_chosen]
@@ -145,7 +147,7 @@ def split_into_periods_indicators(period_length, start_year, end_year):
             periods.append(last_period)
         else:
             periods.append((period_start, end_year))
-    print(periods)
+
     return periods
 
 def split_into_periods(period_length, start_year, end_year):

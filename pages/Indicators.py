@@ -16,6 +16,8 @@ from indicators.main_calculation import calculations_and_plots
 # All the other session
 if "columns_chosen" not in st.session_state:
     st.session_state.columns_chosen = None
+if "season_checkbox" not in st.session_state:
+    st.session_state.season_checkbox = False
 
 def main():
     """Basic Streamlit app with a title."""
@@ -59,18 +61,21 @@ def main():
         
         # Indicators parametrization handling
         set_title_2("Parametrize Indictors")
-        tab1, tab2 = st.tabs(["Create/Update Indicator", "Edit Existing Indicators"])
 
-        # Building in a tab
-        with tab1:
+        # Load indicators from CSV
+        if st.checkbox(label="Load indicators from CSV"):
+            df = upload_csv_file()
+            if df is not None:
+                st.session_state.df_indicators = df
+
+        # Building the indicator in a popover
+        with st.popover("Create Indicator", use_container_width = True):
             indicator_building(df_season, season_start, season_end)
 
-        # Editing in the other
-        with tab2:
-            indicator_editing(df_season, season_start, season_end)
-
+        # Display an indicator summary
         if not st.session_state.df_indicators.empty:
             st.dataframe(st.session_state.df_indicators, use_container_width=True)
+            download_indicators(st.session_state.df_indicators)
 
 
             # Need to calculate score with this parameters

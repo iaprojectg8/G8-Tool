@@ -46,7 +46,7 @@ def plot_daily_data(df, variable):
         legend=dict(title=dict(text="Risk Levels",
                                font=dict(size=20, color="white",weight=900),
                                side="top center",
-    
+
                                ),
                     
                     orientation="v", 
