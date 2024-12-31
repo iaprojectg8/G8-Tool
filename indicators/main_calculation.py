@@ -2,6 +2,7 @@ from utils.imports import *
 from utils.variables import *
 from indicators.calculation import *
 from indicators.plot import *
+from indicators.parametrization.update_indicator import * 
 
 
 # ------------------------------------------------
@@ -22,16 +23,22 @@ def introduce_season_shift_in_calculation(season_start, season_start_shift, seas
     Returns:
         pandas.DataFrame: A filtered DataFrame with the adjusted season period.
     """
-    if season_start_shift is not None and season_end_shift is not None:
+    if (season_start_shift is not None  and season_end_shift is not None
+        and not pd.isna(season_start_shift) and not pd.isna(season_end_shift)):
+
         st.dataframe(all_year_data, height=DATAFRAME_HEIGHT, use_container_width=True) 
         df_season_temp = all_year_data[(all_year_data.index.month >= season_start-season_start_shift) 
                                 & (all_year_data.index.month <= season_end+season_end_shift)]
-    elif season_start_shift is not None:
+        
+    elif season_start_shift is not None and not pd.isna(season_start_shift):
         st.dataframe(all_year_data, height=DATAFRAME_HEIGHT, use_container_width=True) 
         df_season_temp = all_year_data[(all_year_data.index.month >= season_start-season_start_shift) & (all_year_data.index.month <= season_end)]
-    elif season_end_shift is not None:
+    
+    elif season_end_shift is not None and not pd.isna(season_end_shift):
         st.dataframe(all_year_data, height=DATAFRAME_HEIGHT, use_container_width=True) 
         df_season_temp = all_year_data[(all_year_data.index.month >= season_start) & (all_year_data.index.month <= season_end+season_end_shift)]
+    else:
+        df_season_temp = all_year_data
 
     return df_season_temp
 
@@ -233,21 +240,25 @@ def calculations_and_plots(df_season, df_indicators_parameters: pd.DataFrame,all
 
 
     # Iterating over indicators dataframe
-    for i, row in df_indicators_parameters.iterrows():
+    for (i, row), (j, row_checkbox) in zip(st.session_state.df_indicators.iterrows(), st.session_state.df_checkbox.iterrows()):
         with tabs[i]:
+            
+            # Offer the possibility to edit the indicator
+            indicator_editing(df_season, season_start, season_end, row, row_checkbox, i)
 
             # Initializing useful variables
             variable = row["Variable"]
             score_name = row["Name"]
             season_start_shift=row["Season Start Shift"]
             season_end_shift= row["Season End Shift"]
-            below_thresholds=row["Yearly Threshold Min List"]
-            above_thresholds= row["Yearly Threshold Max List"]
+            below_thresholds=copy(row["Yearly Threshold Min List"])
+            above_thresholds= copy(row["Yearly Threshold Max List"])
 
             df_season_temp=df_season[[variable]]
             
             # Season shift handling
-            if season_start_shift or season_end_shift:
+            if (not pd.isna(season_start_shift) or not pd.isna(season_end_shift)
+                or season_start_shift is not None or season_end_shift is not None):
                 df_season_temp = introduce_season_shift_in_calculation(season_start, season_start_shift, season_end, season_end_shift, all_year_data)
             
             # Score calculation
@@ -261,7 +272,7 @@ def calculations_and_plots(df_season, df_indicators_parameters: pd.DataFrame,all
 
             # Multiple plot to understand the calculated indicators
             plot_daily_data(all_year_data, variable)
-            plot_years_exposure(df_yearly_var, aggregated_column_name, row["Yearly Threshold Min List"], row["Yearly Threshold Max List"], score_name,unit)
+            plot_years_exposure(df_yearly_var, aggregated_column_name, below_thresholds, above_thresholds, score_name,unit)
             plot_exposure_through_period(df_yearly_var, score_name)
             plot_global_exposure(df_yearly_var, score_name, i, aggregated_column_name, below_thresholds, above_thresholds)
 

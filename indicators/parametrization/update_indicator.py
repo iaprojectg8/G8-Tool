@@ -133,7 +133,8 @@ def update_window_aggregation(updated_indicator, i, label):
     with col1:
 
         st.write(label)
-
+    print(AGG_FUNC.index(updated_indicator[label]) if updated_indicator[label] is not None 
+                                                                    else INDICATOR_AGG[st.session_state.indicator["Indicator Type"]][0])
     with col2:
         updated_indicator[label] = st.selectbox(label=label,
                                                 options=AGG_FUNC,
@@ -244,11 +245,11 @@ def update_yearly_aggregation(updated_indicator, i, label):
     st.subheader("Aggregation functions")
     updated_indicator[label] = st.selectbox(label="Yearly Aggregation",
                                             options=AGG_FUNC,
-                                            index=AGG_FUNC.index(updated_indicator[label]),
+                                            index=INDICATOR_AGG[updated_indicator["Indicator Type"]][0],
                                             key=f"edit_yearly_aggregation_{i}",
                                             disabled=INDICATOR_AGG[updated_indicator["Indicator Type"]][1])
     
-def update_buttons(updated_indicator, row, i):
+def update_buttons(updated_indicator, i):
     """
     Buttons for update management.
 
@@ -257,10 +258,47 @@ def update_buttons(updated_indicator, row, i):
         row (pandas.Series): The row corresponding to the current indicator in the dataframe.
         i (int): The index or identifier for the indicator, used for widget keys.
     """
-    if st.button(f"Update Indicator: {row['Name']}", key=f"edit_update_{i}"):
-        st.session_state.df_indicators.loc[i] = updated_indicator
+    st.button("Update Indicator", key=f"edit_update_{i}", 
+              on_click=lambda index=i,updated_indicator=updated_indicator : update_indicator(index, updated_indicator))
+
 
     st.button(label = "Delete Indicator",key=f"delete_{i}",on_click=lambda index=i: delete_indicator(index))
+
+
+def indicator_editing(df_season, season_start, season_end, row, row_checkbox, i):
+    """
+    Allows users to edit existing indicators.
+    Args:
+        df_season (DataFrame): The selected data for which indicators will be edited.
+        season_start (int): Starting month of the season.
+        season_end (int): Ending month of the season.
+        row (pandas.Series): The row corresponding to the current indicator in the dataframe.
+        row_checkbox (pandas.Series): The row corresponding to the current indicator's checkbox states in the dataframe.
+        i (int): The index or identifier for the indicator, used for widget keys.
+    """
+    with st.popover(f"Update :  {row["Name"]}", use_container_width = True):
+        updated_indicator = row.to_dict()
+        updated_checkbox = row_checkbox.to_dict()
+
+        # Updating the different fields
+        update_general_information(updated_indicator, i, df_season)
+
+        if updated_indicator["Indicator Type"] in ["Outlier Days", "Consecutive Outlier Days"]:
+            update_daily_threshold_input(updated_indicator, updated_checkbox, i)
+            update_yearly_thresholds_input(updated_indicator, updated_checkbox, i)
+        elif updated_indicator["Indicator Type"] == "Sliding Windows Aggregation":
+            update_rolling_window_input(updated_indicator, i)
+            update_yearly_thresholds_input(updated_indicator, updated_checkbox, i)
+        elif updated_indicator["Indicator Type"] == "Season Aggregation":
+            update_yearly_thresholds_input(updated_indicator, updated_checkbox, i)
+
+
+        update_yearly_aggregation(updated_indicator, i, label="Yearly Aggregation")
+        if season_start is not None and season_end is not None:
+            update_season_shift(updated_indicator, updated_checkbox, i, season_start, season_end)
+
+        # Buttons
+        update_buttons(updated_indicator, i)
 
     
     
