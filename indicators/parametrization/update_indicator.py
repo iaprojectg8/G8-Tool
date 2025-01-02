@@ -1,6 +1,7 @@
 from utils.imports import *
 from lib.session_variables import * 
 from utils.variables import *
+from lib.widget import display_thresholds
 
 # ----------------------------
 # --- Widget updating part ---
@@ -95,7 +96,9 @@ def update_yearly_thresholds(updated_indicator, updated_checkbox_value, label, i
                                                                 if thresholds_position == "above" 
                                                                 else updated_indicator[label] - step * i
                                                                 for i in range(NUM_THRESHOLDS + 1)]
-        st.write("Your ohter threshold will be the ones there ", updated_indicator[label+" List"])
+        # st.write("Your ohter threshold will be the ones there ", updated_indicator[label+" List"])
+        display_thresholds(updated_indicator, label)
+
     else:
         updated_indicator[label] = None
 
@@ -133,8 +136,6 @@ def update_window_aggregation(updated_indicator, i, label):
     with col1:
 
         st.write(label)
-    print(AGG_FUNC.index(updated_indicator[label]) if updated_indicator[label] is not None 
-                                                                    else INDICATOR_AGG[st.session_state.indicator["Indicator Type"]][0])
     with col2:
         updated_indicator[label] = st.selectbox(label=label,
                                                 options=AGG_FUNC,

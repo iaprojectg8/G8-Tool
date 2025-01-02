@@ -1,6 +1,7 @@
 from utils.imports import *
 from lib.session_variables import * 
 from utils.variables import *
+from lib.widget import display_thresholds
 
 
 
@@ -85,7 +86,11 @@ def create_yearly_thresholds(label : str, checkbox_key, thresholds_position):
                                                                 for i in range(NUM_THRESHOLDS + 1)]
 
         # Here maybe an animation could be find to better present the different threshold built by his choices
-        st.write("Your ohter threshold will be the ones there ", st.session_state.indicator[label+" List"])
+        # st.write("Your ohter threshold will be the ones there ", st.session_state.indicator[label+" List"])
+
+        # Display the list of thresholds in a table format
+        if st.session_state.indicator[label] is not None:
+            display_thresholds(st.session_state.indicator, label)
     else:
         st.session_state.indicator[label] = None
 

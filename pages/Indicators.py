@@ -54,10 +54,9 @@ def main():
         if st.checkbox("Need a season or a period study", value=st.session_state.season_checkbox):
             season_start, season_end = select_season()
             df_season = select_data_contained_in_season(df_chosen, season_start, season_end)
+            st.dataframe(df_season, height=DATAFRAME_HEIGHT, use_container_width=True)
         else:
             df_season = df_chosen
-        st.dataframe(df_season, height=DATAFRAME_HEIGHT, use_container_width=True)
-
         
         # Indicators parametrization handling
         set_title_2("Parametrize Indictors")
@@ -65,12 +64,12 @@ def main():
         # Load indicators from CSV
         if st.checkbox(label="Load indicators from CSV"):
             df = upload_csv_file()
-            
+
             # Only replace df_indicators if the uploaded file differs from the current one
-            if df.equals(st.session_state.uploaded_df):
+            if df is not None and not df.equals(st.session_state.uploaded_df):
+                df_checkbox = fill_df_checkbox(df)
                 st.session_state.uploaded_df = df
                 st.session_state.df_indicators = df
-                df_checkbox = fill_df_checkbox(df)
                 st.session_state.df_checkbox = df_checkbox
 
         # Building the indicator in a popover

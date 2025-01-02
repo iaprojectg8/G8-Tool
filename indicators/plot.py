@@ -70,8 +70,6 @@ def plot_daily_data(df, variable):
 def plot_years_exposure(df, aggregated_column_name, min_thresholds, max_thresholds, score_name, unit):
     
 
-
-    # print(df["precipitation_sum_sum_season_precipitation"].min())
     fig = go.Figure()
     main_scatter_plot(fig, df, aggregated_column_name, score_name, unit)
 
@@ -136,7 +134,6 @@ def main_scatter_plot(fig: go.Figure, df, aggregated_column_name, score_name, un
         aggregated_column_name (str): The column in the DataFrame to be plotted on the Y-axis.
         risk_order (list): The desired order of the categories for the legend (e.g., ["Low", "Medium", "High"]).
     """
-    legend_column_name = " ".join(aggregated_column_name.split("_")).title()
 
     # Ensure that the 'category' column is ordered according to risk_order
     risk_order  = sorted(PROB_MAP, key=PROB_MAP.get)
@@ -172,6 +169,7 @@ def main_scatter_plot(fig: go.Figure, df, aggregated_column_name, score_name, un
 
 
 def add_background_color(fig:go.Figure, threshold_index, y0, y1):
+    print(threshold_index)
     fig.add_shape(
         type="rect",
         xref="paper",  # Use entire plot width for the rectangles
