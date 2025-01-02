@@ -65,8 +65,13 @@ def main():
         # Load indicators from CSV
         if st.checkbox(label="Load indicators from CSV"):
             df = upload_csv_file()
-            if df is not None:
+            
+            # Only replace df_indicators if the uploaded file differs from the current one
+            if df.equals(st.session_state.uploaded_df):
+                st.session_state.uploaded_df = df
                 st.session_state.df_indicators = df
+                df_checkbox = fill_df_checkbox(df)
+                st.session_state.df_checkbox = df_checkbox
 
         # Building the indicator in a popover
         with st.popover("Create Indicator", use_container_width = True):

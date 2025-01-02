@@ -276,7 +276,7 @@ def indicator_editing(df_season, season_start, season_end, row, row_checkbox, i)
         row_checkbox (pandas.Series): The row corresponding to the current indicator's checkbox states in the dataframe.
         i (int): The index or identifier for the indicator, used for widget keys.
     """
-    with st.popover(f"Update :  {row["Name"]}", use_container_width = True):
+    with st.popover(f"Update/Delete :  {row["Name"]}", use_container_width = True):
         updated_indicator = row.to_dict()
         updated_checkbox = row_checkbox.to_dict()
 
