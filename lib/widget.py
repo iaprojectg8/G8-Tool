@@ -1,4 +1,5 @@
 from utils.imports import *
+from utils.variables import *
 
 def upload_csv_file():
     """
@@ -34,8 +35,10 @@ def upload_csv_file():
 def fill_df_checkbox(df: pd.DataFrame):
     """
     Fills the df_checkbox Dataframe corresponding to the df content.
+
     Args:
         df (pd.DataFrame): The DataFrame containing the indicators.
+        
     Returns:
         pd.DataFrame: The df_checkbox DataFrame with the same index as df.
 
@@ -54,6 +57,63 @@ def fill_df_checkbox(df: pd.DataFrame):
         df_checkbox.at[index, "shift_end_checkbox"] = pd.notna(row.get("Season End Shift"))
 
     return df_checkbox
+
+
+def display_thresholds(updated_indicator, label):
+    """
+    Displays the thresholds with the corresponding colors.
+
+    Args:
+        updated_indicator (dict): The updated indicator.
+        label (str): The label of the indicator.
+    """
+    thresholds : list = copy(updated_indicator[label + " List"])
+    # Define thresholds and corresponding data
+
+    colors = THRESHOLD_COLORS
+  
+    # Risk band visualization
+    fig = go.Figure()
+ 
+    thresholds.append(min(thresholds) - 2*updated_indicator[label+" Step"])
+    thresholds.append(max(thresholds) + 2*updated_indicator[label+" Step"])
+
+    if "min" in label.lower():
+        colors = colors[::-1]
+        thresholds.sort()
+    else:
+        thresholds.sort()
+    # Add horizontal colored bands
+    for i in range(0,len(thresholds)-1):
+        start = thresholds[i] 
+        end = thresholds[i+1]
+        fig.add_shape(
+            type="rect",
+            x0=start, x1=end,
+            y0=0, y1=3,
+            fillcolor=colors[i],
+            opacity=0.6,
+            line_width=0
+        )
+        # Add text labels for each band
+        fig.add_trace(go.Scatter(
+            x=[(start + end) / 2],
+            y=[1.5],
+            text=RISK_MAP[colors[i]],
+            mode="text",
+            textfont=dict(color="white", size=14)
+        ))
+
+
+    # Update layout
+    fig.update_layout(
+        title="Risk Levels Based on Thresholds",
+        yaxis=dict(visible=False),  # Hide the y-axis
+        height=220,
+        showlegend=False
+    )
+
+    st.plotly_chart(fig)
     
 
 def download_indicators(df: pd.DataFrame, filename="indicators.xlsx"):

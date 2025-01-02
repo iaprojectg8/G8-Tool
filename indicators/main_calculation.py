@@ -245,7 +245,7 @@ def calculations_and_plots(df_season, df_indicators_parameters: pd.DataFrame,all
             
             # Offer the possibility to edit the indicator
             indicator_editing(df_season, season_start, season_end, row, row_checkbox, i)
-
+            
             # Initializing useful variables
             variable = row["Variable"]
             score_name = row["Name"]
