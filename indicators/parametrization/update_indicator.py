@@ -52,7 +52,7 @@ def update_daily_threshold(updated_indicator, updated_checkbox_value,label, i):
 
 
 ## Yearly 
-def update_yearly_thresholds(updated_indicator, updated_checkbox_value, label, i, thresholds_position):
+def update_yearly_thresholds(updated_indicator,label, updated_checkbox, checkbox_label, i, thresholds_position):
     """
     Updates yearly thresholds for an indicator using interactive Streamlit widgets. 
     Allows the user to define additional thresholds based on a step value.
@@ -67,8 +67,11 @@ def update_yearly_thresholds(updated_indicator, updated_checkbox_value, label, i
 
     # Basic threshold part
     col1, col2 = st.columns([0.2, 0.8])
+    updated_checkbox_value = updated_checkbox[checkbox_label]
     with col1:
-        if st.checkbox(label=label,value=updated_checkbox_value, key=f"edit_{"_".join(label.lower().split(" "))}_checkbox_{i}"):
+        updated_checkbox[checkbox_label] = st.checkbox(label=label,value=updated_checkbox_value, key=f"edit_{"_".join(label.lower().split(" "))}_checkbox_{i}")
+            
+        if updated_checkbox[checkbox_label]:
             with col2:
                 st.write(updated_indicator[label])
                 updated_indicator[label] = st.number_input(label, value=updated_indicator[label], label_visibility="collapsed", key=f"edit{"_".join(label.lower().split(" "))}_{i}")
@@ -96,7 +99,7 @@ def update_yearly_thresholds(updated_indicator, updated_checkbox_value, label, i
                                                                 if thresholds_position == "above" 
                                                                 else updated_indicator[label] - step * i
                                                                 for i in range(NUM_THRESHOLDS + 1)]
-        # st.write("Your ohter threshold will be the ones there ", updated_indicator[label+" List"])
+    
         display_thresholds(updated_indicator, label)
 
     else:
@@ -146,7 +149,7 @@ def update_window_aggregation(updated_indicator, i, label):
                                                 label_visibility="collapsed")
         
 ## Season shift 
-def update_season_shift(updated_indicator, updated_checkbox_value,label, i, max_value):
+def update_season_shift(updated_indicator,label, updated_checkbox, checkbox_label, i, max_value):
     """
     Updates the season shift indicator using a checkbox and number input widget.
 
@@ -158,10 +161,14 @@ def update_season_shift(updated_indicator, updated_checkbox_value,label, i, max_
         max_value (int): The maximum allowable value for the season shift.
     """
     col1, col2 = st.columns([0.2, 0.8])
+    updated_checkbox_value = updated_checkbox[checkbox_label]
     with col1:
+        updated_checkbox[checkbox_label] = st.checkbox(label=label, value=updated_checkbox_value, key=f"edit_{"_".join(label.lower().split(" "))}_checkbox_{i}")
         
-        if st.checkbox(label=label, value=updated_checkbox_value, key=f"edit_{"_".join(label.lower().split(" "))}_checkbox_{i}"):
+        if updated_checkbox[checkbox_label]:
             with col2:
+                if pd.isna(updated_indicator[label]) or type(updated_indicator[label]) != int:
+                    updated_indicator[label] = 0
                 updated_indicator[label] = st.number_input(label=label, 
                                                            value=updated_indicator[label], 
                                                            min_value=0,
@@ -200,8 +207,8 @@ def update_yearly_thresholds_input(updated_indicator, updated_checkbox, i):
         i (int): The index or identifier for the indicator, used for widget keys.
     """
     st.subheader("Yearly Thresholds")
-    update_yearly_thresholds(updated_indicator, updated_checkbox["min_yearly_checkbox"],"Yearly Threshold Min", i, thresholds_position="below")
-    update_yearly_thresholds(updated_indicator, updated_checkbox["max_yearly_checkbox"],"Yearly Threshold Max", i, thresholds_position= "above")
+    update_yearly_thresholds(updated_indicator,"Yearly Threshold Min", updated_checkbox, "min_yearly_checkbox", i, thresholds_position="below")
+    update_yearly_thresholds(updated_indicator,"Yearly Threshold Max", updated_checkbox, "max_yearly_checkbox", i, thresholds_position= "above")
 
 
 def update_rolling_window_input(updated_indicator, i):
@@ -229,8 +236,8 @@ def update_season_shift_input(updated_indicator, updated_checkbox, i,season_star
         season_end (int): The end month for the season shift.
     """
     st.subheader("Season shift")
-    update_season_shift(updated_indicator, updated_checkbox["shift_start_checkbox"],"Season Start Shift", i, season_start)
-    update_season_shift(updated_indicator, updated_checkbox["shift_start_checkbox"],"Season Start Shift", i, 12 - season_end)
+    update_season_shift(updated_indicator, "Season Start Shift", updated_checkbox, "shift_start_checkbox", i, season_start)
+    update_season_shift(updated_indicator, "Season End Shift", updated_checkbox, "shift_end_checkbox", i, 12 - season_end)
 
 
 
@@ -250,7 +257,7 @@ def update_yearly_aggregation(updated_indicator, i, label):
                                             key=f"edit_yearly_aggregation_{i}",
                                             disabled=INDICATOR_AGG[updated_indicator["Indicator Type"]][1])
     
-def update_buttons(updated_indicator, i):
+def update_buttons(updated_indicator, updated_checkbox, i):
     """
     Buttons for update management.
 
@@ -259,12 +266,17 @@ def update_buttons(updated_indicator, i):
         row (pandas.Series): The row corresponding to the current indicator in the dataframe.
         i (int): The index or identifier for the indicator, used for widget keys.
     """
+
     st.button("Update Indicator", key=f"edit_update_{i}", 
-              on_click=lambda index=i,updated_indicator=updated_indicator : update_indicator(index, updated_indicator))
+              on_click=lambda index=i,updated_indicator=updated_indicator, updated_checkbox=updated_checkbox : update_indicator(index, updated_indicator, updated_checkbox))
 
 
     st.button(label = "Delete Indicator",key=f"delete_{i}",on_click=lambda index=i: delete_indicator(index))
 
+
+# ---------------------
+# --- Main function ---
+# ---------------------
 
 def indicator_editing(df_season, season_start, season_end, row, row_checkbox, i):
     """
@@ -296,10 +308,10 @@ def indicator_editing(df_season, season_start, season_end, row, row_checkbox, i)
 
         update_yearly_aggregation(updated_indicator, i, label="Yearly Aggregation")
         if season_start is not None and season_end is not None:
-            update_season_shift(updated_indicator, updated_checkbox, i, season_start, season_end)
+            update_season_shift_input(updated_indicator, updated_checkbox, i, season_start, season_end)
 
         # Buttons
-        update_buttons(updated_indicator, i)
+        update_buttons(updated_indicator, updated_checkbox, i)
 
     
     

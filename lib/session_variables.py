@@ -61,14 +61,17 @@ def delete_indicator(index):
     print("index", index)
     st.session_state.df_indicators = st.session_state.df_indicators.drop(index).reset_index(drop=True)
 
-def update_indicator(index, updated_indicator):
+def update_indicator(index, updated_indicator, updated_checkbox):
     """
     Updates in the indicator dataframe at the given index.
     Args:
         index (int): The index of the indicator to update.
         updated_indicator (dict): The updated indicator.
     """
+    print("Indicators updated")
     st.session_state.df_indicators.loc[index] = updated_indicator
+    st.session_state.df_checkbox.loc[index] = updated_checkbox
+
 
 
 def update_chosen_variable(values):

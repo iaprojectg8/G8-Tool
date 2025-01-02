@@ -23,20 +23,18 @@ def introduce_season_shift_in_calculation(season_start, season_start_shift, seas
     Returns:
         pandas.DataFrame: A filtered DataFrame with the adjusted season period.
     """
+    print(season_start, season_end)
     if (season_start_shift is not None  and season_end_shift is not None
         and not pd.isna(season_start_shift) and not pd.isna(season_end_shift)):
-
-        st.dataframe(all_year_data, height=DATAFRAME_HEIGHT, use_container_width=True) 
         df_season_temp = all_year_data[(all_year_data.index.month >= season_start-season_start_shift) 
                                 & (all_year_data.index.month <= season_end+season_end_shift)]
         
     elif season_start_shift is not None and not pd.isna(season_start_shift):
-        st.dataframe(all_year_data, height=DATAFRAME_HEIGHT, use_container_width=True) 
         df_season_temp = all_year_data[(all_year_data.index.month >= season_start-season_start_shift) & (all_year_data.index.month <= season_end)]
-    
+
     elif season_end_shift is not None and not pd.isna(season_end_shift):
-        st.dataframe(all_year_data, height=DATAFRAME_HEIGHT, use_container_width=True) 
         df_season_temp = all_year_data[(all_year_data.index.month >= season_start) & (all_year_data.index.month <= season_end+season_end_shift)]
+    
     else:
         df_season_temp = all_year_data
 
@@ -218,7 +216,7 @@ def preparing_dataframe_for_plot(df_yearly_var, periods, score_name):
 # --- Main part where everything is assembled ---
 # -----------------------------------------------
 
-def calculations_and_plots(df_season, df_indicators_parameters: pd.DataFrame,all_year_data, season_start, season_end,periods):
+def calculations_and_plots(df_season, df_indicators_parameters: pd.DataFrame,df_checkbox:pd.DataFrame, all_year_data, season_start, season_end,periods):
     """
     Perform calculations and generate plots for each indicator in the given indicator parameters DataFrame.
 
@@ -240,7 +238,7 @@ def calculations_and_plots(df_season, df_indicators_parameters: pd.DataFrame,all
 
 
     # Iterating over indicators dataframe
-    for (i, row), (j, row_checkbox) in zip(st.session_state.df_indicators.iterrows(), st.session_state.df_checkbox.iterrows()):
+    for (i, row), (j, row_checkbox) in zip(df_indicators_parameters.iterrows(), df_checkbox.iterrows()):
         with tabs[i]:
             
             # Offer the possibility to edit the indicator
@@ -257,9 +255,11 @@ def calculations_and_plots(df_season, df_indicators_parameters: pd.DataFrame,all
             df_season_temp=df_season[[variable]]
             
             # Season shift handling
-            if (not pd.isna(season_start_shift) or not pd.isna(season_end_shift)
-                or season_start_shift is not None or season_end_shift is not None):
-                df_season_temp = introduce_season_shift_in_calculation(season_start, season_start_shift, season_end, season_end_shift, all_year_data)
+            if season_start is not None or season_end is not None:
+                if (not pd.isna(season_start_shift) or not pd.isna(season_end_shift)
+                    or season_start_shift is not None or season_end_shift is not None):
+
+                    df_season_temp = introduce_season_shift_in_calculation(season_start, season_start_shift, season_end, season_end_shift, all_year_data)
             
             # Score calculation
             unit, df_yearly_var, aggregated_column_name = calculate_scores(row,df_season_temp, score_name, variable)
