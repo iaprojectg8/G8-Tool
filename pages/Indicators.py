@@ -63,13 +63,17 @@ def main():
 
         # Load indicators from CSV
         if st.checkbox(label="Load indicators from CSV"):
-            df = upload_csv_file()
+            df_uploaded = upload_csv_file()
 
             # Only replace df_indicators if the uploaded file differs from the current one
-            if df is not None and not df.equals(st.session_state.uploaded_df):
-                df_checkbox = fill_df_checkbox(df)
-                st.session_state.uploaded_df = df
-                st.session_state.df_indicators = df
+            # print(df_uploaded.values)
+            # print(st.session_state.uploaded_df.values)
+            # print(df_uploaded.equals(st.session_state.uploaded_df))
+            if df_uploaded is not None and not df_uploaded.equals(st.session_state.uploaded_df):
+                print("in the condition of uploaded csv file whereas i did not change it")
+                df_checkbox = fill_df_checkbox(df_uploaded)
+                st.session_state.uploaded_df = df_uploaded
+                st.session_state.df_indicators = copy(df_uploaded)
                 st.session_state.df_checkbox = df_checkbox
 
         # Building the indicator in a popover
@@ -84,7 +88,8 @@ def main():
 
             # Need to calculate score with this parameters
             set_title_2("Indicators calculation")
-            calculations_and_plots(df_season, st.session_state.df_indicators,all_year_data, season_start, season_end, periods)
+            calculations_and_plots(df_season, st.session_state.df_indicators, st.session_state.df_checkbox,all_year_data, season_start, season_end, periods)
+        
 
 
 if "__main__":

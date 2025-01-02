@@ -169,7 +169,6 @@ def main_scatter_plot(fig: go.Figure, df, aggregated_column_name, score_name, un
 
 
 def add_background_color(fig:go.Figure, threshold_index, y0, y1):
-    print(threshold_index)
     fig.add_shape(
         type="rect",
         xref="paper",  # Use entire plot width for the rectangles
@@ -239,8 +238,8 @@ def update_scatter_layout(fig:go.Figure, data_min, data_max, diff, df,score_name
 
 def plot_exposure_through_period(df:pd.DataFrame,score_name):
     
-    score_counts  = df.groupby('period')[f"yearly_indicator_{score_name}"].value_counts().unstack(fill_value=0)
-    periods_size = df.groupby('period').size().max()
+    score_counts  = df.groupby('period', observed=False)[f"yearly_indicator_{score_name}"].value_counts().unstack(fill_value=0)
+    periods_size = df.groupby('period', observed=False).size().max()
     # Split the DataFrame into negatives, positives, and zeros
     negative_df = score_counts[score_counts.columns[score_counts.columns.astype(int) < 0]]
     positive_df = score_counts[score_counts.columns[score_counts.columns.astype(int) > 0]]
@@ -377,7 +376,7 @@ def plot_global_exposure(df_yearly:pd.DataFrame, score_name, index, variable, be
     aggregation_type = st.selectbox(label="Aggregation Type", options=EXPOSURE_AGGREGATION, key=f"aggregation_type{index}")
     if aggregation_type == "Category Mean":
         df_yearly["absolute_score"] = df_yearly[score_column].apply(calculate_category_score)
-        df_period = df_yearly.groupby("period", as_index=False)["absolute_score"].mean()
+        df_period = df_yearly.groupby("period", as_index=False, observed=False)["absolute_score"].mean()
 
         # Apply np.ceil to round the scores to the next integer
         df_period["absolute_score"] = np.round(df_period["absolute_score"])
@@ -474,56 +473,5 @@ def plot_global_exposure(df_yearly:pd.DataFrame, score_name, index, variable, be
     # Display the plot in Streamlit
     st.plotly_chart(fig)
 
-
-# --- Draft made on different plot
-
-
-# This function could be useful when working with
-def plot_hazard_intervals(value_range, threshold, intervals, colors):
-    """
-    Plot a hazard scale with different levels and colors.
-    
-    Args:
-        value_range (tuple): The full range of values to display (min, max).
-        threshold (float): The base threshold separating good data.
-        intervals (list of tuples): List of (start, end) for each hazard interval.
-        colors (list of str): Colors corresponding to each interval.
-    """
-    fig = go.Figure()
-
-    # Add the "Good" range (below threshold)
-    fig.add_trace(go.Scatter(
-        x=[value_range[0], threshold],
-        y=[0, 0],
-        mode="lines",
-        line=dict(color="blue", width=10),
-        name="Good (Below Threshold)"
-    ))
-
-    # Add hazard intervals
-    for i, (start, end) in enumerate(intervals):
-        fig.add_trace(go.Scatter(
-            x=[start, end],
-            y=[0, 0],
-            mode="lines",
-            line=dict(color=colors[i], width=10),
-            name=f"Hazard Level {i + 1} ({start}-{end})"
-        ))
-
-    # Customize layout
-    fig.update_layout(
-        title="Hazard Scale",
-        xaxis=dict(
-            range=value_range,
-            title="Cumulative Temperature (°C)",
-            tickvals=[value_range[0], threshold] + [end for _, end in intervals],
-            ticktext=[str(value_range[0]), f"Threshold ({threshold})"] + [str(end) for _, end in intervals],
-        ),
-        yaxis=dict(visible=False),  # Hide y-axis since it’s a horizontal scale
-        showlegend=True,
-        height=800,
-    )
-
-    st.plotly_chart(fig)
 
 

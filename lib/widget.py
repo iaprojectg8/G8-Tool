@@ -128,8 +128,7 @@ def download_indicators(df: pd.DataFrame, filename="indicators.xlsx"):
     buffer = io.BytesIO()
     with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
         df.to_excel(writer, index=False, sheet_name="Indicators")
-        writer._save()
-        buffer.seek(0)  # Reset buffer pointer to the start
+    buffer.seek(0)  # Reset buffer pointer to the start
 
     # Create a download button in Streamlit
     st.download_button(
