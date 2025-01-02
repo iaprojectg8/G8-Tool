@@ -11,12 +11,10 @@ def upload_csv_file():
     if uploaded_file is not None:
         try:
             data = pd.read_excel(uploaded_file)
-            print(data)
             for index, row in data.iterrows():
                 for col in data.columns:
                     if "List" in col:
                         data.at[index, col] = ast.literal_eval(row[col])
-                    print(f"  {col}: {row[col]} ({type(row[col])})")
             for index, row in data.iterrows():
                 for col in data.columns:
 
@@ -32,6 +30,30 @@ def upload_csv_file():
     else:
         st.info("Please upload a CSV file.")
         return None
+
+def fill_df_checkbox(df: pd.DataFrame):
+    """
+    Fills the df_checkbox Dataframe corresponding to the df content.
+    Args:
+        df (pd.DataFrame): The DataFrame containing the indicators.
+    Returns:
+        pd.DataFrame: The df_checkbox DataFrame with the same index as df.
+
+    """
+    # Initialize the df_checkbox DataFrame with the same index as df
+    
+    df_checkbox = st.session_state.df_checkbox
+    
+    # Initialize all checkboxes to False
+    for index, row in df.iterrows():
+        df_checkbox.at[index, "min_daily_checkbox"] = pd.notna(row.get("Daily Threshold Min"))
+        df_checkbox.at[index, "max_daily_checkbox"] = pd.notna(row.get("Daily Threshold Max"))
+        df_checkbox.at[index, "min_yearly_checkbox"] = pd.notna(row.get("Yearly Threshold Min"))
+        df_checkbox.at[index, "max_yearly_checkbox"] = pd.notna(row.get("Yearly Threshold Max"))
+        df_checkbox.at[index, "shift_start_checkbox"] = pd.notna(row.get("Season Start Shift"))
+        df_checkbox.at[index, "shift_end_checkbox"] = pd.notna(row.get("Season End Shift"))
+
+    return df_checkbox
     
 
 def download_indicators(df: pd.DataFrame, filename="indicators.xlsx"):

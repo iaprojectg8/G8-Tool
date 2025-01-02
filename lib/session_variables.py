@@ -48,6 +48,9 @@ if "season_start" not in st.session_state:
 if "season_end" not in st.session_state:
     st.session_state.season_end = 10
 
+if "uploaded_df" not in st.session_state:
+    st.session_state.uploaded_df = None
+
 
 def delete_indicator(index):
     """
