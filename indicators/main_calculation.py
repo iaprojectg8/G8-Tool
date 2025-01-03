@@ -273,7 +273,7 @@ def calculations_and_plots(df_season, df_indicators_parameters: pd.DataFrame,df_
             # Multiple plot to understand the calculated indicators
             plot_daily_data(all_year_data, variable)
             plot_years_exposure(df_yearly_var, aggregated_column_name, below_thresholds, above_thresholds, score_name,unit)
-            plot_exposure_through_period(df_yearly_var, score_name)
+            plot_deficit_and_excess_exposure(df_yearly_var, score_name)
             plot_global_exposure(df_yearly_var, score_name, i, aggregated_column_name, below_thresholds, above_thresholds)
 
     return df_yearly
