@@ -55,3 +55,11 @@ from reportlab.lib.pagesizes import landscape, A4
 import plotly.io as pio
 from reportlab.lib.utils import ImageReader
 from math import *
+
+# Map part
+
+import folium
+from folium.plugins import MeasureControl
+from shapely.geometry import Point
+from streamlit_folium import st_folium
+import zipfile
