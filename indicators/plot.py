@@ -7,6 +7,7 @@ from indicators.calculation import categorize_both
 # --- Plot daily data for a given variable ---
 # --------------------------------------------
 
+# Plot function
 def daily_data_plot(df:pd.DataFrame, fig:go.Figure, variable:str):
     
     # Add a scatter plot trace for the variable
@@ -19,6 +20,7 @@ def daily_data_plot(df:pd.DataFrame, fig:go.Figure, variable:str):
         )
     )
 
+# Layout function
 def daily_data_update_layout(fig:go.Figure, variable:str):
 
     # Update the layout of the figure
@@ -62,6 +64,7 @@ def daily_data_update_layout(fig:go.Figure, variable:str):
         autosize=True
     )
 
+# Main function
 def plot_daily_data(df, variable):
     """
     Plots the daily data for a given variable using Plotly and Streamlit.
@@ -73,11 +76,9 @@ def plot_daily_data(df, variable):
     # Reset the index and extract the relevant data
     df = df[variable].reset_index()
 
-    # Create a new Plotly figure
     fig = go.Figure()
     daily_data_plot(df, fig, variable)
     daily_data_update_layout(fig, variable)
-    # Display the figure in Streamlit
     st.plotly_chart(fig)
     
 
@@ -268,8 +269,7 @@ def yearly_exposure_update_layout(fig:go.Figure, data_min, data_max, diff, df,sc
         font=dict(
             size=17))
 
-
-
+# Main function
 def plot_years_exposure(df, aggregated_column_name, min_thresholds, max_thresholds, score_name, unit):
     """
     Plots the yearly exposure data for each category over time using Plotly and Streamlit.
@@ -301,6 +301,7 @@ def plot_years_exposure(df, aggregated_column_name, min_thresholds, max_threshol
     yearly_exposure_update_layout(fig, data_min, data_max, diff, df, score_name, unit)
         
     st.plotly_chart(fig)
+
 
 
 
@@ -391,8 +392,6 @@ def deficit_exposure_plot(negative_df, fig:go.Figure):
         )
 
 
-
-
 def deficit_and_excess_exposure_update_layout(fig:go.Figure, periods_size, score_name):
     """
     Updates the layout of the deficit and excess exposure plot.
@@ -481,6 +480,8 @@ def plot_deficit_and_excess_exposure(df:pd.DataFrame,score_name):
     # Layout
     deficit_and_excess_exposure_update_layout(fig, periods_size, score_name)
     st.plotly_chart(fig)
+
+
 
 # ----------------------------------------
 # --- Plot global exposure through agg ---
@@ -669,7 +670,8 @@ def global_exposure_update_layout(fig:go.Figure, score_name, desired_order):
                     ),
         font=dict(
             size=17))
-
+    
+# Main function
 def plot_global_exposure(df_yearly:pd.DataFrame, score_name, index, variable, below_thresholds, above_thresholds):
     """
     Plots the global exposure data for each category over time using Plotly and Streamlit.
