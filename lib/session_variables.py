@@ -51,6 +51,14 @@ if "season_end" not in st.session_state:
 if "uploaded_df" not in st.session_state:
     st.session_state.uploaded_df = None
 
+if "resolution" not in st.session_state:
+    st.session_state.resolution = 0.2
+
+if "points_df" not in st.session_state:
+    st.session_state.points_df = None
+
+if "combined_gdf" not in st.session_state:
+    st.session_state.combined_gdf = None
 
 def delete_indicator(index):
     """

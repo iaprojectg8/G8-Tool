@@ -124,3 +124,16 @@ THRESHOLD_COLORS = ["blue", "green", "yellow", "orange", "red"]
 
 EXPOSURE_AGGREGATION=["Category Mean", "Most Frequent Category", "Variable Mean Category" ]
 
+
+# For everything in the map part
+ZIP_FOLDER = "zip_files"
+
+MODEL_NAMES = [
+        "CMCC_CM2_VHR4 (30 km)",
+        "FGOALS_f3_H (28 km)",
+        "HiRAM_SIT_HR (25 km)",
+        "MRI_AGCM3_2_S (20 km)",
+        "EC_Earth3P_HR (29 km)",
+        "MPI_ESM1_2_XR (51 km)",
+        "NICAM16_8S (31 km)"
+    ]
