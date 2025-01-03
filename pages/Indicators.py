@@ -59,7 +59,7 @@ def main():
             df_season = df_chosen
         
         # Indicators parametrization handling
-        set_title_2("Parametrize Indictors")
+        set_title_2("Parametrize Indicators")
 
         # Load indicators from CSV
         if st.checkbox(label="Load indicators from CSV"):
