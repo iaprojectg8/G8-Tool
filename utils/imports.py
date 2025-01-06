@@ -63,3 +63,13 @@ from folium.plugins import MeasureControl
 from shapely.geometry import Point
 from streamlit_folium import st_folium
 import zipfile
+import shutil
+import glob
+
+
+# Request part
+
+import requests
+import openmeteo_requests 
+import requests_cache
+from retry_requests import retry

@@ -1,0 +1,77 @@
+from utils.imports import * 
+from utils.variables import ZIP_FOLDER, UNIT_DICT, MODEL_NAMES, DATAFRAME_HEIGHT
+from maps_related.main_functions import *
+from lib.session_variables import *
+from spatial.spatial_indicator import *
+
+def main():
+    """Basic Streamlit app with a title."""
+    # Set some layout parameters for the page 
+    st.set_page_config(layout="wide")
+    set_page_title("SIG and visualization")
+    set_title_2("Chose the shapefile to load for creating a raster")
+    
+    uploaded_file = st.file_uploader("Upload a zip file containing CSV files", type="zip")
+    
+    if uploaded_file is not None:
+        extract_to = 'extracted_files'
+        # Remove the directory if it exists
+        if uploaded_file != st.session_state.uploaded_file_spatial:
+            
+            if os.path.exists(extract_to):
+                shutil.rmtree(extract_to)
+            
+            # Create the directory
+            os.makedirs(extract_to, exist_ok=True)
+            
+            extract_csv_from_zip(uploaded_file, extract_to)
+            st.session_state.uploaded_file_spatial = uploaded_file
+            # This is a dataframe dictionary
+            dataframes = read_csv_files_from_directory(extract_to)
+            st.session_state.gdf = extract_coordinates(dataframes)
+
+
+        
+        # Create a map centered at the first coordinate
+        if st.session_state.gdf is not None:
+            with st.expander(label="Dataset coordinates on map"):
+                gdf = st.session_state.gdf
+                centroid = gdf.geometry.centroid
+                bounds = gdf.total_bounds
+                zoom_start = calculate_zoom_level(bounds)
+                m = folium.Map(location=[gdf.geometry.centroid.y.mean(), gdf.geometry.centroid.x.mean()], zoom_start=zoom_start)
+                for _, row in gdf.iterrows():
+                    folium.Marker(location=[row.lat, row.lon]).add_to(m)
+                st_folium(m,height= 300, use_container_width=True)
+        else:
+            st.write("No coordinates found in the CSV files.")
+
+        
+        st.write("What do you want to do")
+        spatial_indicators = st.checkbox(label="Make spatial indicators")
+        overall_average_indicator = st.checkbox(label="Make overall average indicator")
+        if spatial_indicators:
+            set_title_2("Spatial indicator")
+
+        elif overall_average_indicator:
+            set_title_2("Overall average indicator")
+            csv_filename_output = "Overall_Average.csv"
+            if st.button(label="Average your Dataset"):
+                make_zone_average(folder_name=extract_to, csv_output=csv_filename_output)
+            df = pd.read_csv(csv_filename_output)
+            if not df.empty :
+                with st.expander(label="Your dataset average is ready"):
+                    lat, lon = df.iloc[0][['lat', 'lon']]
+                    folium.Marker(location=[lat, lon],
+                                    icon=folium.Icon(icon="glyphicon-ok-circle", 
+                                                    prefix="glyphicon", 
+                                                    color="red")
+                                    ).add_to(m)
+                    st_folium(m,height= 300, use_container_width=True)
+
+                
+
+        
+
+if __name__ == "__main__":
+    main()

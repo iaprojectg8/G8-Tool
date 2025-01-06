@@ -1,7 +1,8 @@
 from utils.imports import * 
-from utils.variables import ZIP_FOLDER, UNIT_DICT, MODEL_NAMES
+from utils.variables import ZIP_FOLDER, UNIT_DICT, MODEL_NAMES, DATAFRAME_HEIGHT, DATASET_FOLDER
 from maps_related.main_functions import *
 from lib.data_process import select_period
+from requests_api.request_functions import request_all_data, gdf_to_df
 
 
 
@@ -44,17 +45,35 @@ def main():
             for file in selected_shape_folder:
                 path_to_shapefile = os.path.join(ZIP_FOLDER, file)
                 shape_file = [file for file in os.listdir(path_to_shapefile) if file.endswith(".shp")][0]
-                print(shape_file)
                 shapefile_path = os.path.join(path_to_shapefile, shape_file)
-                print(shapefile_path)
+
                 # Load the shapefile using GeoPandas
                 gdf = read_shape_file(shapefile_path)
                 gdf_list.append(gdf)
-            main_map(gdf_list)
-            print(list(UNIT_DICT.keys()))
-            selected_variables = st.multiselect("Chose variable to extract", UNIT_DICT.keys(), default=np.random.choice(list(UNIT_DICT.keys())))
+            combined_gdf = pd.concat(gdf_list, ignore_index=True)
+            df = main_map(combined_gdf)
+            print(len(df))
+            with st.expander(label="Your coordinates"):
+                st.dataframe(data=df, height=DATAFRAME_HEIGHT, use_container_width=True)
+            if st.checkbox(label="Take all variables"):
+                selected_variables = st.multiselect("Chose variable to extract", 
+                                                    UNIT_DICT.keys(), 
+                                                    default=UNIT_DICT.keys())
+            else:
+                selected_variables = st.multiselect("Chose variable to extract", 
+                                                    UNIT_DICT.keys(), 
+                                                    default=np.random.choice(list(UNIT_DICT.keys())))
             selected_model = st.selectbox("Chose the model to use", MODEL_NAMES)
-            long_period = (long_period_start, long_period_end) = select_period()
+            (long_period_start, long_period_end) = select_period()
+
+            if st.button(label="Start the Request"):
+                request_all_data(coordinates=df,
+                                 dataset_folder=DATASET_FOLDER,
+                                 filename_base="moroni_extraction",
+                                 model=selected_model,
+                                 start_year=long_period_start,
+                                 end_year=long_period_end,
+                                 variable_list=selected_variables)
             
 
         

@@ -30,13 +30,18 @@ def read_shape_file(shapefile_path):
     return gdf
     
 
-def main_map(gdf_list):
-    combined_gdf = pd.concat(gdf_list, ignore_index=True)
+def main_map(combined_gdf):
+
     center = [combined_gdf.geometry.centroid.y.mean(), combined_gdf.geometry.centroid.x.mean()]
     bounds = combined_gdf.total_bounds
     zoom_start = calculate_zoom_level(bounds)
     m = folium.Map(location=center, zoom_start=zoom_start)
-    resolution = st.number_input("Resolution", min_value=0.001, value=0.1, step=0.01)
+    resolution = st.number_input("Resolution", 
+                                 min_value=0.0001,
+                                 max_value=1.0, 
+                                 value=0.1, 
+                                 step=0.0001,
+                                 format="%0.3f")
 
     if resolution != st.session_state.resolution or not combined_gdf.equals(st.session_state.combined_gdf):
         st.session_state.point_df = generate_points_within_gdf(combined_gdf, resolution)
@@ -53,10 +58,12 @@ def main_map(gdf_list):
             fill=True,
             fill_color='blue'
         ).add_to(m)
-    for gdf in gdf_list:
-        folium.GeoJson(gdf).add_to(m)
+
+    folium.GeoJson(combined_gdf).add_to(m)
     set_title_2("Map")
     st_folium(m, height=500, use_container_width=True)
+
+    return st.session_state.point_df
     
 def calculate_zoom_level(bounds):
     """
@@ -104,7 +111,7 @@ def generate_points_within_gdf(gdf, resolution):
     points_df = pd.DataFrame({
         'lon': points_within.geometry.x,
         'lat': points_within.geometry.y
-    })
+    }).reset_index()
 
     return points_df
 
