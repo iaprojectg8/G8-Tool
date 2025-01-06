@@ -19,21 +19,24 @@ if "columns_chosen" not in st.session_state:
 if "season_checkbox" not in st.session_state:
     st.session_state.season_checkbox = False
 
-def main():
+def indicator_management(df):
     """Basic Streamlit app with a title."""
     # Set some layout parameters for the page 
-    st.set_page_config(layout="wide")
-    set_page_title("Indicators Customization")
+    # st.set_page_config(layout="wide")
+    # set_page_title("Indicators Customization")
+    key = "indicator_part"
     set_title_2("Period")
 
     # User setting the periods of interest
-    long_period = (long_period_start, long_period_end) = select_period()
-    smaller_period_length  = st.select_slider("Choose the length of smaller period to see the evolution of your data on them:",options=PERIOD_LENGTH)
+    long_period = (long_period_start, long_period_end) = select_period(key=key)
+    smaller_period_length  = st.select_slider("Choose the length of smaller period to see the evolution of your data on them:",
+                                              options=PERIOD_LENGTH, 
+                                              key=f"smaller_period{key}")
     periods = split_into_periods_indicators(smaller_period_length, long_period_start, long_period_end)
 
     # Loading data and applying first filters
     path = f"CSV_files/{FILENAME}"
-    all_data = loads_data(filename=path)
+    all_data = df
     data_long_period_filtered = period_filter(all_data, period=long_period)
     st.dataframe(data_long_period_filtered, height=DATAFRAME_HEIGHT, use_container_width=True)
     
@@ -90,7 +93,3 @@ def main():
             set_title_2("Indicators calculation")
             calculations_and_plots(df_season, st.session_state.df_indicators, st.session_state.df_checkbox,all_year_data, season_start, season_end, periods)
         
-
-
-if "__main__":
-    main()

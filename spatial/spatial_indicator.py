@@ -34,5 +34,5 @@ def make_zone_average(folder_name, csv_output):
 
     # Step 2: Combine all datasets
     combined_df = pd.concat(dataframes)
-    mean_df = combined_df.groupby(combined_df.index).mean()
+    mean_df = combined_df.groupby(combined_df.index).mean().reset_index()
     mean_df.to_csv(csv_output,index=False)
