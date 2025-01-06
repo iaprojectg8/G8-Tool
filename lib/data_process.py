@@ -95,7 +95,7 @@ def filtered_data(data:pd.DataFrame, chosen_variables, period):
     return data_to_keep
 
 
-def select_period():
+def select_period(key):
     """
     Allows the user to select a data period using an interactive Streamlit slider.
 
@@ -111,7 +111,8 @@ def select_period():
         "Select the data period:",
         min_value=period_start, 
         max_value=period_end,
-        value=(period_start, period_end))      
+        value=(period_start, period_end),
+        key=key)      
     return period_start, period_end
 
 

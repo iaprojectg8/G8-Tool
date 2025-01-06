@@ -3,6 +3,8 @@ from utils.variables import ZIP_FOLDER, UNIT_DICT, MODEL_NAMES, DATAFRAME_HEIGHT
 from maps_related.main_functions import *
 from lib.session_variables import *
 from spatial.spatial_indicator import *
+from spatial.indicator_modified import indicator_management
+from spatial.general_modified import general_management
 
 def main():
     """Basic Streamlit app with a title."""
@@ -58,7 +60,8 @@ def main():
             csv_filename_output = "Overall_Average.csv"
             if st.button(label="Average your Dataset"):
                 make_zone_average(folder_name=extract_to, csv_output=csv_filename_output)
-            df = pd.read_csv(csv_filename_output)
+            df = pd.read_csv(csv_filename_output, index_col="date", parse_dates=True)
+            print("after_averaging", df)
             if not df.empty :
                 with st.expander(label="Your dataset average is ready"):
                     lat, lon = df.iloc[0][['lat', 'lon']]
@@ -68,6 +71,13 @@ def main():
                                                     color="red")
                                     ).add_to(m)
                     st_folium(m,height= 300, use_container_width=True)
+                
+                # Tab init
+                tab_general, tab_indicator = st.tabs(["General", "Indicators"])
+                with tab_general:
+                    general_management(df)
+                with tab_indicator:
+                    indicator_management(df)
 
                 
 
