@@ -1,3 +1,16 @@
+# For data requests
+VARIABLES_LIST = ["temperature_2m_mean", "temperature_2m_max", "temperature_2m_min", "wind_speed_10m_mean",
+          "wind_speed_10m_max", "shortwave_radiation_sum", "relative_humidity_2m_mean", "relative_humidity_2m_max", 
+          "relative_humidity_2m_min", "precipitation_sum", "soil_moisture_0_to_10cm_mean"]
+
+DATASET_FOLDER ="Moroni_Dataset"
+COORDINATES_FILE="coordinates_to_extract/Sundarbans_02.csv"
+
+FILENAME_BASE="era5_daily_sundarbans"
+
+
+# Some other things
+
 DATAFRAME_HEIGHT = 200
 
 MONTHS_LIST = [

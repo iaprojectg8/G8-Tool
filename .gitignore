@@ -2,3 +2,6 @@
 .vscode
 .coverage
 __pycache__
+extracted_files/
+*Moroni_Dataset*
+*sqlite
