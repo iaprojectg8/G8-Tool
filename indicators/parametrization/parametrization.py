@@ -93,6 +93,7 @@ def indicator_building(df_chosen:pd.DataFrame, season_start, season_end):
         
     indicator_type = general_information(df_chosen)
 
+
     if indicator_type in ["Outlier Days", "Consecutive Outlier Days"]:
         create_daily_threshold_input()
         create_yearly_thresholds_input()
@@ -102,7 +103,11 @@ def indicator_building(df_chosen:pd.DataFrame, season_start, season_end):
     elif indicator_type == "Season Aggregation":
         create_yearly_thresholds_input()
 
-    create_yearly_aggregation()
+    # Crossed variable indicator or not
+    if indicator_type == "Crossed Variables":
+        create_built_indicator()
+    else: 
+        create_yearly_aggregation()
     if season_start is not None and season_end is not None:
         create_season_shift_input(season_start, season_end)
 

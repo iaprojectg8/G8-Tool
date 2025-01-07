@@ -3,7 +3,29 @@ from utils.variables import *
 from layouts.layout import *
 
 
+
+# ----------------------------
+# --- Heat Index Indicator ---
+# ----------------------------
+
+def verify_heat_index_taken_variable(variables):
+    if "temperature_2m_max" in variables and "relative_humidity_2m_min":
+        st.success("You have taken all the right variable for this indicator")
+        return 1
+    else :
+        st.error("You need to take temperature_2m_max and relative_humidity_2m_min in order to make calculate this indicator")
+        return 0
+    
 def classify_heat_index(heat_index):
+    """
+    Classifies the heat index into different levels of discomfort.
+
+    Parameters:
+    heat_index (float): The heat index value to classify.
+
+    Returns:
+    str: The level of discomfort based on the heat index.
+    """
     if heat_index < 27:
         return 'Low Discomfort'
     elif 27 <= heat_index < 32:
@@ -13,17 +35,34 @@ def classify_heat_index(heat_index):
     else:
         return 'Very High Discomfort'
     
-def heat_index(df, rh, tmp_2m):
-    c1, c2, c3, c4, c5, c6, c7, c8, c9 = (-42.379, 2.04901523, 10.14333127, -0.22475541, -0.00683783,
-                                      -0.05481717, 0.00122874, 0.00085282, -0.00000199)
+def heat_index_calculation(df, rh, tmp_2m):
+    """
+    Calculates the heat index based on temperature and relative humidity.
 
+    Parameters:
+    df (DataFrame): The DataFrame containing the temperature and relative humidity data.
+    rh (str): The column name for relative humidity in the DataFrame.
+    tmp_2m (str): The column name for temperature in the DataFrame.
+
+    Returns:
+    DataFrame: The DataFrame with an additional column for the calculated heat index.
+    """
+    # Constants for the heat index calculation formula
+    c1, c2, c3, c4, c5, c6, c7, c8, c9 = (-42.379, 2.04901523, 10.14333127, -0.22475541, -0.00683783,
+                                          -0.05481717, 0.00122874, 0.00085282, -0.00000199)
+
+    # Calculate the heat index using the formula
     df["heat_index"] = (c1 + c2 * df[tmp_2m] + c3 * df[rh] + c4 * df[tmp_2m] * df[rh] + c5 * df[tmp_2m]**2 +
-      c6 * df[rh]**2 + c7 * df[tmp_2m]**2 * df[rh] + c8 * df[tmp_2m] * df[rh]**2 + c9 * df[tmp_2m]**2 * df[rh]**2)
+                        c6 * df[rh]**2 + c7 * df[tmp_2m]**2 * df[rh] + c8 * df[tmp_2m] * df[rh]**2 + c9 * df[tmp_2m]**2 * df[rh]**2)
+    
     return df
 
-def plot_bar_stack_count(df):
+def plot_bar_stack_count(df:pd.DataFrame):
+
+    # Count for each year the amount of days in each category
     category_counts = df.groupby(['year', 'heat_index_category']).size().reset_index(name='count')
-    print(category_counts)
+
+
     # Create a stacked bar plot using Plotly
     fig = px.bar(
         category_counts,
@@ -39,7 +78,6 @@ def plot_bar_stack_count(df):
             'Very High Discomfort': 'red'
         }
     )
-
 
 
     fig.update_layout(
@@ -76,7 +114,7 @@ def plot_bar_stack_count(df):
     # Show the Plotly chart in Streamlit
     st.plotly_chart(fig)
 
-def categorize_heat_index(df):
+def categorize_heat_index(df:pd.DataFrame):
     
     df['heat_index_category'] = df['heat_index'].apply(classify_heat_index)
     df['year'] = df.index.year
@@ -86,23 +124,23 @@ def categorize_heat_index(df):
 
 
 
-def main():
-    set_page_title("Moroni Calculaltion")
+def heat_index_indicator(df_season):
+
     set_title_1("Variable filter")
     st.write("We are keeping only the daily max temperature and the daily mean relative humidity")
-    df = pd.read_csv("Overall_Average.csv", index_col="date", parse_dates=True)
+    df = df_season
     print(df.head())
 
     rh = "relative_humidity_2m_min"
     tmp_2m = "temperature_2m_max"
-    prec = "precipitation_sum"
+    print(df)
     df_hi = df[[tmp_2m, rh]]
     print("max temp",df_hi[tmp_2m].max())
     st.dataframe(df_hi, height=DATAFRAME_HEIGHT, use_container_width=True)
 
     df_hi[tmp_2m] = df_hi[tmp_2m]  * 9/5 + 32  # Convert Celsius to Fahrenheit
 
-    df_hi = heat_index(df_hi, rh, tmp_2m)
+    df_hi = heat_index_calculation(df_hi, rh, tmp_2m)
     st.dataframe(df_hi, height=DATAFRAME_HEIGHT, use_container_width=True)
     df_hi["heat_index"] = (df_hi["heat_index"]-32)*5/9
     df_hi[tmp_2m] = (df_hi[tmp_2m]-32)*5/9
@@ -110,6 +148,3 @@ def main():
     print(df_hi["heat_index"].max())
     categorize_heat_index(df_hi)
     plot_bar_stack_count(df_hi)
-
-if "__main__":
-    main()

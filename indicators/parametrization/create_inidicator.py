@@ -22,8 +22,12 @@ def general_information(df_chosen :pd.DataFrame):
     """
     st.subheader("General Information")
     st.session_state.indicator["Name"] = st.text_input("Indicator Name", value=st.session_state.indicator["Name"])
-    st.session_state.indicator["Variable"] = st.selectbox("Variable", options=df_chosen.columns,key="variable")
     indicator_type = st.session_state.indicator["Indicator Type"] = st.selectbox("Indicator Type", options=INDICATOR_TYPES, key="indicator_type")
+    if indicator_type == "Crossed Variables":
+        st.session_state.indicator["Variable"] = st.multiselect(label="Variables", options=df_chosen.columns,key="variables")
+    else :
+        st.session_state.indicator["Variable"] = st.selectbox("Variable", options=df_chosen.columns,key="variable")
+    
     return indicator_type
 
 ## Daily
@@ -251,6 +255,10 @@ def create_season_shift_input(season_start, season_end):
     if season_start is not None and season_end is not None:
         create_season_shift(label="Season Start Shift", checkbox_key="shift_start_checkbox",max_value=season_start )
         create_season_shift(label="Season End Shift", checkbox_key="shift_end_checkbox", max_value=12-season_end)
+
+
+def create_built_indicator():
+    st.session_state["Builtin Indicator"] = st.selectbox("Indicator", options=BUILTIN_INDICATORS)
 
 
 

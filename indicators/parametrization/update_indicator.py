@@ -18,13 +18,20 @@ def update_general_information(updated_indicator,i, df_chosen:pd.DataFrame):
         df_chosen (pd.DataFrame): The DataFrame containing the available variables for selection.
     """
     updated_indicator["Name"] = st.text_input("Indicator Name", updated_indicator["Name"], key=f"edit_name_{i}")
-    updated_indicator["Variable"] = st.selectbox("Variable", options =df_chosen.columns,
-                                                 index=list(df_chosen.columns).index(updated_indicator["Variable"]), 
-                                                 key=f"edit_variable_{i}")
-    
     updated_indicator["Indicator Type"] = st.selectbox("Indicator Type", options=INDICATOR_TYPES, 
                                                        index=INDICATOR_TYPES.index(updated_indicator["Indicator Type"]), 
                                                        key=f"edit_indicator_type_{i}")
+    if updated_indicator["Indicator Type"] == "Crossed Variables":
+
+        updated_indicator["Variable"] = st.multiselect("Variable", options =df_chosen.columns,
+                                                    default=updated_indicator["Variable"], 
+                                                    key=f"edit_variable_{i}")
+    else :
+        updated_indicator["Variable"] = st.selectbox("Variable", options =df_chosen.columns,
+                                                    index=list(df_chosen.columns).index(updated_indicator["Variable"]) 
+                                                    if type(updated_indicator["Variable"]) is not list else 0, 
+                                                    key=f"edit_variable_{i}")
+    
 
 
 ## Daily
@@ -298,6 +305,15 @@ def update_buttons(updated_indicator, updated_checkbox, i):
     st.button(label = "Delete Indicator",key=f"delete_{i}",on_click=lambda index=i: delete_indicator(index))
 
 
+def update_built_indicator(updated_indicator, i):
+    label = "Builtin Indicator"
+    updated_indicator[label] = st.selectbox(label="Indicator", 
+                                                        options=BUILTIN_INDICATORS,
+                                                        index=BUILTIN_INDICATORS.index(updated_indicator[label]) if updated_indicator[label] is not None 
+                                                                    else 0,
+                                                        key=f"edit_built_indicator_{i}")
+
+
 # ---------------------
 # --- Main function ---
 # ---------------------
@@ -323,14 +339,19 @@ def indicator_editing(df_season, season_start, season_end, row, row_checkbox, i)
         if updated_indicator["Indicator Type"] in ["Outlier Days", "Consecutive Outlier Days"]:
             update_daily_threshold_input(updated_indicator, updated_checkbox, i)
             update_yearly_thresholds_input(updated_indicator, updated_checkbox, i)
+            update_yearly_aggregation(updated_indicator, i, label="Yearly Aggregation")
         elif updated_indicator["Indicator Type"] == "Sliding Windows Aggregation":
             update_rolling_window_input(updated_indicator, i)
             update_yearly_thresholds_input(updated_indicator, updated_checkbox, i)
+            update_yearly_aggregation(updated_indicator, i, label="Yearly Aggregation")
         elif updated_indicator["Indicator Type"] == "Season Aggregation":
             update_yearly_thresholds_input(updated_indicator, updated_checkbox, i)
+            update_yearly_aggregation(updated_indicator, i, label="Yearly Aggregation")
+        elif updated_indicator["Indicator Type"] == "Crossed Variables":
+            update_built_indicator(updated_indicator, i)
 
 
-        update_yearly_aggregation(updated_indicator, i, label="Yearly Aggregation")
+        
         if season_start is not None and season_end is not None:
             update_season_shift_input(updated_indicator, updated_checkbox, i, season_start, season_end)
 

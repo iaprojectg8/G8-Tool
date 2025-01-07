@@ -59,7 +59,8 @@ COLORSCALE = ["Spectral", "RdYlBu", "RdYlGn", "Picnic"]
 VARIATION_THRESHOLD = 0.05
 
 AGG_FUNC = ["mean", "sum", "min", "max"]
-INDICATOR_TYPES = ["Outlier Days", "Consecutive Outlier Days", "Season Aggregation", "Monthly Variation Coefficient", "Sliding Windows Aggregation"]
+INDICATOR_TYPES = ["Outlier Days", "Consecutive Outlier Days", "Season Aggregation", "Monthly Variation Coefficient",
+                   "Sliding Windows Aggregation", "Crossed Variables"]
 
 # This is very useful to chose the right indicator in the function
 INDICATOR_AGG = {"Outlier Days":[1, 1], 
@@ -148,3 +149,5 @@ MODEL_NAMES = [
 
 
 TEMPLATE_COLOR = 'plotly_white'
+
+BUILTIN_INDICATORS = ["Heat Index", "Other"]
