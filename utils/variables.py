@@ -77,7 +77,6 @@ RISK_MAP = {
         "orange": "High Risk",
         "yellow": "Moderate Risk",
         "green": "Low Risk",
-        "blue": "No Risk",
     }
 
 
@@ -86,7 +85,6 @@ PROB_MAP = {
         "High Risk":0.75,
         "Moderate Risk":  0.5,
         "Low Risk":  0.25,
-        "No Risk" :0.01,
     }
 
 
@@ -95,7 +93,6 @@ RISK_TO_COLOR = {
         "High Risk":"orange",
         "Moderate Risk":  "yellow",
         "Low Risk":  "green",
-        "No Risk" : "blue",
     }
 
 
@@ -108,7 +105,6 @@ CATEGORY_TO_RISK = {
         2: "Moderate Risk",
         -1 : "Low Risk",
         1: "Low Risk",
-        0: "No Risk",
     }
 
 GET_RIGHT_COLOR = {
@@ -127,13 +123,12 @@ CATEGORY_TO_COLOR_MAP = {
         -3: "orange",
         -2: "yellow",
         -1: "green",
-        0: "blue",
         1: "green",
         2: "yellow",
         3: "orange",
         4: "red",
     }
-THRESHOLD_COLORS = ["blue", "green", "yellow", "orange", "red"]
+THRESHOLD_COLORS = ["green", "yellow", "orange", "red"]
 
 EXPOSURE_AGGREGATION=["Category Mean", "Most Frequent Category", "Variable Mean Category" ]
 
