@@ -79,27 +79,43 @@ def update_yearly_thresholds(updated_indicator,label, updated_checkbox, checkbox
             updated_indicator[label] = None
             updated_indicator[label+" Step"] = 0
             updated_indicator[label+" List"] = []
-    if updated_indicator[label] is not None:
-        st.subheader(f"Step {thresholds_position}")
-        col1, col2 = st.columns([0.8, 0.2])
-        with col1:
-            st.write(f"""
-                            Specify a step value to create additional thresholds above the main threshold. 
-                            These thresholds will represent distinct hazard levels (e.g., Low, Moderate, High, Very High). 
-                            Each range is calculated by {"adding" if thresholds_position == "above" else "subtraction"} multiples of the step value to the current threshold.
-                        """)
-        
-        with col2:
-            updated_indicator[label+" Step"] = step = st.number_input(label="Step",
-                                                                        value=updated_indicator[label+" Step"],
-                                                                        key=f"edit step {thresholds_position} {i}",
-                                                                        label_visibility="collapsed")
 
-            updated_indicator[label+" List"] = [updated_indicator[label] + step * i 
-                                                                if thresholds_position == "above" 
-                                                                else updated_indicator[label] - step * i
-                                                                for i in range(NUM_THRESHOLDS + 1)]
-    
+    if updated_indicator[label] is not None:
+
+        
+        if st.checkbox(label="Custom your thresholds"):
+            st.subheader(f"Custom List")
+            col1, col2 = st.columns([0.5, 0.5])
+            with col1:
+                st.write(f"""
+                            Specify a custom thesholds list to replace the step creation method
+                        """)
+            with col2:
+                updated_indicator[label+" List"] = ast.literal_eval(st.text_input(
+                                                                                label="Put a list",
+                                                                                value=st.session_state.indicator[label+" List"], label_visibility="collapsed"),
+                                                                                )
+        else :
+            col1, col2 = st.columns([0.8, 0.2])
+            with col1:
+                st.subheader(f"Step {thresholds_position}")
+                st.write(f"""
+                                Specify a step value to create additional thresholds above the main threshold. 
+                                These thresholds will represent distinct hazard levels (e.g., Low, Moderate, High, Very High). 
+                                Each range is calculated by {"adding" if thresholds_position == "above" else "subtraction"} multiples of the step value to the current threshold.
+                            """)
+            with col2:
+
+                updated_indicator[label+" Step"] = step = st.number_input(label="Step",
+                                                                            value=updated_indicator[label+" Step"],
+                                                                            key=f"edit step {thresholds_position} {i}",
+                                                                            label_visibility="collapsed")
+
+                updated_indicator[label+" List"] = [updated_indicator[label] + step * i 
+                                                                    if thresholds_position == "above" 
+                                                                    else updated_indicator[label] - step * i
+                                                                    for i in range(NUM_THRESHOLDS + 1)]
+        
         display_thresholds(updated_indicator, label)
 
     else:
