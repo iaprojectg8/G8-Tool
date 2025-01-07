@@ -3,6 +3,7 @@ from utils.variables import *
 from indicators.calculation import *
 from indicators.plot import *
 from indicators.parametrization.update_indicator import * 
+from indicators.custom_indicators import heat_index_indicator
 
 
 # ------------------------------------------------
@@ -252,28 +253,35 @@ def calculations_and_plots(df_season, df_indicators_parameters: pd.DataFrame,df_
             below_thresholds=copy(row["Yearly Threshold Min List"])
             above_thresholds= copy(row["Yearly Threshold Max List"])
 
-            df_season_temp=df_season[[variable]]
+            
             
             # Season shift handling
             if season_start is not None or season_end is not None:
                 if (not pd.isna(season_start_shift) or not pd.isna(season_end_shift)
                     or season_start_shift is not None or season_end_shift is not None):
 
-                    df_season_temp = introduce_season_shift_in_calculation(season_start, season_start_shift, season_end, season_end_shift, all_year_data)
-            
-            # Score calculation
-            unit, df_yearly_var, aggregated_column_name = calculate_scores(row,df_season_temp, score_name, variable)
-            
-            # Plot preparation
-            df_yearly_var = preparing_dataframe_for_plot(df_yearly_var, periods, score_name)
-            
-            with st.expander("Show Yearly Dataframe"):
-                st.dataframe(df_yearly_var, height=DATAFRAME_HEIGHT, use_container_width=True)
+                    df_season = introduce_season_shift_in_calculation(season_start, season_start_shift, season_end, season_end_shift, all_year_data)
+            if type(variable) is list:
+                df_season_temp=df_season[variable]
+            else:
+                df_season_temp=df_season[[variable]]
 
-            # Multiple plot to understand the calculated indicators
-            plot_daily_data(all_year_data, variable)
-            plot_years_exposure(df_yearly_var, aggregated_column_name, below_thresholds, above_thresholds, score_name,unit)
-            plot_deficit_and_excess_exposure(df_yearly_var, score_name)
-            plot_global_exposure(df_yearly_var, score_name, i, aggregated_column_name, below_thresholds, above_thresholds)
+            # Score calculation
+            if row["Indicator Type"] == "Crossed Variables":
+                heat_index_indicator(df_season_temp)
+            else:
+                unit, df_yearly_var, aggregated_column_name = calculate_scores(row,df_season_temp, score_name, variable)
+                
+                # Plot preparation
+                df_yearly_var = preparing_dataframe_for_plot(df_yearly_var, periods, score_name)
+                
+                with st.expander("Show Yearly Dataframe"):
+                    st.dataframe(df_yearly_var, height=DATAFRAME_HEIGHT, use_container_width=True)
+
+                # Multiple plot to understand the calculated indicators
+                plot_daily_data(all_year_data, variable)
+                plot_years_exposure(df_yearly_var, aggregated_column_name, below_thresholds, above_thresholds, score_name,unit)
+                plot_deficit_and_excess_exposure(df_yearly_var, score_name)
+                plot_global_exposure(df_yearly_var, score_name, i, aggregated_column_name, below_thresholds, above_thresholds)
 
     return df_yearly
