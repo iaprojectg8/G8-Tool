@@ -25,9 +25,9 @@ def main():
     st.set_page_config(layout="wide")
     set_page_title("Indicators Customization")
     set_title_2("Period")
-
+    key="Indicator"
     # User setting the periods of interest
-    long_period = (long_period_start, long_period_end) = select_period()
+    long_period = (long_period_start, long_period_end) = select_period(key)
     smaller_period_length  = st.select_slider("Choose the length of smaller period to see the evolution of your data on them:",options=PERIOD_LENGTH)
     periods = split_into_periods_indicators(smaller_period_length, long_period_start, long_period_end)
 

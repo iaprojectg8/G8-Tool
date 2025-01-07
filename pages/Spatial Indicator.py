@@ -54,7 +54,12 @@ def main():
         overall_average_indicator = st.checkbox(label="Make overall average indicator")
         if spatial_indicators:
             set_title_2("Spatial indicator")
+            set_title_3("General map")
+            # map = folium.Map(location=[gdf.geometry.centroid.y.mean(), gdf.geometry.centroid.x.mean()], zoom_start=zoom_start)
+            # for _, row in gdf.iterrows():
+            #     folium.Marker(location=[row.lat, row.lon]).add_to(map)
 
+            # st_folium(map,height= 300, use_container_width=True)
         elif overall_average_indicator:
             set_title_2("Overall average indicator")
             csv_filename_output = "Overall_Average.csv"
@@ -78,10 +83,6 @@ def main():
                     general_management(df)
                 with tab_indicator:
                     indicator_management(df)
-
-                
-
-        
 
 if __name__ == "__main__":
     main()
