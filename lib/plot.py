@@ -176,7 +176,7 @@ def layout_monthly_plot(fig:go.Figure, column_name,  unit):
         xaxis_title='Month',
         yaxis_title=f'{column_name} - {unit}',
         legend_title='',
-        template='plotly_dark',
+        template=TEMPLATE_COLOR,
         autosize=True,
         hoverlabel_align="auto"
     )
@@ -305,6 +305,7 @@ def yearly_layout(fig:go.Figure, column_name, unit):
                     font_size=25),
         xaxis_title="Year",
         yaxis_title=f"{column_name} - {unit}",
+        template=TEMPLATE_COLOR,
         autosize=True,
         showlegend=True,
         legend=dict(
@@ -488,7 +489,7 @@ def monthly_variation_layout(fig:go.Figure, graph_part, column_name):
                     xanchor="center",
                     font_size=25),
         autosize=True,
-        template='plotly_dark',
+        template=TEMPLATE_COLOR,
         showlegend=True,
         xaxis=dict(tickfont_size=15,
                     title = dict(
@@ -575,8 +576,8 @@ def wrap_into_pdf(fig1, fig2, fig3):
     c = canvas.Canvas(pdf_buffer, pagesize=landscape(A4))
 
     # Set the background color to black
-    c.setFillColorRGB(0, 0, 0)
-    c.rect(0, 0, 892, 612, fill=1)  # Fill the entire page with black color
+    # c.setFillColorRGB(0, 0, 0)
+    # c.rect(0, 0, 892, 612, fill=1)  # Fill the entire page with black color
 
     # Convert the Plotly figures to PNG images in memory using kaleido
     fig1_image = pio.to_image(fig1, format="jpg", width=fig1.layout.width, height=fig1.layout.height)
@@ -594,7 +595,7 @@ def wrap_into_pdf(fig1, fig2, fig3):
     # Place the second figure image on the PDF at a specific location with scaled dimensions
     c.drawImage(img2_reader, x=-330, y=20, height=fig2.layout.height / 2, width=fig2.layout.width, preserveAspectRatio=True)
     c.showPage()
-    c.rect(0, 0, 892, 612, fill=1)  # Fill the entire page with black color
+    # c.rect(0, 0, 892, 612, fill=1)  # Fill the entire page with black color
     c.drawImage(img3_reader, x=-220, y=40, height=fig3.layout.height*0.60, width=fig3.layout.width, preserveAspectRatio=True)
     # Finalize the PDF document
     c.save()

@@ -69,21 +69,40 @@ def create_yearly_thresholds(label : str, checkbox_key, thresholds_position):
         
         # Step part
         if st.session_state.indicator[label] is not None:
-            st.subheader(f"Step {thresholds_position}")
-            col1, col2 = st.columns([0.8, 0.2])
-            with col1:
-                st.write(f"""
+            
+            st.session_state.checkbox_defaults["threshold_list_checkbox"] =  st.checkbox(label="Custom your thresholds",
+                                                                                         key="create_threshold_list")
+            if st.session_state.checkbox_defaults["threshold_list_checkbox"]:
+                st.subheader(f"Custom List")
+                col1, col2 = st.columns([0.5, 0.5])
+                with col1:
+                    st.write(f"""
+                                Specify a custom thesholds list to replace the step creation method
+                            """)
+                with col2:
+                    st.session_state.indicator[label+" List"] = ast.literal_eval(st.text_input(
+                                                                                    label="Put a list",
+                                                                                    value=st.session_state.indicator[label+" List"],
+                                                                                    key="create_text_input", 
+                                                                                    label_visibility="collapsed"),
+                                                                                    )
+            else :
+                st.subheader(f"Step {thresholds_position}")
+                col1, col2 = st.columns([0.8, 0.2])
+                with col1:
+                    st.write(f"""
                             Specify a step value to create additional thresholds above the main threshold. 
                             These thresholds will represent distinct hazard levels (e.g., Low, Moderate, High, Very High). 
                             Each range is calculated by {"adding" if thresholds_position == "above" else "subtraction"} multiples of the step value to the current threshold.
                         """)
             
-            with col2:
-                st.session_state.indicator[label+ " Step"] = step = st.number_input(label="Step", key=f"step {thresholds_position}", label_visibility="collapsed")
-                st.session_state.indicator[label+" List"] = [st.session_state.indicator[label] + step * i 
-                                                                if thresholds_position == "above" 
-                                                                else st.session_state.indicator[label] - step * i
-                                                                for i in range(NUM_THRESHOLDS + 1)]
+                with col2:
+                    st.session_state.indicator[label+ " Step"] = step = st.number_input(label="Step", key=f"step {thresholds_position}", label_visibility="collapsed")
+                    st.session_state.indicator[label+" List"] = [st.session_state.indicator[label] + step * i 
+                                                                    if thresholds_position == "above" 
+                                                                    else st.session_state.indicator[label] - step * i
+                                                                    for i in range(NUM_THRESHOLDS)]
+
 
         # Here maybe an animation could be find to better present the different threshold built by his choices
         # st.write("Your ohter threshold will be the ones there ", st.session_state.indicator[label+" List"])

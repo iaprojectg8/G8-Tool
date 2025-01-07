@@ -31,7 +31,8 @@ if "checkbox_defaults" not in st.session_state:
         "min_yearly_checkbox": False,
         "max_yearly_checkbox": False,
         "shift_start_checkbox": False,
-        "shift_end_checkbox": False
+        "shift_end_checkbox": False,
+        "threshold_list_checkbox" : False
     }
 
 if "df_checkbox" not in st.session_state:
@@ -133,6 +134,7 @@ def reset_indicator():
     st.session_state.max_yearly_checkbox = False
     st.session_state.shift_start_checkbox = False
     st.session_state.shift_end_checkbox = False
+    st.session_state.threshold_list_checkbox = False
     
 
     
