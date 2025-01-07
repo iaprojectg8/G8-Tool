@@ -114,24 +114,24 @@ def categorize_both(value, below_thresholds=None,above_thresholds=None):
     """
     # Check if value is above thresholds
     if above_thresholds:
-        if above_thresholds[0] <= value < above_thresholds[1]:
+        if  value < above_thresholds[0]:
             return 1
-        elif above_thresholds[1] <= value < above_thresholds[2]:
+        elif above_thresholds[0] <= value < above_thresholds[1]:
             return 2
-        elif above_thresholds[2] <= value < above_thresholds[3]:
+        elif above_thresholds[1] <= value < above_thresholds[2]:
             return 3
-        elif value >= above_thresholds[3]:
+        elif value >= above_thresholds[2]:
             return 4
 
     # Check if value is below thresholds
     if below_thresholds:
-        if below_thresholds[0] >= value > below_thresholds[1]:
+        if value > below_thresholds[0]:
             return -1
-        elif below_thresholds[1] >= value > below_thresholds[2]:
+        elif below_thresholds[0] >= value > below_thresholds[1]:
             return -2
-        elif below_thresholds[2] >= value > below_thresholds[3]:
+        elif below_thresholds[1] >= value > below_thresholds[2]:
             return -3
-        elif value <= below_thresholds[3]:
+        elif value <= below_thresholds[2]:
             return -4
 
     return 0
