@@ -85,9 +85,7 @@ def display_thresholds(updated_indicator, label):
 
     else:
         thresholds.sort()
-
-    print(colors)
-    print(len)
+        
     # Add horizontal colored bands
     for i in range(0,len(thresholds)-1):
         start = thresholds[i] 

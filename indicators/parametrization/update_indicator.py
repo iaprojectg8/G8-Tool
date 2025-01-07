@@ -123,8 +123,8 @@ def update_yearly_thresholds(updated_indicator,label, updated_checkbox, checkbox
                                                                     if thresholds_position == "above" 
                                                                     else updated_indicator[label] - step * i
                                                                     for i in range(NUM_THRESHOLDS)]
-        print(updated_indicator[label+" List"])
-        display_thresholds(updated_indicator, label)
+        if updated_indicator is not None:
+            display_thresholds(updated_indicator, label)
 
     else:
         updated_indicator[label] = None
