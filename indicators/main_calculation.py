@@ -261,12 +261,13 @@ def calculations_and_plots(df_season, df_indicators_parameters: pd.DataFrame,df_
                     or season_start_shift is not None or season_end_shift is not None):
 
                     df_season = introduce_season_shift_in_calculation(season_start, season_start_shift, season_end, season_end_shift, all_year_data)
+            
             if type(variable) is list:
                 df_season_temp=df_season[variable]
             else:
                 df_season_temp=df_season[[variable]]
 
-            # Score calculation
+            # Crossed Variable indicators have their own graph so don't need to go further there
             if row["Indicator Type"] == "Crossed Variables":
                 heat_index_indicator(df_season_temp)
             else:
