@@ -1,7 +1,7 @@
 from utils.imports import *
 from utils.variables import *
 from layouts.layout import *
-
+from indicators.plot import plot_daily_data
 
 
 # ----------------------------
@@ -9,6 +9,7 @@ from layouts.layout import *
 # ----------------------------
 
 def verify_heat_index_taken_variable(variables):
+    # This may be used in the futuue to well determined wether the variable have been well chosen by the user
     if "temperature_2m_max" in variables and "relative_humidity_2m_min":
         st.success("You have taken all the right variable for this indicator")
         return 1
@@ -57,11 +58,35 @@ def heat_index_calculation(df, rh, tmp_2m):
     
     return df
 
-def plot_bar_stack_count(df:pd.DataFrame):
+def categorize_heat_index(df: pd.DataFrame):
+    """
+    Categorizes the heat index into different levels of discomfort and adds a 'year' column.
 
+    Parameters:
+    df (DataFrame): The DataFrame containing the heat index data.
+
+    Returns:
+    None
+    """
+    df['heat_index_category'] = df['heat_index'].apply(classify_heat_index)
+    df['year'] = df.index.year
+
+    category_order = ['Low Discomfort', 'Moderate Discomfort', 'High Discomfort', 'Very High Discomfort']
+    df['heat_index_category'] = pd.Categorical(df['heat_index_category'], categories=category_order, ordered=True)
+
+
+def plot_bar_stack_count(df: pd.DataFrame):
+    """
+    Plots a stacked bar chart of heat index categories by year.
+
+    Parameters:
+    df (DataFrame): The DataFrame containing the heat index data.
+
+    Returns:
+    None
+    """
     # Count for each year the amount of days in each category
     category_counts = df.groupby(['year', 'heat_index_category']).size().reset_index(name='count')
-
 
     # Create a stacked bar plot using Plotly
     fig = px.bar(
@@ -79,7 +104,22 @@ def plot_bar_stack_count(df:pd.DataFrame):
         }
     )
 
+    # Update the layout of the plot
+    update_plot_layout(fig)
 
+    # Show the Plotly chart in Streamlit
+    st.plotly_chart(fig)
+
+def update_plot_layout(fig):
+    """
+    Updates the layout of the Plotly figure.
+
+    Parameters:
+    fig (Figure): The Plotly figure to update.
+
+    Returns:
+    None
+    """
     fig.update_layout(
         barmode='stack',
         title=dict(text=f"Heat Index Through Years",
@@ -110,41 +150,65 @@ def plot_bar_stack_count(df:pd.DataFrame):
                     ),
         font=dict(
             size=17))
-
-    # Show the Plotly chart in Streamlit
-    st.plotly_chart(fig)
-
-def categorize_heat_index(df:pd.DataFrame):
     
-    df['heat_index_category'] = df['heat_index'].apply(classify_heat_index)
-    df['year'] = df.index.year
+def from_fahrenheit_to_celsius(fahrenheit):
+    """
+    Converts temperature from degree Fahrenheit to degree Celsius.
 
-    category_order = ['Low Discomfort', 'Moderate Discomfort', 'High Discomfort', 'Very High Discomfort']
-    df['heat_index_category'] = pd.Categorical(df['heat_index_category'], categories=category_order, ordered=True)
+    Args:
+    fahrenheit (float): Temperature in Fahrenheit.
 
+    Returns:
+    float: Temperature in Celsius.
+    """
+    celsius = (fahrenheit - 32) * 5/9
+    return celsius
 
+def from_celsius_to_fahrenheit(celsius):
+    """
+    Converts temperature from degree Celsius to degree Fahrenheit.
 
-def heat_index_indicator(df_season):
+    Args:
+    celsius (float): Temperature in Celsius.
 
+    Returns:
+    float: Temperature in Fahrenheit.
+    """
+    fahrenheit = celsius * 9/5 + 32
+    return fahrenheit
+
+def heat_index_indicator(df):
+    """
+    Processes the seasonal data to calculate and categorize the heat index, then plots the results.
+
+    Parameters:
+    df_season (DataFrame): The DataFrame containing the seasonal data.
+
+    Returns:
+    None
+    """
     set_title_1("Variable filter")
     st.write("We are keeping only the daily max temperature and the daily mean relative humidity")
-    df = df_season
-    print(df.head())
 
-    rh = "relative_humidity_2m_min"
-    tmp_2m = "temperature_2m_max"
-    print(df)
-    df_hi = df[[tmp_2m, rh]]
-    print("max temp",df_hi[tmp_2m].max())
-    st.dataframe(df_hi, height=DATAFRAME_HEIGHT, use_container_width=True)
+    # Get the right variable
+    relative_humidity_min = "relative_humidity_2m_min"
+    temperature_max = "temperature_2m_max"
+    heat_index = "heat_index"
+    df_heat_index = df[[temperature_max, relative_humidity_min]]
 
-    df_hi[tmp_2m] = df_hi[tmp_2m]  * 9/5 + 32  # Convert Celsius to Fahrenheit
+    # Calculate the heat index 
+    df_heat_index[temperature_max] = df_heat_index[temperature_max].apply(from_celsius_to_fahrenheit)
+    df_heat_index = heat_index_calculation(df_heat_index, relative_humidity_min, temperature_max)
+    df_heat_index[[heat_index, temperature_max]] = df_heat_index[[heat_index, temperature_max]].apply(from_fahrenheit_to_celsius)
+    
+    
+    # Display the dataframe 
+    st.dataframe(df_heat_index, height=DATAFRAME_HEIGHT, use_container_width=True)
 
-    df_hi = heat_index_calculation(df_hi, rh, tmp_2m)
-    st.dataframe(df_hi, height=DATAFRAME_HEIGHT, use_container_width=True)
-    df_hi["heat_index"] = (df_hi["heat_index"]-32)*5/9
-    df_hi[tmp_2m] = (df_hi[tmp_2m]-32)*5/9
-    st.dataframe(df_hi, height=DATAFRAME_HEIGHT, use_container_width=True)
-    print(df_hi["heat_index"].max())
-    categorize_heat_index(df_hi)
-    plot_bar_stack_count(df_hi)
+    # Categorize the heat index
+    categorize_heat_index(df_heat_index)
+
+    # Plot the heat index categories by year
+    plot_daily_data(df_heat_index, relative_humidity_min)
+    plot_daily_data(df_heat_index, temperature_max)
+    plot_bar_stack_count(df_heat_index)
