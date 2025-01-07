@@ -67,9 +67,13 @@ def update_yearly_thresholds(updated_indicator,label, updated_checkbox, checkbox
 
     # Basic threshold part
     col1, col2 = st.columns([0.2, 0.8])
-    updated_checkbox_value = updated_checkbox[checkbox_label]
+    checkbox_value = updated_checkbox[checkbox_label]
+    checkbox_threshold_list = updated_checkbox["threshold_list_checkbox"]
+    
     with col1:
-        updated_checkbox[checkbox_label] = st.checkbox(label=label,value=updated_checkbox_value, key=f"edit_{"_".join(label.lower().split(" "))}_checkbox_{i}")
+        updated_checkbox[checkbox_label] = st.checkbox(label=label,
+                                                       value=checkbox_value, 
+                                                       key=f"edit_{"_".join(label.lower().split(" "))}_checkbox_{i}")
             
         if updated_checkbox[checkbox_label]:
             with col2:
@@ -82,8 +86,10 @@ def update_yearly_thresholds(updated_indicator,label, updated_checkbox, checkbox
 
     if updated_indicator[label] is not None:
 
-        
-        if st.checkbox(label="Custom your thresholds"):
+        updated_checkbox["threshold_list_checkbox"] = st.checkbox(label="Custom your thresholds", 
+                                                                    value=checkbox_threshold_list,
+                                                                    key=f"edit_{i}_threshold_list_checkbox")
+        if updated_checkbox["threshold_list_checkbox"]:
             st.subheader(f"Custom List")
             col1, col2 = st.columns([0.5, 0.5])
             with col1:
@@ -93,7 +99,9 @@ def update_yearly_thresholds(updated_indicator,label, updated_checkbox, checkbox
             with col2:
                 updated_indicator[label+" List"] = ast.literal_eval(st.text_input(
                                                                                 label="Put a list",
-                                                                                value=st.session_state.indicator[label+" List"], label_visibility="collapsed"),
+                                                                                value=st.session_state.indicator[label+" List"],
+                                                                                key=f"edit_text_input{i}", 
+                                                                                label_visibility="collapsed"),
                                                                                 )
         else :
             col1, col2 = st.columns([0.8, 0.2])
@@ -114,8 +122,8 @@ def update_yearly_thresholds(updated_indicator,label, updated_checkbox, checkbox
                 updated_indicator[label+" List"] = [updated_indicator[label] + step * i 
                                                                     if thresholds_position == "above" 
                                                                     else updated_indicator[label] - step * i
-                                                                    for i in range(NUM_THRESHOLDS + 1)]
-        
+                                                                    for i in range(NUM_THRESHOLDS)]
+        print(updated_indicator[label+" List"])
         display_thresholds(updated_indicator, label)
 
     else:

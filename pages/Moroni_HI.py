@@ -40,14 +40,38 @@ def plot_bar_stack_count(df):
         }
     )
 
-    # Update the layout for better presentation
+
+
     fig.update_layout(
         barmode='stack',
-        xaxis_title='Year',
-        yaxis_title='Count of Days',
-        xaxis={'categoryorder': 'total descending'},
-        legend_title='Heat Index Category'
-    )
+        title=dict(text=f"Heat Index Through Years",
+                    x=0.5,
+                    xanchor="center",
+                    font_size=25),
+        xaxis=dict(tickfont_size=15,
+                    title = dict(
+                        text="Year",
+                        font_size=17,
+                        standoff=50),       
+                    ticklabelstandoff =20),
+        yaxis=dict(tickfont_size=15,
+                    title=dict(
+                        text="Count of Days",
+                        font_size=17,
+                        standoff=50),
+                    ticklabelstandoff = 20),
+        legend=dict(title=dict(text="Heat Index Category",
+                                font=dict(size=20, color="white",weight=900),
+                                side="top center"
+                               ),
+                    
+                    orientation="v", 
+                    traceorder="reversed",
+                    x=1.05,           
+                    y=0.5,
+                    ),
+        font=dict(
+            size=17))
 
     # Show the Plotly chart in Streamlit
     st.plotly_chart(fig)
@@ -60,46 +84,6 @@ def categorize_heat_index(df):
     category_order = ['Low Discomfort', 'Moderate Discomfort', 'High Discomfort', 'Very High Discomfort']
     df['heat_index_category'] = pd.Categorical(df['heat_index_category'], categories=category_order, ordered=True)
 
-def consecutive_dry_days(df):
-    df = df[["precipitation_sum"]]
-    df['is_dry'] = df['precipitation_sum'] < 1  # You can adjust the condition if needed
-    df['group'] = (df['is_dry'] != df['is_dry'].shift()).cumsum()
-    st.dataframe(df,height=DATAFRAME_HEIGHT, use_container_width=True)
-
-    # Filter for consecutive dry days (where 'is_dry' is True)
-    dry_days = df[df['is_dry']]
-
-    # Calculate the length of each consecutive dry period
-    dry_days['consecutive_dry_days'] = dry_days.groupby('group').cumcount() + 1
-
-    # Extract year from the date
-    dry_days['year'] = dry_days.index.year
-
-    # Count the number of occurrences of each consecutive dry period length by year
-    consecutive_dry_counts = dry_days.groupby(['year', 'consecutive_dry_days']).size().reset_index(name='count')
-
-    # Create a stacked bar plot using Plotly
-    fig = px.bar(
-        consecutive_dry_counts,
-        x='year',
-        y='count',
-        color='consecutive_dry_days',
-        title="Consecutive Dry Days by Year",
-        labels={'count': 'Count of Periods', 'year': 'Year', 'consecutive_dry_days': 'Consecutive Dry Days'},
-        color_continuous_scale='Blues'
-    )
-
-    # Update the layout for better presentation
-    fig.update_layout(
-        barmode='stack',
-        xaxis_title='Year',
-        yaxis_title='Count of Periods',
-        xaxis={'categoryorder': 'total descending'},
-        legend_title='Consecutive Dry Days'
-    )
-
-    # Show the Plotly chart in Streamlit
-    st.plotly_chart(fig)
 
 
 def main():
@@ -112,14 +96,18 @@ def main():
     rh = "relative_humidity_2m_mean"
     tmp_2m = "temperature_2m_max"
     prec = "precipitation_sum"
-    consecutive_dry_days(df)
     df_hi = df[[tmp_2m, rh]]
+    print("max temp",df_hi[tmp_2m].max())
     st.dataframe(df_hi, height=DATAFRAME_HEIGHT, use_container_width=True)
 
     df_hi[tmp_2m] = df_hi[tmp_2m]  * 9/5 + 32  # Convert Celsius to Fahrenheit
 
     df_hi = heat_index(df_hi, rh, tmp_2m)
+    st.dataframe(df_hi, height=DATAFRAME_HEIGHT, use_container_width=True)
     df_hi["heat_index"] = (df_hi["heat_index"]-32)*5/9
+    df_hi[tmp_2m] = (df_hi[tmp_2m]-32)*5/9
+    st.dataframe(df_hi, height=DATAFRAME_HEIGHT, use_container_width=True)
+    print(df_hi["heat_index"].max())
     categorize_heat_index(df_hi)
     plot_bar_stack_count(df_hi)
 

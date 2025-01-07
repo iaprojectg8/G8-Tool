@@ -74,15 +74,20 @@ def display_thresholds(updated_indicator, label):
   
     # Risk band visualization
     fig = go.Figure()
- 
-    thresholds.append(min(thresholds) - 2*updated_indicator[label+" Step"])
-    thresholds.append(max(thresholds) + 2*updated_indicator[label+" Step"])
+    
+    thresholds.append(min(thresholds) - (thresholds[1]-thresholds[0]))
+    thresholds.append(max(thresholds) + (thresholds[1]-thresholds[0]))
+    print(thresholds)
 
     if "min" in label.lower():
         colors = colors[::-1]
         thresholds.sort()
+
     else:
         thresholds.sort()
+
+    print(colors)
+    print(len)
     # Add horizontal colored bands
     for i in range(0,len(thresholds)-1):
         start = thresholds[i] 

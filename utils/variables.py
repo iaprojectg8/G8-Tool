@@ -34,7 +34,7 @@ UNIT_DICT= {
 
 
 
-FILENAME = "North_Bengal_coords_mean.csv"
+FILENAME = "Moroni_coords_mean.csv"
 
 
 UNIT_FROM_VARIABLE = {
@@ -145,3 +145,6 @@ MODEL_NAMES = [
         "MPI_ESM1_2_XR (51 km)",
         "NICAM16_8S (31 km)"
     ]
+
+
+TEMPLATE_COLOR = 'plotly_white'
