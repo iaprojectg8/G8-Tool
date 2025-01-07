@@ -306,12 +306,20 @@ def update_buttons(updated_indicator, updated_checkbox, i):
 
 
 def update_built_indicator(updated_indicator, i):
+    """
+    Updates the built-in indicator selection for a given indicator.
+
+    Args:
+        updated_indicator (dict): The dictionary containing the updated information of the indicator.
+        i (int): The index or identifier for the indicator, used for widget keys.
+    """
+
     label = "Builtin Indicator"
     updated_indicator[label] = st.selectbox(label="Indicator", 
-                                                        options=BUILTIN_INDICATORS,
-                                                        index=BUILTIN_INDICATORS.index(updated_indicator[label]) if updated_indicator[label] is not None 
-                                                                    else 0,
-                                                        key=f"edit_built_indicator_{i}")
+                                            options=BUILTIN_INDICATORS,
+                                            index=BUILTIN_INDICATORS.index(updated_indicator[label]) if updated_indicator[label] is not None 
+                                                        else 0,
+                                            key=f"edit_built_indicator_{i}")
 
 
 # ---------------------

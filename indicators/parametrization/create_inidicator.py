@@ -108,9 +108,6 @@ def create_yearly_thresholds(label : str, checkbox_key, thresholds_position):
                                                                     for i in range(NUM_THRESHOLDS)]
 
 
-        # Here maybe an animation could be find to better present the different threshold built by his choices
-        # st.write("Your ohter threshold will be the ones there ", st.session_state.indicator[label+" List"])
-
         # Display the list of thresholds in a table format
         if st.session_state.indicator[label] is not None:
             display_thresholds(st.session_state.indicator, label)
@@ -258,8 +255,12 @@ def create_season_shift_input(season_start, season_end):
 
 
 def create_built_indicator():
-    st.session_state["Builtin Indicator"] = st.selectbox("Indicator", options=BUILTIN_INDICATORS)
+    """
+    Creates a select box for choosing a built-in indicator and stores the selected indicator
+    in the session state.
 
+    """
+    st.session_state["Builtin Indicator"] = st.selectbox("Indicator", options=BUILTIN_INDICATORS)
 
 
     
