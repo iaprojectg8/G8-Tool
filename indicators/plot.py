@@ -1,6 +1,7 @@
 from utils.imports import *
 from utils.variables import *
 from indicators.calculation import categorize_both
+from lib.plot import add_vertical_line
 
 
 # --------------------------------------------
@@ -65,7 +66,7 @@ def daily_data_update_layout(fig:go.Figure, variable:str):
     )
 
 # Main function
-def plot_daily_data(df, variable):
+def plot_daily_data(df, variable, zoom=None):
     """
     Plots the daily data for a given variable using Plotly and Streamlit.
 
@@ -78,6 +79,7 @@ def plot_daily_data(df, variable):
 
     fig = go.Figure()
     daily_data_plot(df, fig, variable)
+    add_vertical_line(fig, year=datetime.now(pytz.utc))
     daily_data_update_layout(fig, variable)
     st.plotly_chart(fig)
     

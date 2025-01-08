@@ -27,7 +27,6 @@ def general_management(df):
                                               options=PERIOD_LENGTH,
                                               key = f"smaller_period{key}")
     periods = split_into_periods(smaller_period_length, long_period_start, long_period_end)
-    print(periods)
     
     # Loading CSV, this will almost surely be replaced by 
     path = f"CSV_files/{FILENAME}"

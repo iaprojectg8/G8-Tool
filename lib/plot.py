@@ -368,6 +368,8 @@ def plot_yearly_curve_and_period_trends(yearly_mean, monthly_mean, column, perio
 
     # Plot yearly curve and trend lines
     plot_yearly_curve(fig, yearly_mean, column, column_name)
+    print(fig)
+    add_vertical_line(fig, year=datetime.now(pytz.utc).year)
     plot_all_trend_lines(fig, yearly_mean,monthly_mean, periods, column, column_name, unit)
 
     # Update layout with titles and labels
@@ -661,4 +663,34 @@ def general_plot(data: pd.DataFrame, periods, filename):
                 mime="application/pdf"
             )
 
-        
+# -------------------------
+# --- Current Year Plot ---
+# -------------------------
+
+def add_vertical_line(fig:go.Figure, year, line_color='green', line_width=2):
+    """
+    Adds a vertical line to the Plotly figure to indicate a specific year.
+
+    Parameters:
+    fig (Figure): The Plotly figure to update.
+    year (int): The year to indicate with the vertical line.
+    line_color (str): The color of the vertical line.
+    line_width (int): The width of the vertical line.
+
+    Returns:
+    None
+    """
+    if type(year) is datetime:
+        fig.add_vline(x=year.isoformat(), line=dict(color=line_color, width=line_width))
+        fig.add_annotation(
+            x=year,
+            y=1.12,
+            yref="paper",
+            text= year.year,
+            showarrow=False
+        )
+        # The annotation needs to be done manually because as the year is in datetime type,
+        # the annotation can't be done the same way it would be if year were of int type
+    elif type(year) is int:
+        fig.add_vline(x=year, line=dict(color=line_color, width=line_width),
+                      annotation_text = year, annotation_position="top")

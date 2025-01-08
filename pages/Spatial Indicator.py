@@ -66,7 +66,6 @@ def main():
             if st.button(label="Average your Dataset"):
                 make_zone_average(folder_name=extract_to, csv_output=csv_filename_output)
             df = pd.read_csv(csv_filename_output, index_col="date", parse_dates=True)
-            print("after_averaging", df)
             if not df.empty :
                 with st.expander(label="Your dataset average is ready"):
                     lat, lon = df.iloc[0][['lat', 'lon']]

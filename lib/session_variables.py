@@ -71,6 +71,10 @@ if "lat_lon" not in st.session_state:
 if "gdf" not in st.session_state:
     st.session_state.gdf = None
 
+if "xaxis_range" not in st.session_state:
+    st.session_state.xaxis_range = None
+    
+
 def delete_indicator(index):
     """
     Deletes an indicator from the list of indicators.
