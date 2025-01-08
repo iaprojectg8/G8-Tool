@@ -2,6 +2,7 @@ from utils.imports import *
 from utils.variables import *
 from layouts.layout import *
 from indicators.plot import plot_daily_data
+from lib.plot import add_vertical_line
 
 
 # ----------------------------
@@ -103,7 +104,7 @@ def plot_bar_stack_count(df: pd.DataFrame):
             'Very High Discomfort': 'red'
         }
     )
-
+    add_vertical_line(fig, 2025)
     # Update the layout of the plot
     update_plot_layout(fig)
 
@@ -176,6 +177,8 @@ def from_celsius_to_fahrenheit(celsius):
     """
     fahrenheit = celsius * 9/5 + 32
     return fahrenheit
+
+
 
 def heat_index_indicator(df):
     """

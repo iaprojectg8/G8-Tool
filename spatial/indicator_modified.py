@@ -84,8 +84,11 @@ def indicator_management(df):
             indicator_building(df_season, season_start, season_end)
 
         # Display an indicator summary
+        print(st.session_state.df_indicators)
         if not st.session_state.df_indicators.empty:
-            st.dataframe(st.session_state.df_indicators, use_container_width=True)
+            df_indicator_copy = copy(st.session_state.df_indicators)
+            df_indicator_copy["Variable"] = df_indicator_copy["Variable"].astype(str)
+            st.dataframe(df_indicator_copy, use_container_width=True)
             download_indicators(st.session_state.df_indicators)
 
 

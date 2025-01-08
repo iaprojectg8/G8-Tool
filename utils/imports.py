@@ -45,7 +45,7 @@ from unittest.mock import MagicMock
 
 # Plot part
 import plotly.graph_objects as go
-
+import pytz
 # Regression part
 from scipy.stats import linregress
 import plotly.express as px
