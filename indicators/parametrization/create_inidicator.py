@@ -52,7 +52,7 @@ def create_daily_threshold(label : str, checkbox_key):
 
 
 ## Yearly
-def create_yearly_thresholds(label : str, checkbox_key, thresholds_position):    
+def create_yearly_thresholds(label : str, checkbox_key, list_checkbox_key, thresholds_position):    
     """
     Handles the creation of a checkbox and a number input for setting a maximum yearly aggregation threshold.
     Allows defining additional thresholds above the entered value by specifying step values.
@@ -74,9 +74,9 @@ def create_yearly_thresholds(label : str, checkbox_key, thresholds_position):
         # Step part
         if st.session_state.indicator[label] is not None:
             
-            st.session_state.checkbox_defaults["threshold_list_checkbox"] =  st.checkbox(label="Custom your thresholds",
-                                                                                         key="create_threshold_list")
-            if st.session_state.checkbox_defaults["threshold_list_checkbox"]:
+            st.session_state.checkbox_defaults[list_checkbox_key] =  st.checkbox(label="Custom your thresholds",
+                                                                                         key=f"create_threshold_list{thresholds_position}")
+            if st.session_state.checkbox_defaults[list_checkbox_key]:
                 st.subheader(f"Custom List")
                 col1, col2 = st.columns([0.5, 0.5])
                 with col1:
@@ -87,7 +87,7 @@ def create_yearly_thresholds(label : str, checkbox_key, thresholds_position):
                     st.session_state.indicator[label+" List"] = ast.literal_eval(st.text_input(
                                                                                     label="Put a list",
                                                                                     value=st.session_state.indicator[label+" List"],
-                                                                                    key="create_text_input", 
+                                                                                    key="create_threshold_list", 
                                                                                     label_visibility="collapsed"),
                                                                                     )
             else :
@@ -227,8 +227,10 @@ def create_yearly_thresholds_input():
     Creates the input for yearly thresholds, including minimum and maximum thresholds.
     """
     st.subheader("Yearly Thresholds")
-    create_yearly_thresholds(label="Yearly Threshold Min", checkbox_key="min_yearly_checkbox", thresholds_position="below")
-    create_yearly_thresholds(label="Yearly Threshold Max", checkbox_key="max_yearly_checkbox", thresholds_position="above")
+    create_yearly_thresholds(label="Yearly Threshold Min", checkbox_key="min_yearly_checkbox",
+                             list_checkbox_key="threshold_list_checkbox_min", thresholds_position="below")
+    create_yearly_thresholds(label="Yearly Threshold Max", checkbox_key="max_yearly_checkbox",
+                             list_checkbox_key="threshold_list_checkbox_max", thresholds_position="above")
 
 
 def create_rolling_window_input():

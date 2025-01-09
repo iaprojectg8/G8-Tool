@@ -67,7 +67,7 @@ def daily_indicators(df:pd.DataFrame, variable, daily_thresh_min, daily_thresh_m
     # Handling daily min threshold
     elif  daily_thresh_min is not None and not math.isnan(daily_thresh_min):
        
-        df.loc[:, indicator_column] =  (df[variable] < daily_thresh_min).astype(int)
+        df[indicator_column] =  (df[variable] < daily_thresh_min).astype(int)
 
     # Handling daily max threshold
     elif  daily_thresh_max is not None and not math.isnan(daily_thresh_max):
@@ -113,19 +113,17 @@ def categorize_both(value, below_thresholds=None,above_thresholds=None):
         int: The category, positive for above thresholds, negative for below thresholds, and 0 for normal.
     """
     # Check if value is above thresholds
-    if above_thresholds:
-        if  value < above_thresholds[0]:
+    if below_thresholds or above_thresholds:
+        if  below_thresholds [0] <value < above_thresholds[0]:
             return 1
         elif above_thresholds[0] <= value < above_thresholds[1]:
             return 2
         elif above_thresholds[1] <= value < above_thresholds[2]:
             return 3
-        elif value >= above_thresholds[2]:
+        elif above_thresholds[2] <= value :
             return 4
-
-    # Check if value is below thresholds
-    if below_thresholds:
-        if value > below_thresholds[0]:
+        
+        elif above_thresholds[0] > value > below_thresholds[0]:
             return -1
         elif below_thresholds[0] >= value > below_thresholds[1]:
             return -2

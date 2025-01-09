@@ -55,6 +55,8 @@ def fill_df_checkbox(df: pd.DataFrame):
         df_checkbox.at[index, "max_yearly_checkbox"] = pd.notna(row.get("Yearly Threshold Max"))
         df_checkbox.at[index, "shift_start_checkbox"] = pd.notna(row.get("Season Start Shift"))
         df_checkbox.at[index, "shift_end_checkbox"] = pd.notna(row.get("Season End Shift"))
+        df_checkbox.at[index, "threshold_list_checkbox_min"] = pd.notna(row.get("Yearly Threshold Min"))
+        df_checkbox.at[index, "threshold_list_checkbox_max"] = pd.notna(row.get("Yearly Threshold Max"))
 
     return df_checkbox
 
@@ -74,18 +76,15 @@ def display_thresholds(updated_indicator, label):
   
     # Risk band visualization
     fig = go.Figure()
-    
-    thresholds.append(min(thresholds) - (thresholds[1]-thresholds[0]))
-    thresholds.append(max(thresholds) + (thresholds[1]-thresholds[0]))
-    print(thresholds)
-
     if "min" in label.lower():
         colors = colors[::-1]
         thresholds.sort()
+    
+    thresholds.append(min(thresholds) - (thresholds[1]-thresholds[0]))
+    thresholds.append(max(thresholds) + (thresholds[1]-thresholds[0]))
 
-    else:
-        thresholds.sort()
-        
+    thresholds.sort()
+    # print(thresholds)
     # Add horizontal colored bands
     for i in range(0,len(thresholds)-1):
         start = thresholds[i] 

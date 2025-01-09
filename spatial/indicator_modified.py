@@ -67,11 +67,7 @@ def indicator_management(df):
         # Load indicators from CSV
         if st.checkbox(label="Load indicators from CSV"):
             df_uploaded = upload_csv_file()
-
-            # Only replace df_indicators if the uploaded file differs from the current one
-            # print(df_uploaded.values)
-            # print(st.session_state.uploaded_df.values)
-            # print(df_uploaded.equals(st.session_state.uploaded_df))
+            
             if df_uploaded is not None and not df_uploaded.equals(st.session_state.uploaded_df):
                 df_checkbox = fill_df_checkbox(df_uploaded)
                 st.session_state.uploaded_df = df_uploaded
@@ -83,7 +79,6 @@ def indicator_management(df):
             indicator_building(df_season, season_start, season_end)
 
         # Display an indicator summary
-
         if not st.session_state.df_indicators.empty:
             # The copy done is only to display the indicators dataframe on the app
             df_indicator_copy = copy(st.session_state.df_indicators)

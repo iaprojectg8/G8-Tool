@@ -17,7 +17,8 @@ def daily_data_plot(df:pd.DataFrame, fig:go.Figure, variable:str):
             x=df["date"],
             y=df[variable],
             marker=dict(color="skyblue"),
-            name=variable
+            name=' '.join(variable.split('_')).title(),
+            showlegend=True
         )
     )
 
@@ -52,7 +53,7 @@ def daily_data_update_layout(fig:go.Figure, variable:str):
         ),
         legend=dict(
             title=dict(
-                text="Risk Levels",
+                text="Variable",
                 font=dict(size=20, color="white", weight=900),
                 side="top center"
             ),
@@ -60,6 +61,7 @@ def daily_data_update_layout(fig:go.Figure, variable:str):
             traceorder="reversed",
             x=1.05,
             y=0.5,
+            indentation=-15
         ),
         font=dict(size=17),
         autosize=True
@@ -267,6 +269,7 @@ def yearly_exposure_update_layout(fig:go.Figure, data_min, data_max, diff, df,sc
                     traceorder="reversed",
                     x=1.05,           
                     y=0.5,
+                    
                     ),
         font=dict(
             size=17))
@@ -290,7 +293,7 @@ def plot_years_exposure(df, aggregated_column_name, min_thresholds, max_threshol
     # Main plot
     yearly_exposure_plot(fig, df, aggregated_column_name, score_name)
     add_vertical_line(fig, datetime.now().year, periods=list(df["period"]))
-    
+
     # Get the min and max values of the data and make the difference
     data_min=df[aggregated_column_name].min()
     data_max=df[aggregated_column_name].max()
