@@ -87,7 +87,7 @@ def plot_bar_stack_count(df: pd.DataFrame):
     None
     """
     # Count for each year the amount of days in each category
-    category_counts = df.groupby(['year', 'heat_index_category']).size().reset_index(name='count')
+    category_counts = df.groupby(['year', 'heat_index_category'], observed=False).size().reset_index(name='count')
 
     # Create a stacked bar plot using Plotly
     fig = px.bar(
@@ -104,7 +104,8 @@ def plot_bar_stack_count(df: pd.DataFrame):
             'Very High Discomfort': 'red'
         }
     )
-    add_vertical_line(fig, 2025)
+    add_vertical_line(fig, datetime.now().year)
+    
     # Update the layout of the plot
     update_plot_layout(fig)
 
