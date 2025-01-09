@@ -17,7 +17,7 @@ def general_management(df):
     key = "general_part"
     # Chosen variable has a certain case that might be broken to easier use
     chosen_variables = variable_choice()
-    print(chosen_variables)
+    
 
     # Period choice
     long_period = (long_period_start, long_period_end) = select_period(key=key)

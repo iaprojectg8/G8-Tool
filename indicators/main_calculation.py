@@ -112,6 +112,7 @@ def consecutive_outlier_days_calculation(row, df_season_temp, score_name, variab
         st.dataframe(df_daily, height=DATAFRAME_HEIGHT,use_container_width=True)
 
     df_yearly_var, aggregated_column_name = make_yearly_agg(df_season_temp,"cumulated_days_sum", row["Yearly Aggregation"])
+    
     df_yearly_var = indicator_score(
         df_yearly_var,
         aggregated_column_name,
@@ -243,6 +244,7 @@ def calculations_and_plots(df_season, df_indicators_parameters: pd.DataFrame,df_
         with tabs[i]:
             
             # Offer the possibility to edit the indicator
+
             indicator_editing(df_season, season_start, season_end, row, row_checkbox, i)
             
             # Initializing useful variables
@@ -252,7 +254,7 @@ def calculations_and_plots(df_season, df_indicators_parameters: pd.DataFrame,df_
             season_end_shift= row["Season End Shift"]
             below_thresholds=copy(row["Yearly Threshold Min List"])
             above_thresholds= copy(row["Yearly Threshold Max List"])
-
+    
             
             
             # Season shift handling
@@ -275,10 +277,9 @@ def calculations_and_plots(df_season, df_indicators_parameters: pd.DataFrame,df_
                 
                 # Plot preparation
                 df_yearly_var = preparing_dataframe_for_plot(df_yearly_var, periods, score_name)
-                
                 with st.expander("Show Yearly Dataframe"):
                     st.dataframe(df_yearly_var, height=DATAFRAME_HEIGHT, use_container_width=True)
-
+                
                 # Multiple plot to understand the calculated indicators
                 plot_daily_data(all_year_data, variable)
                 plot_years_exposure(df_yearly_var, aggregated_column_name, below_thresholds, above_thresholds, score_name,unit)

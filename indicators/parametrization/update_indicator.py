@@ -59,7 +59,7 @@ def update_daily_threshold(updated_indicator, updated_checkbox_value,label, i):
 
 
 ## Yearly 
-def update_yearly_thresholds(updated_indicator,label, updated_checkbox, checkbox_label, i, thresholds_position):
+def update_yearly_thresholds(updated_indicator,label, updated_checkbox, checkbox_key, list_checkbox_key, i, thresholds_position):
     """
     Updates yearly thresholds for an indicator using interactive Streamlit widgets. 
     Allows the user to define additional thresholds based on a step value.
@@ -71,21 +71,28 @@ def update_yearly_thresholds(updated_indicator,label, updated_checkbox, checkbox
         i (int): The index or identifier for the indicator, used for widget keys.
         thresholds_position (str): Indicates whether additional thresholds are "above" or "below" the main threshold.
     """
-
+    
     # Basic threshold part
     col1, col2 = st.columns([0.2, 0.8])
-    checkbox_value = updated_checkbox[checkbox_label]
-    checkbox_threshold_list = updated_checkbox["threshold_list_checkbox"]
+    checkbox_value = updated_checkbox[checkbox_key]
+    checkbox_threshold_list = updated_checkbox[list_checkbox_key]
+    
+    if f"edit_threshold_{i}_{thresholds_position}" not in st.session_state :
+        st.session_state[f"edit_threshold_{i}_{thresholds_position}"] = None
     
     with col1:
-        updated_checkbox[checkbox_label] = st.checkbox(label=label,
+        updated_checkbox[checkbox_key] = st.checkbox(label=label,
                                                        value=checkbox_value, 
                                                        key=f"edit_{"_".join(label.lower().split(" "))}_checkbox_{i}")
             
-        if updated_checkbox[checkbox_label]:
+        if updated_checkbox[checkbox_key]:
+            
             with col2:
                 st.write(updated_indicator[label])
-                updated_indicator[label] = st.number_input(label, value=updated_indicator[label], label_visibility="collapsed", key=f"edit{"_".join(label.lower().split(" "))}_{i}")
+                updated_indicator[label] = st.number_input(label, 
+                                                           value=updated_indicator[label],
+                                                           label_visibility="collapsed", 
+                                                           key=f"edit{"_".join(label.lower().split(" "))}_{i}")
         else:
             updated_indicator[label] = None
             updated_indicator[label+" Step"] = 0
@@ -93,23 +100,32 @@ def update_yearly_thresholds(updated_indicator,label, updated_checkbox, checkbox
 
     if updated_indicator[label] is not None:
 
-        updated_checkbox["threshold_list_checkbox"] = st.checkbox(label="Custom your thresholds", 
+        updated_checkbox[list_checkbox_key] = st.checkbox(label="Custom your thresholds", 
                                                                     value=checkbox_threshold_list,
-                                                                    key=f"edit_{i}_threshold_list_checkbox")
-        if updated_checkbox["threshold_list_checkbox"]:
+                                                                    key=f"edit_threshold_list_{i}_{thresholds_position}")
+        if updated_checkbox[list_checkbox_key]:
             st.subheader(f"Custom List")
             col1, col2 = st.columns([0.5, 0.5])
             with col1:
                 st.write(f"""
                             Specify a custom thesholds list to replace the step creation method
                         """)
+                
             with col2:
                 updated_indicator[label+" List"] = ast.literal_eval(st.text_input(
-                                                                                label="Put a list",
-                                                                                value=updated_indicator[label+" List"],
-                                                                                key=f"edit_text_input{i}", 
-                                                                                label_visibility="collapsed"),
-                                                                                )
+                                                                            label="Put a list",
+
+                                                                            value = (updated_indicator[label+" List"] 
+                                                                            if updated_indicator[label+" List"] !=[]
+                                                                            else [updated_indicator[label] + updated_indicator[label+" Step"] * k 
+                                                                                if thresholds_position == "above" 
+                                                                                else updated_indicator[label] - updated_indicator[label+" Step"] * k
+                                                                                for k in range(NUM_THRESHOLDS)]),
+
+                                                                            key=f"edit_text_input{i}_{thresholds_position}", 
+                                                                            label_visibility="collapsed")
+                                                                            )
+
         else :
             col1, col2 = st.columns([0.8, 0.2])
             with col1:
@@ -126,10 +142,10 @@ def update_yearly_thresholds(updated_indicator,label, updated_checkbox, checkbox
                                                                             key=f"edit step {thresholds_position} {i}",
                                                                             label_visibility="collapsed")
 
-                updated_indicator[label+" List"] = [updated_indicator[label] + step * i 
+                updated_indicator[label+" List"] = [updated_indicator[label] + step * k 
                                                                     if thresholds_position == "above" 
-                                                                    else updated_indicator[label] - step * i
-                                                                    for i in range(NUM_THRESHOLDS)]
+                                                                    else updated_indicator[label] - step * k
+                                                                    for k in range(NUM_THRESHOLDS)]
         if updated_indicator is not None:
             display_thresholds(updated_indicator, label)
 
@@ -180,7 +196,7 @@ def update_window_aggregation(updated_indicator, i, label):
                                                 label_visibility="collapsed")
         
 ## Season shift 
-def update_season_shift(updated_indicator,label, updated_checkbox, checkbox_label, i, max_value):
+def update_season_shift(updated_indicator,label, updated_checkbox, checkbox_key, i, max_value):
     """
     Updates the season shift indicator using a checkbox and number input widget.
 
@@ -192,11 +208,11 @@ def update_season_shift(updated_indicator,label, updated_checkbox, checkbox_labe
         max_value (int): The maximum allowable value for the season shift.
     """
     col1, col2 = st.columns([0.2, 0.8])
-    updated_checkbox_value = updated_checkbox[checkbox_label]
+    updated_checkbox_value = updated_checkbox[checkbox_key]
     with col1:
-        updated_checkbox[checkbox_label] = st.checkbox(label=label, value=updated_checkbox_value, key=f"edit_{"_".join(label.lower().split(" "))}_checkbox_{i}")
+        updated_checkbox[checkbox_key] = st.checkbox(label=label, value=updated_checkbox_value, key=f"edit_{"_".join(label.lower().split(" "))}_checkbox_{i}")
         
-        if updated_checkbox[checkbox_label]:
+        if updated_checkbox[checkbox_key]:
             with col2:
                 if pd.isna(updated_indicator[label]) or type(updated_indicator[label]) != int:
                     updated_indicator[label] = 0
@@ -238,8 +254,10 @@ def update_yearly_thresholds_input(updated_indicator, updated_checkbox, i):
         i (int): The index or identifier for the indicator, used for widget keys.
     """
     st.subheader("Yearly Thresholds")
-    update_yearly_thresholds(updated_indicator,"Yearly Threshold Min", updated_checkbox, "min_yearly_checkbox", i, thresholds_position="below")
-    update_yearly_thresholds(updated_indicator,"Yearly Threshold Max", updated_checkbox, "max_yearly_checkbox", i, thresholds_position= "above")
+    update_yearly_thresholds(updated_indicator,"Yearly Threshold Min", updated_checkbox, "min_yearly_checkbox",
+                             list_checkbox_key="threshold_list_checkbox_min", i=i, thresholds_position="below")
+    update_yearly_thresholds(updated_indicator,"Yearly Threshold Max", updated_checkbox, "max_yearly_checkbox", 
+                             list_checkbox_key="threshold_list_checkbox_max", i=i, thresholds_position= "above")
 
 
 def update_rolling_window_input(updated_indicator, i):

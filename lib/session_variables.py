@@ -33,7 +33,9 @@ if "checkbox_defaults" not in st.session_state:
         "max_yearly_checkbox": False,
         "shift_start_checkbox": False,
         "shift_end_checkbox": False,
-        "threshold_list_checkbox" : False
+        "threshold_list_checkbox" : False,
+        "threshold_list_checkbox_min" : False,
+        "threshold_list_checkbox_max" : False
     }
 
 if "df_checkbox" not in st.session_state:
@@ -92,9 +94,15 @@ def update_indicator(index, updated_indicator, updated_checkbox):
         updated_indicator (dict): The updated indicator.
     """
     print("Indicators updated")
+    if updated_indicator["Yearly Threshold Min List"] != []:
+        updated_indicator["Yearly Threshold Min"] = updated_indicator["Yearly Threshold Min List"][0] 
+    if updated_indicator["Yearly Threshold Max List"] != []:
+        updated_indicator["Yearly Threshold Max"] = updated_indicator["Yearly Threshold Max List"][0]
     st.session_state.df_indicators.loc[index] = updated_indicator
     st.session_state.df_checkbox.loc[index] = updated_checkbox
 
+
+     
 
 
 def update_chosen_variable(values):
@@ -140,7 +148,8 @@ def reset_indicator():
     st.session_state.max_yearly_checkbox = False
     st.session_state.shift_start_checkbox = False
     st.session_state.shift_end_checkbox = False
-    st.session_state.threshold_list_checkbox = False
+    st.session_state.threshold_list_checkbox_min = False
+    st.session_state.threshold_list_checkbox_max = False
     
 
     
