@@ -667,7 +667,7 @@ def general_plot(data: pd.DataFrame, periods, filename):
 # --- Current Year Plot ---
 # -------------------------
 
-def add_vertical_line(fig:go.Figure, year, line_color='green', line_width=2):
+def add_vertical_line(fig:go.Figure, year, line_color='green', line_width=2, periods=None):
     """
     Adds a vertical line to the Plotly figure to indicate a specific year.
 
@@ -681,7 +681,10 @@ def add_vertical_line(fig:go.Figure, year, line_color='green', line_width=2):
     None
     """
     if type(year) is datetime:
+        # For graph with x type datetime
         fig.add_vline(x=year.isoformat(), line=dict(color=line_color, width=line_width))
+
+        # The annotation needs to be done manually because x has not the same type as text
         fig.add_annotation(
             x=year,
             y=1.12,
@@ -689,8 +692,42 @@ def add_vertical_line(fig:go.Figure, year, line_color='green', line_width=2):
             text= year.year,
             showarrow=False
         )
-        # The annotation needs to be done manually because as the year is in datetime type,
-        # the annotation can't be done the same way it would be if year were of int type
+        
+
+    elif type(year) is int and periods:
+        # For graph with x type periods (str)
+        period = get_category_for_year(year, periods)
+        fig.add_vline(x=period, line=dict(color=line_color, width=line_width))
+        # The annotation needs to be done manually because x has not the same type as text
+        fig.add_annotation(
+            x=period,
+            y=1.15,
+            yref="paper",
+            text= year,
+            showarrow=False
+        )
     elif type(year) is int:
+        # For graph with x type int (only for heat index for the moment)
         fig.add_vline(x=year, line=dict(color=line_color, width=line_width),
                       annotation_text = year, annotation_position="top")
+        
+def get_category_for_year(year, periods):
+    """
+    Determines the category a given year belongs to.
+    
+    Args:
+        year (int): The year to check.
+        categories (list of str): List of categories in the format "start-end".
+        
+    Returns:
+        str: The category the year belongs to, or None if no category matches.
+    """
+    for period in periods:
+        try:
+            start, end = map(int, period.split('-'))  # Parse period range
+            if start <= year <= end:
+                return period  # Return matching period
+        except ValueError:
+            raise ValueError(f"Invalid period format: '{period}'. Expected 'start-end'.")
+    return None  # No matching category found
+

@@ -67,7 +67,7 @@ def daily_indicators(df:pd.DataFrame, variable, daily_thresh_min, daily_thresh_m
     # Handling daily min threshold
     elif  daily_thresh_min is not None and not math.isnan(daily_thresh_min):
        
-        df[indicator_column] =  (df[variable] < daily_thresh_min).astype(int)
+        df.loc[:, indicator_column] =  (df[variable] < daily_thresh_min).astype(int)
 
     # Handling daily max threshold
     elif  daily_thresh_max is not None and not math.isnan(daily_thresh_max):

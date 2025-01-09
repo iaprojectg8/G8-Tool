@@ -73,7 +73,6 @@ def indicator_management(df):
             # print(st.session_state.uploaded_df.values)
             # print(df_uploaded.equals(st.session_state.uploaded_df))
             if df_uploaded is not None and not df_uploaded.equals(st.session_state.uploaded_df):
-                print("in the condition of uploaded csv file whereas i did not change it")
                 df_checkbox = fill_df_checkbox(df_uploaded)
                 st.session_state.uploaded_df = df_uploaded
                 st.session_state.df_indicators = copy(df_uploaded)
@@ -84,8 +83,9 @@ def indicator_management(df):
             indicator_building(df_season, season_start, season_end)
 
         # Display an indicator summary
-        print(st.session_state.df_indicators)
+
         if not st.session_state.df_indicators.empty:
+            # The copy done is only to display the indicators dataframe on the app
             df_indicator_copy = copy(st.session_state.df_indicators)
             df_indicator_copy["Variable"] = df_indicator_copy["Variable"].astype(str)
             st.dataframe(df_indicator_copy, use_container_width=True)

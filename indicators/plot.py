@@ -289,7 +289,8 @@ def plot_years_exposure(df, aggregated_column_name, min_thresholds, max_threshol
 
     # Main plot
     yearly_exposure_plot(fig, df, aggregated_column_name, score_name)
-
+    add_vertical_line(fig, datetime.now().year, periods=list(df["period"]))
+    
     # Get the min and max values of the data and make the difference
     data_min=df[aggregated_column_name].min()
     data_max=df[aggregated_column_name].max()
@@ -475,9 +476,9 @@ def plot_deficit_and_excess_exposure(df:pd.DataFrame,score_name):
     periods_size, negative_df, positive_df, zero_df = get_score_then_exposure(df, score_name)
 
     # Plot exposure
-    no_risk_plot(zero_df, fig)
     deficit_exposure_plot(negative_df, fig)
     excess_exposure_plot(positive_df, fig)
+    add_vertical_line(fig, datetime.now().year, periods=list(df["period"]))
 
     # Layout
     deficit_and_excess_exposure_update_layout(fig, periods_size, score_name)
@@ -704,6 +705,7 @@ def plot_global_exposure(df_yearly:pd.DataFrame, score_name, index, variable, be
     traces = []
     global_exposure_plot(risk_order, df_period, traces)
     fig = go.Figure(data=traces)
+    add_vertical_line(fig, datetime.now().year, periods=list(df_period["period"]))
 
     # Updates the layout
     global_exposure_update_layout(fig, score_name, desired_order)

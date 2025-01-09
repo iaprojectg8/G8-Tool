@@ -67,9 +67,9 @@ def display_thresholds(updated_indicator, label):
         updated_indicator (dict): The updated indicator.
         label (str): The label of the indicator.
     """
-    thresholds : list = copy(updated_indicator[label + " List"])
+    
     # Define thresholds and corresponding data
-
+    thresholds : list = copy(updated_indicator[label + " List"])
     colors = THRESHOLD_COLORS
   
     # Risk band visualization

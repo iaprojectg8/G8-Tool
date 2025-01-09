@@ -106,7 +106,7 @@ def update_yearly_thresholds(updated_indicator,label, updated_checkbox, checkbox
             with col2:
                 updated_indicator[label+" List"] = ast.literal_eval(st.text_input(
                                                                                 label="Put a list",
-                                                                                value=st.session_state.indicator[label+" List"],
+                                                                                value=updated_indicator[label+" List"],
                                                                                 key=f"edit_text_input{i}", 
                                                                                 label_visibility="collapsed"),
                                                                                 )
