@@ -17,7 +17,7 @@ def daily_data_plot(df:pd.DataFrame, fig:go.Figure, variable:str):
         go.Scatter(
             x=df["date"],
             y=df[variable],
-            marker=dict(color="skyblue"),
+            marker=dict(color="dodgerblue"),
             name=' '.join(variable.split('_')).title(),
             showlegend=True
         )
@@ -28,6 +28,8 @@ def daily_data_update_layout(fig:go.Figure, variable:str):
 
     # Update the layout of the figure
     fig.update_layout(
+        width=1500, height=500,
+
         title=dict(
             text=f"Distribution of Monthly Mean {' '.join(variable.split('_')).title()}",
             x=0.5,
@@ -64,7 +66,7 @@ def daily_data_update_layout(fig:go.Figure, variable:str):
             y=0.5,
             indentation=-15
         ),
-        font=dict(size=17),
+        font=dict(size=17, weight=800),
         autosize=True
     )
 
@@ -88,6 +90,7 @@ def plot_daily_data(df:pd.DataFrame, variable, zoom=None):
     add_vertical_line(fig, year=datetime.now(pytz.utc))
     daily_data_update_layout(fig, variable)
     st.plotly_chart(fig)
+    return fig
     
 
 
@@ -244,12 +247,13 @@ def yearly_exposure_update_layout(fig:go.Figure, data_min, data_max, diff, df,sc
     legend_name = f"{score_name} ({unit})"
     
     fig.update_layout(
+        width=1500, height=500,
         title=dict(text=f"Yearly {score_name} over Periods ",
                     x=0.5,
                     xanchor="center",
                     font_size=25),
         xaxis=dict(tickfont_size=15,
-                    tickangle=37 ,
+                    tickangle=0 ,
                     categoryorder="array",
                     categoryarray=list(df["period"].cat.categories),  # Explicit period order
                     title = dict(
@@ -275,8 +279,7 @@ def yearly_exposure_update_layout(fig:go.Figure, data_min, data_max, diff, df,sc
                     y=0.5,
                     
                     ),
-        font=dict(
-            size=17))
+        font=dict(size=17, weight=800),)
 
 # Main function
 def plot_years_exposure(df, aggregated_column_name, min_thresholds, max_thresholds, score_name, unit):
@@ -311,6 +314,8 @@ def plot_years_exposure(df, aggregated_column_name, min_thresholds, max_threshol
     yearly_exposure_update_layout(fig, data_min, data_max, diff, df, score_name, unit)
         
     st.plotly_chart(fig)
+
+    return fig
 
 
 
@@ -412,13 +417,14 @@ def deficit_and_excess_exposure_update_layout(fig:go.Figure, periods_size, score
         score_name (str): The name of the score to display.
     """
     fig.update_layout(
+        width=1500, height=500,
         barmode="relative",  # Stack bars relatively
         title=dict(text=f"Period Budget about {score_name}",
                     x=0.5,
                     xanchor="center",
                     font_size=25),
         xaxis=dict(tickfont_size=15,
-                   tickangle=37,
+                   tickangle=0,
                     title = dict(
                         text="Periods",
                         font_size=17,
@@ -434,16 +440,14 @@ def deficit_and_excess_exposure_update_layout(fig:go.Figure, periods_size, score
         legend=dict(title=dict(text="Risk Levels",
                                font=dict(size=20, color="white",weight=900),
                                side="top center",
-    
                                ),
-                    
+
                     orientation="v", 
                     traceorder="reversed",
                     x=1.05,           
                     y=0.5,
                     ),
-        font=dict(
-            size=17),
+        font=dict(size=17, weight=800),
         autosize=True,
     )
 
@@ -490,6 +494,8 @@ def plot_deficit_and_excess_exposure(df:pd.DataFrame,score_name):
     # Layout
     deficit_and_excess_exposure_update_layout(fig, periods_size, score_name)
     st.plotly_chart(fig)
+
+    return fig
 
 
 
@@ -648,12 +654,13 @@ def global_exposure_update_layout(fig:go.Figure, score_name, desired_order):
         desired_order (list): The desired order of the periods
     """
     fig.update_layout(
+        width=1500, height=500,
         title=dict(text=f"{score_name} Exposure over Periods",
                     x=0.5,
                     xanchor="center",
                     font_size=25),
         xaxis=dict(tickfont_size=15,
-                   tickangle=37 ,
+                   tickangle=0 ,
                     title = dict(
                         text="Periods",
                         font_size=17,
@@ -670,7 +677,6 @@ def global_exposure_update_layout(fig:go.Figure, score_name, desired_order):
         legend=dict(title=dict(text="Risk Levels",
                        font=dict(size=20, color="white",weight=900),
                                side="top center",
-    
                                ),
         
                     orientation="v", 
@@ -678,8 +684,8 @@ def global_exposure_update_layout(fig:go.Figure, score_name, desired_order):
                     x=1.05,           
                     y=0.5,
                     ),
-        font=dict(
-            size=17))
+        font=dict(size=17, weight=800),
+        )
     
 # Main function
 def plot_global_exposure(df_yearly:pd.DataFrame, score_name, index, variable, below_thresholds, above_thresholds):
@@ -718,3 +724,57 @@ def plot_global_exposure(df_yearly:pd.DataFrame, score_name, index, variable, be
     global_exposure_update_layout(fig, score_name, desired_order)
     st.plotly_chart(fig)
 
+    return fig
+
+# -------------------------------------
+# --- Wrap indicator graph into pdf ---
+# -------------------------------------
+
+def wrap_indicator_into_pdf(fig_list):
+    """
+    Wraps two Plotly figures into a PDF file with a black background and landscape layout.
+
+    Args:
+        fig_list (list) : Contains the list of all figure on the page
+
+    Returns:
+        bytes: The PDF content as bytes.
+    """
+    # Create an in-memory buffer to store the PDF content
+    pdf_buffer = BytesIO()
+
+    # Initialize the PDF canvas with landscape orientation A4 size
+    c = canvas.Canvas(pdf_buffer, pagesize=landscape(A4))
+
+    # Convert the Plotly figures to PNG images in memory using kaleido
+    for i in range(len(fig_list)):
+        fig = fig_list[i]
+        fig_image = pio.to_image(fig, format="png", width=fig.layout.width, height=fig.layout.height)
+       
+
+
+        # Create ImageReader objects for the figures' image data
+        img_reader = ImageReader(BytesIO(fig_image))
+
+    
+
+        # Place the first figure image on the PDF at a specific location with scaled dimensions
+        if i % 2 == 0:
+            c.drawImage(img_reader, x=-330, y=320, height=fig.layout.height / 2, width=fig.layout.width, preserveAspectRatio=True)
+        
+        # Place the second figure image on the PDF at a specific location with scaled dimensions
+        else:
+            c.drawImage(img_reader, x=-330, y=40, height=fig.layout.height / 2, width=fig.layout.width, preserveAspectRatio=True)
+            c.showPage()
+
+    # Finalize the PDF document
+    c.save()
+
+    # Retrieve the content of the PDF from the buffer
+    pdf_buffer.seek(0)
+    pdf_bytes = pdf_buffer.read()
+
+    # Close the buffer and return the PDF bytes
+    pdf_buffer.close()
+
+    return pdf_bytes

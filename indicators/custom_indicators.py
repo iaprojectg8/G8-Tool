@@ -1,7 +1,7 @@
 from utils.imports import *
 from utils.variables import *
 from layouts.layout import *
-from indicators.plot import plot_daily_data
+from indicators.plot import plot_daily_data, wrap_indicator_into_pdf
 from lib.plot import add_vertical_line, add_periods_to_df
 
 
@@ -108,10 +108,10 @@ def plot_bar_stack_count(df: pd.DataFrame, periods):
     
     # Yearly bar plot 
     category_counts = df.groupby(['year', 'heat_index_category'], observed=False).size().reset_index(name='count')
-    fig = plot_bar(category_counts, "year", "count", 'Years', 'Count of Days')
-    add_vertical_line(fig, datetime.now().year)
-    update_plot_layout(fig)
-    st.plotly_chart(fig)
+    fig1 = plot_bar(category_counts, "year", "count", 'Years', 'Count of Days')
+    add_vertical_line(fig1, datetime.now().year)
+    update_plot_layout(fig1)
+    st.plotly_chart(fig1)
     
     
     # Adding period to category_counts
@@ -123,19 +123,20 @@ def plot_bar_stack_count(df: pd.DataFrame, periods):
 
     # Periodically bar plot
     category_counts_periods = category_counts.groupby(['period', 'heat_index_category'], observed=False).mean().reset_index()
-    fig = plot_bar(category_counts_periods, "period", "count", 'Periods', 'Count of Days')
-    add_vertical_line(fig, datetime.now().year, periods=periods)
-    update_plot_layout(fig)
-    st.plotly_chart(fig)
+    fig2 = plot_bar(category_counts_periods, "period", "count", 'Periods', 'Count of Days')
+    add_vertical_line(fig2, datetime.now().year, periods=periods)
+    update_plot_layout(fig2)
+    st.plotly_chart(fig2)
 
     # Indicator part ??
     max_category_per_period = (category_counts_periods.loc[category_counts_periods.groupby('period')['count'].idxmax()])
-    fig = plot_bar(max_category_per_period, "period", "count", 'Periods', 'Max Count per Period')
-    add_vertical_line(fig, datetime.now().year, periods=periods)
-    update_plot_layout(fig)
-    st.plotly_chart(fig)
+    fig3 = plot_bar(max_category_per_period, "period", "count", 'Periods', 'Max Count per Period')
+    add_vertical_line(fig3, datetime.now().year, periods=periods)
+    update_plot_layout(fig3)
+    st.plotly_chart(fig3)
+    return fig1, fig2, fig3
 
-def update_plot_layout(fig):
+def update_plot_layout(fig:go.Figure):
     """
     Updates the layout of the Plotly figure.
 
@@ -146,12 +147,13 @@ def update_plot_layout(fig):
     None
     """
     fig.update_layout(
+        width=1500, height=500,
         barmode='stack',
         title=dict(
                     x=0.5,
                     xanchor="center",
                     yanchor = "middle",
-                    font_size=25),
+                    font = dict(size=25, weight=900)),
         xaxis=dict(tickfont_size=15,
                     title = dict(
                         font_size=17,
@@ -172,8 +174,8 @@ def update_plot_layout(fig):
                     x=1.05,           
                     y=0.5,
                     ),
-        font=dict(
-            size=17))
+        font=dict(size=17, weight=700),
+        )
     
 def from_fahrenheit_to_celsius(fahrenheit):
     """
@@ -234,7 +236,19 @@ def heat_index_indicator(df, periods):
     # Categorize the heat index
     categorize_heat_index(df_heat_index)
 
+    fig_list = list()
     # Plot the heat index categories by year
-    plot_daily_data(df_heat_index, relative_humidity_min)
-    plot_daily_data(df_heat_index, temperature_max)
-    plot_bar_stack_count(df_heat_index, periods)
+    fig1 = plot_daily_data(df_heat_index, relative_humidity_min)
+    fig2 = plot_daily_data(df_heat_index, temperature_max)
+    fig_list.extend([fig1, fig2])
+    fig1, fig2, fig3 = plot_bar_stack_count(df_heat_index, periods)
+    fig_list.extend([fig1, fig2, fig3])
+    pdf = wrap_indicator_into_pdf(fig_list=fig_list)
+    # Provide a button to download the generated PDF
+    st.download_button(
+        label="Download PDF",
+        data=pdf,
+        file_name="whatever.pdf",
+        mime="application/pdf"
+    )
+
