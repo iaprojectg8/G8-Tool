@@ -271,10 +271,9 @@ def calculations_and_plots(df_season, df_indicators_parameters: pd.DataFrame,df_
 
             # Crossed Variable indicators have their own graph so don't need to go further there
             if row["Indicator Type"] == "Crossed Variables":
-                heat_index_indicator(df_season_temp)
+                heat_index_indicator(df_season_temp, periods)
             else:
                 unit, df_yearly_var, aggregated_column_name = calculate_scores(row,df_season_temp, score_name, variable)
-                
                 # Plot preparation
                 df_yearly_var = preparing_dataframe_for_plot(df_yearly_var, periods, score_name)
                 with st.expander("Show Yearly Dataframe"):
