@@ -112,7 +112,7 @@ def mean_line_monthly_plot(fig:go.Figure, monthly_data, column):
         name="Monthly mean over years", 
         y=monthly_data[column], 
         mode='lines', 
-        line=dict(color='blue')
+        line=dict(color='dodgerblue')
     ))
 
 def monthly_scatter(fig: go.Figure, monthly_mean, column, unit):
@@ -125,6 +125,12 @@ def monthly_scatter(fig: go.Figure, monthly_mean, column, unit):
         column (str): The column name to plot.
         unit (str): The unit of measurement for the variable being plotted.
     """
+    colorscale = px.colors.sequential.Agsunset_r  # Use the desired part of the colorscale
+    num_colors = 100
+    color_indices = np.linspace(0, 1, num_colors)
+
+    # Sample the colorscale
+    extended_colorscale = px.colors.sample_colorscale(colorscale, color_indices)[1:-16]
     fig.add_trace(go.Scatter(
         x=monthly_mean['month_name'],
         y=monthly_mean[column],
@@ -133,10 +139,10 @@ def monthly_scatter(fig: go.Figure, monthly_mean, column, unit):
         marker=dict(
             size=10,
             color=monthly_mean["period_index"],  # Color by the period_index
-            colorscale="agsunset_r",  # Use correct colorscale name
+            colorscale=extended_colorscale,  # Use correct colorscale name
             showscale=True,  # Show color scale
-            opacity=0.8,
-            line_width=1,
+            opacity=1,
+            line_width=0.2,
             line_color="black",
             colorbar=dict(
                 title="Periods",
@@ -144,8 +150,9 @@ def monthly_scatter(fig: go.Figure, monthly_mean, column, unit):
                 ticktext=monthly_mean["customdata"].unique(), 
                 tickvals=monthly_mean["period_index"].unique(), 
                 orientation="v",  
-                len=1, 
-                thickness=15, 
+                len=0.8, 
+                thickness=25, 
+                tickfont=dict(size=14),
                 borderwidth=1,
                 x=1.05,  
                 y=0.35)),
@@ -157,6 +164,23 @@ def monthly_scatter(fig: go.Figure, monthly_mean, column, unit):
             "Period: %{customdata}<br>"
         ),
         showlegend=False))
+    
+def plot_current_year(fig:go.Figure, monthly_mean, column, unit, year=datetime.now().year):
+    fig.add_trace(go.Scatter(
+        x=monthly_mean.loc[monthly_mean["year"] == year, 'month_name'],  # Filter for 2025
+        y=monthly_mean.loc[monthly_mean["year"] == year, column],  # Filter for 2025
+        name=f"{year} Curve",  # Legend name
+        mode='lines+markers',  # Line and markers
+        line=dict(color='limegreen', width=2, dash='solid'),  # Customize the line appearance
+        marker=dict(size=5, color='limegreen'),  # Marker customization
+        hoveron='points+fills',  # Enable hover on both markers and the line
+        hovertemplate=(
+            f"Temperature: %{{y:.2f}} {unit}<br>" +
+            f"Year: {year}<br>" +
+            "Month: %{x}<br>"
+        ),
+        showlegend=True  # Show this in the legend
+    ))
 
 def layout_monthly_plot(fig:go.Figure, column_name,  unit):
     """
@@ -178,7 +202,8 @@ def layout_monthly_plot(fig:go.Figure, column_name,  unit):
         legend_title='',
         template=TEMPLATE_COLOR,
         autosize=True,
-        hoverlabel_align="auto"
+        hoverlabel_align="auto",
+        font=dict(size=17, weight=800),
     )
 
 def plot_monthly_mean(column, monthly_mean, monthly_data):
@@ -202,6 +227,7 @@ def plot_monthly_mean(column, monthly_mean, monthly_data):
 
     # Make the monthly plot
     monthly_scatter(fig, monthly_mean, column, unit)
+    plot_current_year(fig, monthly_mean, column, unit)
     layout_monthly_plot(fig, column_name, unit)
     
     # Display the plot in Streamlit
@@ -284,8 +310,8 @@ def plot_yearly_curve(fig:go.Figure, yearly_mean, column, column_name):
         x=yearly_mean["year"],
         y=yearly_mean[column],
         mode='lines',
-        name=f"Year Average {column_name}",
-        line=dict(color="blue"),
+        name=f"Year Average",
+        line=dict(color="dodgerblue"),
     ))
 
 def yearly_layout(fig:go.Figure, column_name, unit):
@@ -312,7 +338,8 @@ def yearly_layout(fig:go.Figure, column_name, unit):
             orientation="v",  # Horizontal orientation
             x=1.05,            # Center the legend horizontally
             y=0.5,           # Position the legend below the plot (adjust as needed)
-        )
+        ),
+        font=dict(size=17, weight=800)
     )
 
 def plot_all_trend_lines(fig:go.Figure, yearly_mean, monthly_mean, periods, column, column_name, unit):
@@ -329,7 +356,7 @@ def plot_all_trend_lines(fig:go.Figure, yearly_mean, monthly_mean, periods, colu
         unit (str): The unit that corresponds to the variables ploted
     """
     trend_lines, years_all, slope = build_trend_plot(yearly_mean, periods, column)
-    colorscale = px.colors.sequential.YlOrRd  # Choose the desired colorscale
+    colorscale = px.colors.sequential.YlOrRd[3:-1]  # Choose the desired colorscale
     num_trends = len(trend_lines)
     color_indices = np.linspace(0, 1, num_trends)  # Generate equally spaced values between 0 and 1
 
@@ -339,7 +366,7 @@ def plot_all_trend_lines(fig:go.Figure, yearly_mean, monthly_mean, periods, colu
             x=years_all[i],
             y=trend_line,
             mode='lines',
-            name=f"{periods[i][0]}-{periods[i][1]} {column_name} Trend",
+            name=f"{periods[i][0]}-{periods[i][1]} Trend",
             line=dict(color=color),
             customdata= monthly_mean["customdata"],
                 hovertemplate=(
@@ -508,8 +535,7 @@ def monthly_variation_layout(fig:go.Figure, graph_part, column_name):
             orientation="v", 
             x=1.05,            
             y=0.5),
-        font=dict(
-            size=17),
+        font=dict(size=17, weight=800),
         )
 
 def plot_monthly_period_variation(monthly_mean: pd.DataFrame, monthly_data: pd.DataFrame, column: str) -> go.Figure:

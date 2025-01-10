@@ -279,10 +279,20 @@ def calculations_and_plots(df_season, df_indicators_parameters: pd.DataFrame,df_
                 with st.expander("Show Yearly Dataframe"):
                     st.dataframe(df_yearly_var, height=DATAFRAME_HEIGHT, use_container_width=True)
                 
-                # Multiple plot to understand the calculated indicators
-                plot_daily_data(all_year_data, variable)
-                plot_years_exposure(df_yearly_var, aggregated_column_name, below_thresholds, above_thresholds, score_name,unit)
-                plot_deficit_and_excess_exposure(df_yearly_var, score_name)
-                plot_global_exposure(df_yearly_var, score_name, i, aggregated_column_name, below_thresholds, above_thresholds)
 
+                
+                # Multiple plot to understand the calculated indicators
+                fig1 = plot_daily_data(all_year_data, variable)
+                fig2 = plot_years_exposure(df_yearly_var, aggregated_column_name, below_thresholds, above_thresholds, score_name,unit)
+                fig3 = plot_deficit_and_excess_exposure(df_yearly_var, score_name)
+                fig4 = plot_global_exposure(df_yearly_var, score_name, i, aggregated_column_name, below_thresholds, above_thresholds)
+                fig_list = [fig1, fig2, fig3, fig4]
+                pdf = wrap_indicator_into_pdf(fig_list)
+                st.download_button(
+                    label="Download PDF",
+                    data=pdf,
+                    file_name="whatever.pdf",
+                    mime="application/pdf",
+                    key=f"download_{i}"
+                )
     return df_yearly
