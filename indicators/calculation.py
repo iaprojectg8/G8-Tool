@@ -113,7 +113,7 @@ def categorize_both(value, below_thresholds=None,above_thresholds=None):
         int: The category, positive for above thresholds, negative for below thresholds, and 0 for normal.
     """
     # Check if value is above thresholds
-    if below_thresholds or above_thresholds:
+    if below_thresholds and above_thresholds:
         if  below_thresholds [0] <value < above_thresholds[0]:
             return 1
         elif above_thresholds[0] <= value < above_thresholds[1]:
@@ -131,6 +131,26 @@ def categorize_both(value, below_thresholds=None,above_thresholds=None):
             return -3
         elif value <= below_thresholds[2]:
             return -4
+        
+    elif below_thresholds:
+        if  value > below_thresholds[0]:
+            return -1
+        elif below_thresholds[0] >= value > below_thresholds[1]:
+            return -2
+        elif below_thresholds[1] >= value > below_thresholds[2]:
+            return -3
+        elif value <= below_thresholds[2]:
+            return -4
+        
+    elif above_thresholds:
+        if  value < above_thresholds[0]:
+            return 1
+        elif above_thresholds[0] <= value < above_thresholds[1]:
+            return 2
+        elif above_thresholds[1] <= value < above_thresholds[2]:
+            return 3
+        elif above_thresholds[2] <= value :
+            return 4
 
     return 0
 
