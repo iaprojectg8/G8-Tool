@@ -12,6 +12,7 @@ from lib.plot import add_vertical_line
 def daily_data_plot(df:pd.DataFrame, fig:go.Figure, variable:str):
     
     # Add a scatter plot trace for the variable
+
     fig.add_trace(
         go.Scatter(
             x=df["date"],
@@ -28,7 +29,7 @@ def daily_data_update_layout(fig:go.Figure, variable:str):
     # Update the layout of the figure
     fig.update_layout(
         title=dict(
-            text=f"Distribution of Daily {' '.join(variable.split('_')).title()}",
+            text=f"Distribution of Monthly Mean {' '.join(variable.split('_')).title()}",
             x=0.5,
             xanchor="center",
             font_size=25
@@ -45,7 +46,7 @@ def daily_data_update_layout(fig:go.Figure, variable:str):
         yaxis=dict(
             tickfont_size=15,
             title=dict(
-                text=f"Daily {' '.join(variable.split('_')).title()}",
+                text=f"Monthly Mean {' '.join(variable.split('_')).title()} ({UNIT_DICT[variable]})",
                 font_size=17,
                 standoff=50
             ),
@@ -68,7 +69,7 @@ def daily_data_update_layout(fig:go.Figure, variable:str):
     )
 
 # Main function
-def plot_daily_data(df, variable, zoom=None):
+def plot_daily_data(df:pd.DataFrame, variable, zoom=None):
     """
     Plots the daily data for a given variable using Plotly and Streamlit.
 
@@ -77,7 +78,10 @@ def plot_daily_data(df, variable, zoom=None):
         variable (str): The variable to plot.
     """
     # Reset the index and extract the relevant data
-    df = df[variable].reset_index()
+    df = df.loc[:,variable]
+    
+    df = df.resample("ME").mean()
+    df= df.reset_index()
 
     fig = go.Figure()
     daily_data_plot(df, fig, variable)
@@ -423,7 +427,7 @@ def deficit_and_excess_exposure_update_layout(fig:go.Figure, periods_size, score
         yaxis=dict(tickfont_size=15,
                     range=[-periods_size, periods_size],
                     title=dict(
-                        text="Year Count",
+                        text="Year Count (days)",
                         font_size=17,
                         standoff=50),
                     ticklabelstandoff = 20),

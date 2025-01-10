@@ -2,7 +2,7 @@ from utils.imports import *
 from utils.variables import *
 from layouts.layout import *
 from indicators.plot import plot_daily_data
-from lib.plot import add_vertical_line
+from lib.plot import add_vertical_line, add_periods_to_df
 
 
 # ----------------------------
@@ -76,7 +76,26 @@ def categorize_heat_index(df: pd.DataFrame):
     df['heat_index_category'] = pd.Categorical(df['heat_index_category'], categories=category_order, ordered=True)
 
 
-def plot_bar_stack_count(df: pd.DataFrame):
+def plot_bar(category_counts, x, y, x_label, y_label):
+    fig = px.bar(
+        category_counts,
+        x=x,
+        y=y,
+        color='heat_index_category',
+        title=f"Heat Index Through {x_label}",      
+        labels={x: x_label, y: f"{y_label} (days)"},
+        color_discrete_map={
+            'Low Discomfort': 'green',
+            'Moderate Discomfort': 'yellow',
+            'High Discomfort': 'orange',
+            'Very High Discomfort': 'red'
+        }
+    )
+    return fig
+
+
+
+def plot_bar_stack_count(df: pd.DataFrame, periods):
     """
     Plots a stacked bar chart of heat index categories by year.
 
@@ -86,30 +105,34 @@ def plot_bar_stack_count(df: pd.DataFrame):
     Returns:
     None
     """
-    # Count for each year the amount of days in each category
-    category_counts = df.groupby(['year', 'heat_index_category'], observed=False).size().reset_index(name='count')
-
-    # Create a stacked bar plot using Plotly
-    fig = px.bar(
-        category_counts,
-        x='year',
-        y='count',
-        color='heat_index_category',
-        title="Heat Index Categories by Year",
-        labels={'count': 'Count of Days', 'year': 'Year'},
-        color_discrete_map={
-            'Low Discomfort': 'green',
-            'Moderate Discomfort': 'yellow',
-            'High Discomfort': 'orange',
-            'Very High Discomfort': 'red'
-        }
-    )
-    add_vertical_line(fig, datetime.now().year)
     
-    # Update the layout of the plot
+    # Yearly bar plot 
+    category_counts = df.groupby(['year', 'heat_index_category'], observed=False).size().reset_index(name='count')
+    fig = plot_bar(category_counts, "year", "count", 'Years', 'Count of Days')
+    add_vertical_line(fig, datetime.now().year)
     update_plot_layout(fig)
+    st.plotly_chart(fig)
+    
+    
+    # Adding period to category_counts
+    category_counts = add_periods_to_df(category_counts, periods)
+    category_counts['period'] = category_counts['period'].apply(lambda x: f"{x[0]}-{x[1]}")  # Ensure periods are strings
 
-    # Show the Plotly chart in Streamlit
+    # Creating the periods list for the plot layout
+    periods = list(category_counts['period'].unique())
+
+    # Periodically bar plot
+    category_counts_periods = category_counts.groupby(['period', 'heat_index_category'], observed=False).mean().reset_index()
+    fig = plot_bar(category_counts_periods, "period", "count", 'Periods', 'Count of Days')
+    add_vertical_line(fig, datetime.now().year, periods=periods)
+    update_plot_layout(fig)
+    st.plotly_chart(fig)
+
+    # Indicator part ??
+    max_category_per_period = (category_counts_periods.loc[category_counts_periods.groupby('period')['count'].idxmax()])
+    fig = plot_bar(max_category_per_period, "period", "count", 'Periods', 'Max Count per Period')
+    add_vertical_line(fig, datetime.now().year, periods=periods)
+    update_plot_layout(fig)
     st.plotly_chart(fig)
 
 def update_plot_layout(fig):
@@ -124,19 +147,18 @@ def update_plot_layout(fig):
     """
     fig.update_layout(
         barmode='stack',
-        title=dict(text=f"Heat Index Through Years",
+        title=dict(
                     x=0.5,
                     xanchor="center",
+                    yanchor = "middle",
                     font_size=25),
         xaxis=dict(tickfont_size=15,
                     title = dict(
-                        text="Year",
                         font_size=17,
                         standoff=50),       
                     ticklabelstandoff =20),
         yaxis=dict(tickfont_size=15,
                     title=dict(
-                        text="Count of Days",
                         font_size=17,
                         standoff=50),
                     ticklabelstandoff = 20),
@@ -181,7 +203,7 @@ def from_celsius_to_fahrenheit(celsius):
 
 
 
-def heat_index_indicator(df):
+def heat_index_indicator(df, periods):
     """
     Processes the seasonal data to calculate and categorize the heat index, then plots the results.
 
@@ -215,4 +237,4 @@ def heat_index_indicator(df):
     # Plot the heat index categories by year
     plot_daily_data(df_heat_index, relative_humidity_min)
     plot_daily_data(df_heat_index, temperature_max)
-    plot_bar_stack_count(df_heat_index)
+    plot_bar_stack_count(df_heat_index, periods)
