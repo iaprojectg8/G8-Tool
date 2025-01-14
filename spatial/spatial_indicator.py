@@ -6,6 +6,7 @@ def extract_csv_from_zip(zip_file, extract_to):
         zip_ref.extractall(extract_to)
 
 def read_csv_files_from_directory(directory):
+
     # L'utilisation de glob est surement plus approprié dans ce genre de cas
     extracted_dir_name = os.listdir(directory)[0]
     extracted_dir_path = os.path.join(directory, extracted_dir_name)
@@ -36,3 +37,12 @@ def make_zone_average(folder_name, csv_output):
     combined_df = pd.concat(dataframes)
     mean_df = combined_df.groupby(combined_df.index).mean().reset_index()
     mean_df.to_csv(csv_output,index=False)
+
+
+
+def put_date_as_index(dataframe_dict:dict):
+    for key, df in dataframe_dict.items():
+        df['date'] = pd.to_datetime(df['date'])  # Ensure the 'date' column is in datetime format
+        df.set_index('date', inplace=True)  # Set the 'date' column as the index
+        dataframe_dict[key] = df
+    return dataframe_dict

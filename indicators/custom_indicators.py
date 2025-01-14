@@ -130,6 +130,7 @@ def plot_bar_stack_count(df: pd.DataFrame, periods):
 
     # Indicator part ??
     max_category_per_period = (category_counts_periods.loc[category_counts_periods.groupby('period')['count'].idxmax()])
+    print(max_category_per_period.size)
     fig3 = plot_bar(max_category_per_period, "period", "count", 'Periods', 'Max Count per Period')
     add_vertical_line(fig3, datetime.now().year, periods=periods)
     update_plot_layout(fig3)
@@ -205,7 +206,7 @@ def from_celsius_to_fahrenheit(celsius):
 
 
 
-def heat_index_indicator(df, periods):
+def heat_index_indicator(df,df_key, periods):
     """
     Processes the seasonal data to calculate and categorize the heat index, then plots the results.
 
@@ -249,6 +250,7 @@ def heat_index_indicator(df, periods):
         label="Download PDF",
         data=pdf,
         file_name="whatever.pdf",
-        mime="application/pdf"
+        mime="application/pdf",
+        key= df_key
     )
 

@@ -48,7 +48,22 @@ def main():
                 shapefile_path = os.path.join(path_to_shapefile, shape_file)
 
                 # Load the shapefile using GeoPandas
-                gdf = read_shape_file(shapefile_path)
+                gdf :gpd.GeoDataFrame = read_shape_file(shapefile_path)
+                # Ask the user to define a buffer distance
+                buffer_distance = st.number_input(
+                    label=f"Enter buffer distance (in the same units as {file} coordinates):",
+                    min_value=0.0, 
+                    step=0.1,
+                    value=0.0,
+                    format="%0.3f",
+                    key=file
+                )
+                
+                # Apply the buffer if the distance is greater than 0
+                if buffer_distance > 0:
+                    gdf["geometry"] = gdf["geometry"].buffer(buffer_distance, resolution=0.05)
+                    st.success(f"Buffer of {buffer_distance} applied to {file}")
+
                 gdf_list.append(gdf)
             combined_gdf = pd.concat(gdf_list, ignore_index=True)
             df = main_map(combined_gdf)
@@ -64,7 +79,7 @@ def main():
                                                     UNIT_DICT.keys(), 
                                                     default=np.random.choice(list(UNIT_DICT.keys())))
             selected_model = st.selectbox("Chose the model to use", MODEL_NAMES)
-            (long_period_start, long_period_end) = select_period()
+            (long_period_start, long_period_end) = select_period(key="request")
 
             if st.button(label="Start the Request"):
                 request_all_data(coordinates=df,
