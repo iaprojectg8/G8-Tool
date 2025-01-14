@@ -4,6 +4,7 @@ from indicators.calculation import *
 from indicators.plot import *
 from indicators.parametrization.update_indicator import * 
 from indicators.custom_indicators import heat_index_indicator
+from spatial.rasterization import rasterize_data, display_raster
 
 
 # ------------------------------------------------
@@ -24,7 +25,6 @@ def introduce_season_shift_in_calculation(season_start, season_start_shift, seas
     Returns:
         pandas.DataFrame: A filtered DataFrame with the adjusted season period.
     """
-    print(season_start, season_end)
     if (season_start_shift is not None  and season_end_shift is not None
         and not pd.isna(season_start_shift) and not pd.isna(season_end_shift)):
         df_season_temp = all_year_data[(all_year_data.index.month >= season_start-season_start_shift) 
@@ -41,6 +41,35 @@ def introduce_season_shift_in_calculation(season_start, season_start_shift, seas
 
     return df_season_temp
 
+def introduce_season_shift_in_spatial_calculation(season_start, season_start_shift, season_end, season_end_shift, all_year_data):
+    """
+    Adjusts the season period based on the start and end season shifts, and filters the data accordingly.
+
+    Args:
+        season_start (int): The start month of the season.
+        season_start_shift (int or None): The shift to be applied to the start month of the season.
+        season_end (int): The end month of the season.
+        season_end_shift (int or None): The shift to be applied to the end month of the season.
+        all_year_data (pandas.DataFrame): The dataset containing the yearly data to be adjusted.
+
+    Returns:
+        pandas.DataFrame: A filtered DataFrame with the adjusted season period.
+    """
+    if (season_start_shift is not None  and season_end_shift is not None
+        and not pd.isna(season_start_shift) and not pd.isna(season_end_shift)):
+        df_season_temp = all_year_data[(all_year_data.index.month >= season_start-season_start_shift) 
+                                & (all_year_data.index.month <= season_end+season_end_shift)]
+        
+    elif season_start_shift is not None and not pd.isna(season_start_shift):
+        df_season_temp = all_year_data[(all_year_data.index.month >= season_start-season_start_shift) & (all_year_data.index.month <= season_end)]
+
+    elif season_end_shift is not None and not pd.isna(season_end_shift):
+        df_season_temp = all_year_data[(all_year_data.index.month >= season_start) & (all_year_data.index.month <= season_end+season_end_shift)]
+    
+    else:
+        df_season_temp = all_year_data
+
+    return df_season_temp
 
 def season_aggregation_calculation(row,df_season_temp, score_name, variable):
     """
@@ -108,8 +137,8 @@ def consecutive_outlier_days_calculation(row, df_season_temp, score_name, variab
     df_daily, indicator_column = daily_indicators(df_season_temp, variable, row["Daily Threshold Min"], row["Daily Threshold Max"])
     df_daily["cumulated_days_sum"] = df_season_temp.groupby(df_season_temp.index.year)[indicator_column].transform(reset_cumsum)
 
-    with st.expander("Show Daily Dataframe"):
-        st.dataframe(df_daily, height=DATAFRAME_HEIGHT,use_container_width=True)
+    # with st.expander("Show Daily Dataframe"):
+    #     st.dataframe(df_daily, height=DATAFRAME_HEIGHT,use_container_width=True)
 
     df_yearly_var, aggregated_column_name = make_yearly_agg(df_season_temp,"cumulated_days_sum", row["Yearly Aggregation"])
     
@@ -296,3 +325,120 @@ def calculations_and_plots(df_season, df_indicators_parameters: pd.DataFrame,df_
                     key=f"download_{i}"
                 )
     return df_yearly
+
+
+def spatial_calculation(df_season, df_indicators_parameters: pd.DataFrame,df_checkbox:pd.DataFrame, dataframes_dict, all_dataframes_dict, season_start, season_end,periods):
+    """
+    Perform calculations and generate plots for each indicator in the given indicator parameters DataFrame.
+
+    Args:
+        df_season (pandas.DataFrame): Seasonal data containing variables for calculation.
+        df_indicators_parameters (pandas.DataFrame): DataFrame containing the parameters for each indicator.
+        all_year_data (pandas.DataFrame): Data containing all yearly data to be used for shifting and calculation.
+        season_start (int): The starting month for the season.
+        season_end (int): The ending month for the season.
+        periods (list): List of periods for categorization.
+
+    Returns:
+        pandas.DataFrame: A DataFrame containing the yearly data after processing all indicators.
+    """
+    # Store all newly created columns in a dictionary to merge later
+    df_yearly = pd.DataFrame()
+    tabs = st.tabs(list(df_indicators_parameters["Name"].values))
+
+    # Iterating over indicators dataframe
+    for (i, row), (j, row_checkbox) in zip(df_indicators_parameters.iterrows(), df_checkbox.iterrows()):
+        with tabs[i]:
+            
+            # Offer the possibility to edit the indicator
+
+            indicator_editing(df_season, season_start, season_end, row, row_checkbox, i)
+            
+            # Initializing useful variables
+            variable = row["Variable"]
+            dataframes_dict_filtered = get_only_required_variable(copy(dataframes_dict), variable)
+            score_name = row["Name"]
+            season_start_shift=row["Season Start Shift"]
+            season_end_shift= row["Season End Shift"]
+            below_thresholds=copy(row["Yearly Threshold Min List"])
+            above_thresholds= copy(row["Yearly Threshold Max List"])
+
+            
+            df_raster = pd.DataFrame()
+            # Season shift handling
+            if dataframes_dict_filtered is not None:
+                random_dataframe = rd.choice(list(dataframes_dict_filtered.values()))     
+                print(random_dataframe)         
+                if ((isinstance(variable,list) and all(var in list(random_dataframe.columns) for var in variable)) 
+                    or (not isinstance(variable,list) and (variable in random_dataframe.columns))):
+                    with st.spinner("Handling season shift"):
+                        
+                        if season_start is not None or season_end is not None:
+                            if (not pd.isna(season_start_shift) or not pd.isna(season_end_shift)
+                                or season_start_shift is not None or season_end_shift is not None):
+                                for (df_key, df), (df_all_key, df_all) in zip(dataframes_dict_filtered.items(), all_dataframes_dict.items()):
+                                    df = introduce_season_shift_in_calculation(season_start, season_start_shift, season_end, season_end_shift, df_all)
+                       
+                        st.write("Data ready")
+                        
+                    
+                        # Specific part to allow crossed variable computation
+                        if row["Indicator Type"] == "Crossed Variables":
+                            if st.button(label="Compute Data to get the graphs", key="crossed_variable_compute"):
+                                with st.spinner("Looping over all the dataframes"):
+                                    for df_key, df in dataframes_dict_filtered.items():
+                                        st.write(df_key)
+                                        heat_index_indicator(df, df_key, periods)
+                        
+                        # All the other parts are located here                                        
+                        else:
+                            if st.button(label="Compute Data to get the graphs", key=f"other_compute_{i}"):
+                                progress_bar = st.progress(0)
+                                for i, ((df_key, df), (all_df_key, all_df)) in enumerate(zip(dataframes_dict_filtered.items(), all_dataframes_dict.items())):
+
+                                    progress_bar.progress((i+1)/len(dataframes_dict_filtered), text=df_key)
+                                    lat, lon = df.at[df.index[0],"lat"], df.at[df.index[0],"lon"]
+                                    # Here start the real calculation need to introduce loop
+                                    unit, df_yearly_var, aggregated_column_name = calculate_scores(row,df, score_name, variable)
+                                    # Plot preparation
+                                    df_yearly_var = preparing_dataframe_for_plot(df_yearly_var, periods, score_name)
+                                    # with st.expander("Show Yearly Dataframe"):
+                                    #     st.dataframe(df_yearly_var, height=DATAFRAME_HEIGHT, use_container_width=True)
+
+                                    # Multiple plot to understand the calculated indicators
+                                    fig1 = plot_daily_data(all_df, variable)
+                                    fig2 = plot_years_exposure(df_yearly_var, aggregated_column_name, below_thresholds, above_thresholds, score_name,unit)
+                                    fig3 = plot_deficit_and_excess_exposure(df_yearly_var, score_name)
+                                    fig4, sumup_df = plot_global_exposure_spatial(df_yearly_var, score_name, i, aggregated_column_name, below_thresholds, above_thresholds, df_key, lat, lon)
+                                    # fig_list = [fig1, fig2, fig3, fig4]
+                                    # pdf = wrap_indicator_into_pdf(fig_list)
+                                    # st.download_button(
+                                    #     label="Download PDF",
+                                    #     data=pdf,
+                                    #     file_name="whatever.pdf",
+                                    #     mime="application/pdf",
+                                    #     key=f"download_{i}_{df_key}"
+                                    #     )
+                                    # Part to concatenate the sumup with all the others
+                                    df_raster = pd.concat([df_raster, sumup_df])
+                                st.dataframe(df_raster)
+                                rasterize_data(df_raster)
+ 
+                else:
+                    st.warning("Your variable is not in the taken in the dataframes dictionary, please click on 'Filter the data' button to get it")
+
+    display_raster()
+    return df_yearly
+
+
+def get_only_required_variable(dataframes_dict, variable):
+    for (df_key, df) in dataframes_dict.items() :
+            if isinstance(variable, list):  # Check if variable is a list
+                selected_columns = variable + ["lat", "lon"]  # Create a new list
+            else:
+                selected_columns = [variable, "lat", "lon"]  # Combine into a list
+            
+            df = df.loc[:, selected_columns]  # Use the new variable for column selection
+            dataframes_dict[df_key] = df
+    return dataframes_dict
+

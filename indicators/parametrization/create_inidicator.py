@@ -27,7 +27,7 @@ def general_information(df_chosen :pd.DataFrame):
         st.session_state.indicator["Variable"] = st.multiselect(label="Variables", options=df_chosen.columns,key="variables")
     else :
         st.session_state.indicator["Variable"] = st.selectbox("Variable", options=df_chosen.columns,key="variable")
-    
+
     return indicator_type
 
 ## Daily
@@ -203,6 +203,11 @@ def create_buttons():
         elif st.session_state.indicator["Name"] not in st.session_state.df_indicators["Name"].values:
             
             # Add new row
+            if "lat" or  "lon" in st.session_state.indicator:
+                print("lat and lon were in the st.session_state.indicator as guessed")
+                if st.session_state.indicator["Variable"] is list:
+                    st.session_state.indicator["Variable"] = [variable for variable in st.session_state.indicator["Variable"] if variable not in ["lat", "lon"]]
+            st.dataframe(st.session_state.indicator)
             st.session_state.df_indicators = st.session_state.df_indicators._append(st.session_state.indicator, ignore_index=True)
             st.session_state.df_checkbox = st.session_state.df_checkbox._append(st.session_state.checkbox_defaults, ignore_index=True)
         else:

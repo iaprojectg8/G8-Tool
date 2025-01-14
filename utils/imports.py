@@ -12,6 +12,7 @@ import requests
 import geopandas as gpd
 import tempfile
 import numpy as np
+import random as rd
 import math
 import io
 

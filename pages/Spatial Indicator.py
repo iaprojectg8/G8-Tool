@@ -3,7 +3,7 @@ from utils.variables import ZIP_FOLDER, UNIT_DICT, MODEL_NAMES, DATAFRAME_HEIGHT
 from maps_related.main_functions import *
 from lib.session_variables import *
 from spatial.spatial_indicator import *
-from spatial.indicator_modified import indicator_management
+from spatial.indicator_modified import indicator_management, spatial_indicator_management
 from spatial.general_modified import general_management
 
 def main():
@@ -49,18 +49,22 @@ def main():
             st.write("No coordinates found in the CSV files.")
 
         
-        st.write("What do you want to do")
-        spatial_indicators = st.checkbox(label="Make spatial indicators")
-        overall_average_indicator = st.checkbox(label="Make overall average indicator")
-        if spatial_indicators:
+        st.write("What do you want to do ?")
+        indicator_choice = st.radio(
+            label="Choose an indicator type:",
+            options=["Make spatial indicators", "Make overall average indicator"],
+            index=0  # Default selection
+        )
+        if indicator_choice == "Make spatial indicators":
             set_title_2("Spatial indicator")
-            set_title_3("General map")
-            # map = folium.Map(location=[gdf.geometry.centroid.y.mean(), gdf.geometry.centroid.x.mean()], zoom_start=zoom_start)
-            # for _, row in gdf.iterrows():
-            #     folium.Marker(location=[row.lat, row.lon]).add_to(map)
+            extract_csv_from_zip(uploaded_file, extract_to)
+            dataframes = read_csv_files_from_directory(extract_to)
+            dataframes_dict = put_date_as_index(dataframe_dict=dataframes)
+            df_init = copy(dataframes_dict[list(dataframes_dict.keys())[0]])
+            spatial_indicator_management(df_init, dataframes_dict)
 
-            # st_folium(map,height= 300, use_container_width=True)
-        elif overall_average_indicator:
+
+        elif indicator_choice == "Make overall average indicator":
             set_title_2("Overall average indicator")
             csv_filename_output = "Overall_Average.csv"
             if st.button(label="Average your Dataset"):
