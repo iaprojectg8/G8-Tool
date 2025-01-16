@@ -74,7 +74,7 @@ def read_shape_file(shapefile_path):
 
 
 
-def create_raster_from_df(gdf, period,masked, resolution=0.1):
+def create_raster_from_df(gdf, period,masked, resolution=0.01):
     """
     Generates a raster from a GeoDataFrame and applies an optional mask.
     
@@ -91,17 +91,15 @@ def create_raster_from_df(gdf, period,masked, resolution=0.1):
     # Read the shapefile
     shape_gdf = read_shape_file("zip_files/South_Bengal/South_Bengal.shp")
     # Get Latitude, Longitude and Scores
-    print(gdf.total_bounds)
     min_lon, min_lat, max_lon, max_lat = gdf.total_bounds
+    print(gdf.total_bounds)
 
     lat, lon, score = get_gdf_values(gdf,period)
     grid_lon, grid_lat = create_grid(min_lon, min_lat, max_lon, max_lat, resolution)
-    print(grid_lon)
     # Interpolate the irregular data to the regular grid
-    grid_score = griddata((lon, lat), score, (grid_lon, grid_lat), method='linear')
+    grid_score = griddata((lon, lat), score, (grid_lon, grid_lat), method='cubic')
     
     grid_score = apply_mask(masked, grid_score, shape_gdf, min_lon, max_lat, resolution)
-    print(np.unique(grid_score))
 
     # Define the affine transform for the raster from top-left
     transform = from_origin(min_lon, max_lat, resolution, resolution)
@@ -163,40 +161,37 @@ def write_multiband_tif(output_path, grid_score_list, transform_list):
 def rasterize_data( df : pd.DataFrame ):
     periods = list(df.columns)
     df = df.reset_index(names=None)
-    print(df)
     gdf = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df["lon"], df["lat"]))
     gdf.set_crs(epsg=4326, inplace=True)
     grid_score_list, transform_list, _ = get_raster_info(gdf, masked=1, periods=periods)
-    write_multiband_tif(output_path="another.tif", grid_score_list=grid_score_list, transform_list=transform_list)
+    write_multiband_tif(output_path="coucou.tif", grid_score_list=grid_score_list, transform_list=transform_list)
 
 
-def display_raster_with_slider(raster_path):
+def display_raster_with_slider(raster_path, periods):
     """
     Display a multi-band raster with a slider to switch between epochs using Plotly.
 
     Args:
         raster_path (str): Path to the raster file.
     """
+    periods = [f"{period[0]}-{period[1]}" for period in periods]
     # Open the raster file
     with rasterio.open(raster_path) as src:
         bands = src.read()
-        epochs = [f"Epoch {i+1}" for i in range(bands.shape[0])]  # Create epoch labels
+
 
         # Find the min and max values directly from the raster data
         data_min = 1
         data_max = 4  # Use actual max value in data
-        print("Data Min:", data_min)
-        print("Data Max:", data_max)
-
-    # Create a slider-based visualization without normalizing the data
-    print(bands)
+    
     fig = px.imshow(
-        bands,  # Initial band for display
+        bands[0],  # Initial band for display
         # animation_frame=
         color_continuous_scale=["green", "yellow", "orange","red"],  # Choose your preferred colormap
         zmin=data_min,  # Use the actual min value from the data
         zmax=data_max,  # Use the actual max value from the data
         title="Raster Visualization",
+        height=700
     )
 
     # Add a slider for epochs
@@ -204,28 +199,28 @@ def display_raster_with_slider(raster_path):
     for i, band in enumerate(bands):
         step = {
             "args": [{"z": [band]}],
-            "label": epochs[i],
+            "label": periods[i],
             "method": "update",
         }
         steps.append(step)
 
-    sliders = [
-        {
-            "active": 0,
-            "currentvalue": {"prefix": "Epoch: "},
-            "pad": {"t": 50},
-            "steps": steps,
-        }
-    ]
+    sliders = [dict(active= 0,
+                    pad={"t": 50, "r":50, "l":50, "b":50},
+                    steps = steps,
+                    font=dict(size=17,
+                              weight=800),
+                    name = "Periods")]
 
-    fig.update_layout(sliders=sliders)
+    fig.update_layout(sliders=sliders,
+        font=dict(size=17, weight=800),
+        autosize=True)
 
     # Display the map in Streamlit
     st.plotly_chart(fig, use_container_width=True)
 
 # Streamlit app
-def display_raster():
+def display_raster(periods):
     
     # Save the file locally
-    raster_path = "another.tif"
-    display_raster_with_slider(raster_path)
+    raster_path = "coucou.tif"
+    display_raster_with_slider(raster_path, periods)
