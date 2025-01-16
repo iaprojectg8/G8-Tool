@@ -7,6 +7,7 @@ from indicators.custom_indicators import heat_index_indicator
 from spatial.rasterization import rasterize_data, display_raster
 
 
+
 # ------------------------------------------------
 # --- Calculation of different indicators type ---
 # ------------------------------------------------
@@ -94,7 +95,7 @@ def season_aggregation_calculation(row,df_season_temp, score_name, variable):
         row["Yearly Threshold Max List"])
     return df_yearly_var, aggregated_column_name
     
-def outlier_days_calculation(row, df_season_temp, score_name, variable):
+def outlier_days_calculation(row, df_season_temp, score_name, variable, spatial):
     """
     Calculate outlier days based on daily thresholds and yearly aggregation.
 
@@ -108,8 +109,9 @@ def outlier_days_calculation(row, df_season_temp, score_name, variable):
         tuple: A DataFrame with the aggregated yearly values and the name of the aggregated column.
     """
     df_daily, indicator_column = daily_indicators(df_season_temp, variable, row["Daily Threshold Min"], row["Daily Threshold Max"])
-    with st.expander("Show Daily Dataframe"):
-        st.dataframe(df_daily, height=DATAFRAME_HEIGHT,use_container_width=True)
+    if not spatial:
+        with st.expander("Show Daily Dataframe"):
+            st.dataframe(df_daily, height=DATAFRAME_HEIGHT,use_container_width=True)
 
     df_yearly_var, aggregated_column_name = make_yearly_agg(df_season_temp,indicator_column, row["Yearly Aggregation"])
     df_yearly_var = indicator_score(
@@ -121,7 +123,7 @@ def outlier_days_calculation(row, df_season_temp, score_name, variable):
     
     return df_yearly_var, aggregated_column_name
 
-def consecutive_outlier_days_calculation(row, df_season_temp, score_name, variable):
+def consecutive_outlier_days_calculation(row, df_season_temp, score_name, variable, spatial):
     """
     Calculate consecutive outlier days using cumulative sum of daily indicators and yearly aggregation.
 
@@ -137,8 +139,9 @@ def consecutive_outlier_days_calculation(row, df_season_temp, score_name, variab
     df_daily, indicator_column = daily_indicators(df_season_temp, variable, row["Daily Threshold Min"], row["Daily Threshold Max"])
     df_daily["cumulated_days_sum"] = df_season_temp.groupby(df_season_temp.index.year)[indicator_column].transform(reset_cumsum)
 
-    # with st.expander("Show Daily Dataframe"):
-    #     st.dataframe(df_daily, height=DATAFRAME_HEIGHT,use_container_width=True)
+    if not spatial:
+        with st.expander("Show Daily Dataframe"):
+            st.dataframe(df_daily, height=DATAFRAME_HEIGHT,use_container_width=True)
 
     df_yearly_var, aggregated_column_name = make_yearly_agg(df_season_temp,"cumulated_days_sum", row["Yearly Aggregation"])
     
@@ -151,7 +154,7 @@ def consecutive_outlier_days_calculation(row, df_season_temp, score_name, variab
     
     return df_yearly_var, aggregated_column_name
 
-def sliding_window_calculation(row, df_season_temp, score_name, variable):
+def sliding_window_calculation(row, df_season_temp, score_name, variable, spatial):
     """
     Perform sliding window calculation based on window length and aggregation, and yearly aggregation.
 
@@ -166,8 +169,9 @@ def sliding_window_calculation(row, df_season_temp, score_name, variable):
     """
     df_daily, _ = rolling_period_indicator(df_season_temp, variable, row["Windows Length"], row["Windows Aggregation"])
 
-    with st.expander("Show Daily Dataframe"):
-        st.dataframe(df_daily, height=DATAFRAME_HEIGHT,use_container_width=True)
+    if not spatial:
+        with st.expander("Show Daily Dataframe"):
+            st.dataframe(df_daily, height=DATAFRAME_HEIGHT,use_container_width=True)
 
     df_yearly_var, aggregated_column_name = make_yearly_agg(df_season_temp, variable, row["Yearly Aggregation"])
     df_yearly_var = indicator_score(
@@ -184,7 +188,7 @@ def sliding_window_calculation(row, df_season_temp, score_name, variable):
 # --- Assembling all calculations ---
 # -----------------------------------
 
-def calculate_scores(row, df_season_temp, score_name, variable):
+def calculate_scores(row, df_season_temp, score_name, variable, spatial):
     """
     Calculate scores for different indicator types based on the input row and data.
 
@@ -204,12 +208,12 @@ def calculate_scores(row, df_season_temp, score_name, variable):
     
     elif row["Indicator Type"] == "Outlier Days":
         unit = "days"
-        df_yearly_var, aggregated_column_name = outlier_days_calculation(row, df_season_temp, score_name, variable)
+        df_yearly_var, aggregated_column_name = outlier_days_calculation(row, df_season_temp, score_name, variable, spatial)
         return unit, df_yearly_var, aggregated_column_name
 
     elif row["Indicator Type"] == "Consecutive Outlier Days":
         unit = "days"
-        df_yearly_var, aggregated_column_name = consecutive_outlier_days_calculation(row, df_season_temp, score_name, variable)
+        df_yearly_var, aggregated_column_name = consecutive_outlier_days_calculation(row, df_season_temp, score_name, variable, spatial)
         return unit, df_yearly_var, aggregated_column_name
         
     elif row["Indicator Type"] == "Sliding Windows Aggregation":
@@ -302,7 +306,7 @@ def calculations_and_plots(df_season, df_indicators_parameters: pd.DataFrame,df_
             if row["Indicator Type"] == "Crossed Variables":
                 heat_index_indicator(df_season_temp, periods)
             else:
-                unit, df_yearly_var, aggregated_column_name = calculate_scores(row,df_season_temp, score_name, variable)
+                unit, df_yearly_var, aggregated_column_name = calculate_scores(row,df_season_temp, score_name, variable, spatial=0)
                 # Plot preparation
                 df_yearly_var = preparing_dataframe_for_plot(df_yearly_var, periods, score_name)
                 with st.expander("Show Yearly Dataframe"):
@@ -367,8 +371,7 @@ def spatial_calculation(df_season, df_indicators_parameters: pd.DataFrame,df_che
             df_raster = pd.DataFrame()
             # Season shift handling
             if dataframes_dict_filtered is not None:
-                random_dataframe = rd.choice(list(dataframes_dict_filtered.values()))     
-                print(random_dataframe)         
+                random_dataframe = rd.choice(list(dataframes_dict_filtered.values()))           
                 if ((isinstance(variable,list) and all(var in list(random_dataframe.columns) for var in variable)) 
                     or (not isinstance(variable,list) and (variable in random_dataframe.columns))):
                     with st.spinner("Handling season shift"):
@@ -397,29 +400,7 @@ def spatial_calculation(df_season, df_indicators_parameters: pd.DataFrame,df_che
                                 for i, ((df_key, df), (all_df_key, all_df)) in enumerate(zip(dataframes_dict_filtered.items(), all_dataframes_dict.items())):
 
                                     progress_bar.progress((i+1)/len(dataframes_dict_filtered), text=df_key)
-                                    lat, lon = df.at[df.index[0],"lat"], df.at[df.index[0],"lon"]
-                                    # Here start the real calculation need to introduce loop
-                                    unit, df_yearly_var, aggregated_column_name = calculate_scores(row,df, score_name, variable)
-                                    # Plot preparation
-                                    df_yearly_var = preparing_dataframe_for_plot(df_yearly_var, periods, score_name)
-                                    # with st.expander("Show Yearly Dataframe"):
-                                    #     st.dataframe(df_yearly_var, height=DATAFRAME_HEIGHT, use_container_width=True)
-
-                                    # Multiple plot to understand the calculated indicators
-                                    fig1 = plot_daily_data(all_df, variable)
-                                    fig2 = plot_years_exposure(df_yearly_var, aggregated_column_name, below_thresholds, above_thresholds, score_name,unit)
-                                    fig3 = plot_deficit_and_excess_exposure(df_yearly_var, score_name)
-                                    fig4, sumup_df = plot_global_exposure_spatial(df_yearly_var, score_name, i, aggregated_column_name, below_thresholds, above_thresholds, df_key, lat, lon)
-                                    # fig_list = [fig1, fig2, fig3, fig4]
-                                    # pdf = wrap_indicator_into_pdf(fig_list)
-                                    # st.download_button(
-                                    #     label="Download PDF",
-                                    #     data=pdf,
-                                    #     file_name="whatever.pdf",
-                                    #     mime="application/pdf",
-                                    #     key=f"download_{i}_{df_key}"
-                                    #     )
-                                    # Part to concatenate the sumup with all the others
+                                    sumup_df = spatial_calculation_for_raster(row, below_thresholds, above_thresholds, df, score_name, variable, periods)
                                     df_raster = pd.concat([df_raster, sumup_df])
                                 st.dataframe(df_raster)
                                 rasterize_data(df_raster)
@@ -427,7 +408,7 @@ def spatial_calculation(df_season, df_indicators_parameters: pd.DataFrame,df_che
                 else:
                     st.warning("Your variable is not in the taken in the dataframes dictionary, please click on 'Filter the data' button to get it")
 
-    display_raster()
+    display_raster(periods)
     return df_yearly
 
 
@@ -442,3 +423,28 @@ def get_only_required_variable(dataframes_dict, variable):
             dataframes_dict[df_key] = df
     return dataframes_dict
 
+def spatial_calculation_for_raster(row, below_thresholds, above_thresholds, df, score_name, variable, periods):
+    """
+    This needs to be cleaned
+    """
+     # Get the score_column
+    lat, lon = df.at[df.index[0],"lat"], df.at[df.index[0],"lon"]
+    unit, df_yearly_var, aggregated_column_name = calculate_scores(row,df, score_name, variable,spatial=1)
+    # Plot preparation
+    df_yearly = preparing_dataframe_for_plot(df_yearly_var, periods, score_name)
+    score_column = f"yearly_indicator_{score_name}"
+    
+    # Asks the user to choose the aggregation type and then aggregates the data
+    aggregation_type = "Variable Mean Category"
+    # aggregation_type = st.selectbox(label="Aggregation Type", options=EXPOSURE_AGGREGATION, key=f"aggregation_type_{index}_{additional_key}")
+    df_period = aggregate_category(aggregation_type, df_yearly, score_column, aggregated_column_name, below_thresholds, above_thresholds)
+    df_period['lat'] = lat
+    df_period['lon'] = lon
+    sumup_df = df_period.pivot_table(
+        index=['lat', 'lon'], 
+        columns='period', 
+        values='absolute_score', # ['absolute_score', 'category', 'color', 'exposure_prob'], 
+        aggfunc='first',
+        observed=False
+    )
+    return sumup_df

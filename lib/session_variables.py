@@ -77,7 +77,7 @@ if "xaxis_range" not in st.session_state:
     st.session_state.xaxis_range = None
 
 if "dataframes" not in st.session_state:
-    st.session_state.dataframes = None
+    st.session_state.dataframes = dict()
     
 
 def delete_indicator(index):

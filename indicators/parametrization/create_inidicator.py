@@ -207,7 +207,6 @@ def create_buttons():
                 print("lat and lon were in the st.session_state.indicator as guessed")
                 if st.session_state.indicator["Variable"] is list:
                     st.session_state.indicator["Variable"] = [variable for variable in st.session_state.indicator["Variable"] if variable not in ["lat", "lon"]]
-            st.dataframe(st.session_state.indicator)
             st.session_state.df_indicators = st.session_state.df_indicators._append(st.session_state.indicator, ignore_index=True)
             st.session_state.df_checkbox = st.session_state.df_checkbox._append(st.session_state.checkbox_defaults, ignore_index=True)
         else:

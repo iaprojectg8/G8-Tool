@@ -57,11 +57,14 @@ def main():
         )
         if indicator_choice == "Make spatial indicators":
             set_title_2("Spatial indicator")
-            extract_csv_from_zip(uploaded_file, extract_to)
-            dataframes = read_csv_files_from_directory(extract_to)
-            dataframes_dict = put_date_as_index(dataframe_dict=dataframes)
-            df_init = copy(dataframes_dict[list(dataframes_dict.keys())[0]])
-            spatial_indicator_management(df_init, dataframes_dict)
+            if len(st.session_state.dataframes)==0:
+                dataframes = read_csv_files_from_directory(extract_to)
+                st.session_state.dataframes = put_date_as_index(dataframe_dict=dataframes)
+                df_init = copy(st.session_state.dataframes[list(st.session_state.dataframes.keys())[0]])
+            else : 
+                df_init = copy(st.session_state.dataframes[list(st.session_state.dataframes.keys())[0]])
+
+            spatial_indicator_management(df_init, st.session_state.dataframes)
 
 
         elif indicator_choice == "Make overall average indicator":

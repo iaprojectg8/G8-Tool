@@ -216,6 +216,7 @@ def heat_index_indicator(df,df_key, periods):
     Returns:
     None
     """
+
     set_title_1("Variable filter")
     st.write("We are keeping only the daily max temperature and the daily mean relative humidity")
 

@@ -89,7 +89,7 @@ def plot_daily_data(df:pd.DataFrame, variable, zoom=None):
     daily_data_plot(df, fig, variable)
     add_vertical_line(fig, year=datetime.now(pytz.utc))
     daily_data_update_layout(fig, variable)
-    # st.plotly_chart(fig)
+    st.plotly_chart(fig)
     return fig
     
 
@@ -494,7 +494,7 @@ def plot_deficit_and_excess_exposure(df:pd.DataFrame,score_name):
 
     # Layout
     deficit_and_excess_exposure_update_layout(fig, periods_size, score_name)
-    # st.plotly_chart(fig)
+    st.plotly_chart(fig)
 
     return fig
 
@@ -689,7 +689,7 @@ def global_exposure_update_layout(fig:go.Figure, score_name, desired_order):
         )
     
 # Main function
-def plot_global_exposure(df_yearly:pd.DataFrame, score_name, index, aggregated_column_name, below_thresholds, above_thresholds, additional_key):
+def plot_global_exposure(df_yearly:pd.DataFrame, score_name, index, aggregated_column_name, below_thresholds, above_thresholds):
     """
     Plots the global exposure data for each category over time using Plotly and Streamlit.
 
@@ -705,7 +705,7 @@ def plot_global_exposure(df_yearly:pd.DataFrame, score_name, index, aggregated_c
     score_column = f"yearly_indicator_{score_name}"
     
     # Asks the user to choose the aggregation type and then aggregates the data
-    aggregation_type = st.selectbox(label="Aggregation Type", options=EXPOSURE_AGGREGATION, key=f"aggregation_type_{index}_{additional_key}")
+    aggregation_type = st.selectbox(label="Aggregation Type", options=EXPOSURE_AGGREGATION, key=f"aggregation_type_{index}")
     df_period = aggregate_category(aggregation_type, df_yearly, score_column, aggregated_column_name, below_thresholds, above_thresholds)
 
     # Sorts the periods and risk levels
@@ -724,7 +724,7 @@ def plot_global_exposure(df_yearly:pd.DataFrame, score_name, index, aggregated_c
 
     # Updates the layout
     global_exposure_update_layout(fig, score_name, desired_order)
-    # st.plotly_chart(fig)
+    st.plotly_chart(fig)
 
     return fig
 
@@ -751,10 +751,6 @@ def plot_global_exposure_spatial(df_yearly:pd.DataFrame, score_name, index, aggr
     # Sorts the periods and risk levels
     desired_order, risk_order = work_on_df_period(df_period)
 
-     # Offers the possibility to show the dataframe
-    # with st.expander("Show Exposure Dataframe"):
-    #     st.dataframe(df_period, height=DATAFRAME_HEIGHT, use_container_width=True)
-
     # Plots the global exposure
     traces = []
     global_exposure_plot(risk_order, df_period, traces)
@@ -776,6 +772,7 @@ def plot_global_exposure_spatial(df_yearly:pd.DataFrame, score_name, index, aggr
     st.plotly_chart(fig)
 
     return fig, sumup_df
+
 
 # -------------------------------------
 # --- Wrap indicator graph into pdf ---
@@ -801,13 +798,9 @@ def wrap_indicator_into_pdf(fig_list):
     for i in range(len(fig_list)):
         fig = fig_list[i]
         fig_image = pio.to_image(fig, format="png", width=fig.layout.width, height=fig.layout.height)
-       
-
-
+    
         # Create ImageReader objects for the figures' image data
         img_reader = ImageReader(BytesIO(fig_image))
-
-    
 
         # Place the first figure image on the PDF at a specific location with scaled dimensions
         if i % 2 == 0:
