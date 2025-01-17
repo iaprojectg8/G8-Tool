@@ -1,32 +1,11 @@
 from utils.imports import *
 from utils.variables import *
 
-def apply_mask(masked, grid_score, shape_gdf, min_lon, max_lat, resolution):
-    """
-    Applies a mask to the grid score data based on the specified shape geometry.
-    
-    Args:
-    - masked (bool): Flag indicating whether to apply the mask.
-    - grid_score (ndarray): Array of interpolated scores.
-    - shape_gdf (GeoDataFrame): GeoDataFrame containing the shape geometry.
-    - min_lon (float): Minimum longitude of the grid.
-    - max_lat (float): Maximum latitude of the grid.
-    - resolution (float): Grid cell resolution.
-    
-    Returns:
-    - ndarray: Masked grid score array with NaNs outside the shape geometry.
-    """
-    grid_score = grid_score[::-1]
-    if masked:
-        # Create the mask
-        mask = geometry_mask([mapping(shape_gdf.geometry.union_all())], 
-                            transform=from_origin(min_lon, max_lat, resolution, resolution), 
-                            out_shape=grid_score.shape)
-        
-        # Apply the mask to the interpolated scores
-        grid_score[mask] = np.nan
 
-    return grid_score
+
+# ------------------------------------
+# --- Function to build the raster ---
+# ------------------------------------
 
 def get_gdf_values(gdf, period):
     """
@@ -66,22 +45,45 @@ def create_grid(min_lon, min_lat, max_lon, max_lat, resolution):
     grid_lon, grid_lat = np.meshgrid(grid_lon, grid_lat)
     return grid_lon, grid_lat
 
+def apply_mask(grid_score, shape_gdf, min_lon, max_lat, resolution):
+    """
+    Applies a mask to the grid score data based on the specified shape geometry.
+    
+    Args:
+    - grid_score (ndarray): Array of interpolated scores.
+    - shape_gdf (GeoDataFrame): GeoDataFrame containing the shape geometry.
+    - min_lon (float): Minimum longitude of the grid.
+    - max_lat (float): Maximum latitude of the grid.
+    - resolution (float): Grid cell resolution.
+    
+    Returns:
+    - ndarray: Masked grid score array with NaNs outside the shape geometry.
+    """
+    grid_score = grid_score[::-1]
+    if shape_gdf is not None:
+        # Create the mask
+        mask = geometry_mask([mapping(shape_gdf.geometry.union_all())], 
+                            transform=from_origin(min_lon, max_lat, resolution, resolution), 
+                            out_shape=grid_score.shape)
+        
+        # Apply the mask to the interpolated scores
+        grid_score[mask] = np.nan
+
+    return grid_score
+
 def read_shape_file(shapefile_path):
     gdf = gpd.read_file(shapefile_path)
     gdf = gdf.to_crs("EPSG:4326")
     return gdf
 
 
-
-
-def create_raster_from_df(gdf, period,masked, resolution=0.01):
+def create_raster_from_df(gdf,shape_gdf, period, resolution=0.002):
     """
     Generates a raster from a GeoDataFrame and applies an optional mask.
     
     Args:
     - gdf (GeoDataFrame): The input data containing latitude, longitude, and score columns.
-    - score_column (str): The column name of the score data.
-    - shapefile_path (str): Path to the shapefile for masking the raster.
+    - period (tuple): Contains start and end of the processing period
     - masked (bool): Flag indicating whether to apply the mask.
     - resolution (float): Grid cell resolution.
     
@@ -89,32 +91,33 @@ def create_raster_from_df(gdf, period,masked, resolution=0.01):
     - tuple: Masked raster grid score and affine transform for spatial alignment.
     """
     # Read the shapefile
-    shape_gdf = read_shape_file("zip_files/South_Bengal/South_Bengal.shp")
+    
     # Get Latitude, Longitude and Scores
-    min_lon, min_lat, max_lon, max_lat = gdf.total_bounds
-    print(gdf.total_bounds)
 
+    min_lon, min_lat, max_lon, max_lat = gdf.total_bounds
     lat, lon, score = get_gdf_values(gdf,period)
     grid_lon, grid_lat = create_grid(min_lon, min_lat, max_lon, max_lat, resolution)
+
     # Interpolate the irregular data to the regular grid
     grid_score = griddata((lon, lat), score, (grid_lon, grid_lat), method='cubic')
     
-    grid_score = apply_mask(masked, grid_score, shape_gdf, min_lon, max_lat, resolution)
+    # Apply the mask is so
+    grid_score = apply_mask(grid_score, shape_gdf, min_lon, max_lat, resolution)
 
     # Define the affine transform for the raster from top-left
     transform = from_origin(min_lon, max_lat, resolution, resolution)
 
     return grid_score, transform
 
-def get_raster_info(gdf, masked, periods):
+def get_raster_info(gdf, shape_gdf, periods, resolution):
     """
     Extracts raster informations from a GeoDataFrame (gdf) based on a specific score type.
     
     Args:
         gdf (GeoDataFrame): The GeoDataFrame containing the data to be processed.
-        score_type (str): A string to identify relevant score columns in the GeoDataFrame.
-        shapefile_path (str): Path to the shapefile to use for raster creation.
-        masked (bool): Whether to mask the raster data during creation.
+        shape_gdf (GeoDataFrame) : Contains the shape of the AOI 
+        periods (list(tuple)) : It contains the list of the different periods
+        resolution (float) : The resolution of the built raster
     
     Returns:
         tuple: A tuple containing:
@@ -122,68 +125,55 @@ def get_raster_info(gdf, masked, periods):
             - transform_list (list): A list of transformation matrices for the created rasters.
             - score_columns (list): A list of score column names that match the `score_type`.
     """
-    period_columns = []
     grid_score_list = list()
     transform_list = list()
+    
+    # Builds the raster for each period
     for period in periods:
-    
-            grid_score, tranform = create_raster_from_df(gdf=gdf,period=period,
-                                        masked=masked)            
-            grid_score_list.append(grid_score)
-            transform_list.append(tranform)
-            period_columns.append(period)
-    return grid_score_list, transform_list, period_columns
 
-def write_multiband_tif(output_path, grid_score_list, transform_list):
+        grid_score, tranform = create_raster_from_df(gdf=gdf,shape_gdf=shape_gdf, period=period, resolution=resolution)            
+        grid_score_list.append(grid_score)
+        transform_list.append(tranform)
+
+    return grid_score_list, transform_list
+
+
+def rasterize_data(df: pd.DataFrame, shape_gdf, resolution):
     """
-    Writes multiple bands of raster data to a GeoTIFF file.
-    
+    Converts a DataFrame with geospatial data into rasterized grids and saves the raster parameters for later use.
+
     Args:
-    - output_path (str): The path where the output GeoTIFF will be saved.
-    - grid_score_list (list): A list of 2D arrays representing the raster data for each band.
-    - transform_list (list): A list of affine transformations for each raster band.
+        df (pd.DataFrame): The input DataFrame containing 'lon', 'lat', and data for multiple time periods.
+        shape_gdf: The shapefile (as a GeoDataFrame) defining the region of interest.
+        resolution: The desired resolution for the rasterization process.
     """
-    with rasterio.open(
-        output_path,
-        'w',
-        driver='GTiff',
-        height=grid_score_list[0].shape[0],
-        width=grid_score_list[0].shape[1],
-        count=len(grid_score_list),
-        dtype=grid_score_list[0].dtype,
-        crs='EPSG:4326',
-        transform=transform_list[0],
-    ) as dst:
-        for i in range(len(grid_score_list)):
-            dst.write(grid_score_list[i], i+1)
-
-
-def rasterize_data( df : pd.DataFrame ):
     periods = list(df.columns)
     df = df.reset_index(names=None)
     gdf = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df["lon"], df["lat"]))
     gdf.set_crs(epsg=4326, inplace=True)
-    grid_score_list, transform_list, _ = get_raster_info(gdf, masked=1, periods=periods)
-    write_multiband_tif(output_path="coucou.tif", grid_score_list=grid_score_list, transform_list=transform_list)
+    grid_score_list, transform_list = get_raster_info(gdf, shape_gdf,  periods=periods, resolution=resolution)
+
+    # Save the raster variable in session variable for later uses
+    st.session_state.raster_params = grid_score_list, transform_list
 
 
-def display_raster_with_slider(raster_path, periods):
+def display_raster_with_slider(periods):
     """
     Display a multi-band raster with a slider to switch between epochs using Plotly.
 
     Args:
-        raster_path (str): Path to the raster file.
+        periods (list(tuple)) : Contains the list of the periods encapsulated in tuples
     """
     periods = [f"{period[0]}-{period[1]}" for period in periods]
     # Open the raster file
-    with rasterio.open(raster_path) as src:
-        bands = src.read()
 
+    grid_score_list, _ = st.session_state.raster_params 
+    bands = grid_score_list
 
-        # Find the min and max values directly from the raster data
-        data_min = 1
-        data_max = 4  # Use actual max value in data
-    
+    # Colorscale min and max
+    data_min = 1
+    data_max = 4
+
     fig = px.imshow(
         bands[0],  # Initial band for display
         # animation_frame=
@@ -194,7 +184,7 @@ def display_raster_with_slider(raster_path, periods):
         height=700
     )
 
-    # Add a slider for epochs
+    # Building each step of the slider
     steps = []
     for i, band in enumerate(bands):
         step = {
@@ -204,6 +194,7 @@ def display_raster_with_slider(raster_path, periods):
         }
         steps.append(step)
 
+    # Creating the raster
     sliders = [dict(active= 0,
                     pad={"t": 50, "r":50, "l":50, "b":50},
                     steps = steps,
@@ -218,9 +209,65 @@ def display_raster_with_slider(raster_path, periods):
     # Display the map in Streamlit
     st.plotly_chart(fig, use_container_width=True)
 
-# Streamlit app
-def display_raster(periods):
-    
-    # Save the file locally
-    raster_path = "coucou.tif"
-    display_raster_with_slider(raster_path, periods)
+
+
+def raster_download_button():
+    """
+    Creates a download button in Streamlit to allow users to download a raster file.
+    The raster file is created in-memory using Rasterio's MemoryFile.
+    """
+    # Use Rasterio MemoryFile to create an in order do save the file
+    grid_score_list, transform_list = st.session_state.raster_params 
+    with MemoryFile() as memfile:
+        with memfile.open(
+            driver='GTiff',
+            height=grid_score_list[0].shape[0],
+            width=grid_score_list[0].shape[1],
+            count=len(grid_score_list),
+            dtype=grid_score_list[0].dtype,
+            crs='EPSG:4326',
+            transform=transform_list[0],
+        ) as dst:
+            for i in range(len(grid_score_list)):
+                dst.write(grid_score_list[i], i+1)
+                
+        # Return the in-memory file's content as bytes
+        raster_data = memfile.read()
+
+    # Streamlit download part 
+    st.download_button(
+        label="Download Raster",
+        data=raster_data,
+        file_name="output_raster.tif",
+        mime="image/tiff"
+    )
+
+
+def read_shape_zipped_shape_file():
+    """
+    Handles the upload and extraction of a zipped shapefile, validates its contents, 
+    and reads the shapefile if valid.
+
+    Returns:
+        GeoDataFrame: The GeoDataFrame read from the shapefile, or None if no valid shapefile is found.
+    """
+    uploaded_file = st.file_uploader("Upload your shapefile (ZIP format)", type="zip", key="raster shapefile")
+
+    if uploaded_file is not None:
+        st.success("ZIP file uploaded!")
+
+        # Extract ZIP file in memory
+        with zipfile.ZipFile(uploaded_file) as z:
+            shapefile_files = [file for file in z.namelist()]
+
+            # Check if a .shp file is present
+            shapefile_name = [file for file in shapefile_files if file.endswith(".shp")]
+            if not shapefile_name:
+                st.error("No .shp file found in the ZIP archive.")
+            else:
+                # Extract all files into a temporary directory
+                with tempfile.TemporaryDirectory() as temp_dir:
+                    z.extractall(temp_dir)
+                    shapefile_path = os.path.join(temp_dir, shapefile_name[0])
+                    
+                    return read_shape_file(shapefile_path=shapefile_path)

@@ -29,9 +29,9 @@ def main():
             extract_csv_from_zip(uploaded_file, extract_to)
             st.session_state.uploaded_file_spatial = uploaded_file
             # This is a dataframe dictionary
-            dataframes = read_csv_files_from_directory(extract_to)
-            st.session_state.gdf = extract_coordinates(dataframes)
-
+            st.session_state.dataframes = read_csv_files_from_directory(extract_to)
+            st.session_state.gdf = extract_coordinates(st.session_state.dataframes)
+            st.session_state.dataframes = put_date_as_index(dataframe_dict=st.session_state.dataframes)
 
         
         # Create a map centered at the first coordinate
@@ -57,12 +57,8 @@ def main():
         )
         if indicator_choice == "Make spatial indicators":
             set_title_2("Spatial indicator")
-            if len(st.session_state.dataframes)==0:
-                dataframes = read_csv_files_from_directory(extract_to)
-                st.session_state.dataframes = put_date_as_index(dataframe_dict=dataframes)
-                df_init = copy(st.session_state.dataframes[list(st.session_state.dataframes.keys())[0]])
-            else : 
-                df_init = copy(st.session_state.dataframes[list(st.session_state.dataframes.keys())[0]])
+            # st.session_state.dataframes = put_date_as_index(dataframe_dict=st.session_state.dataframes)
+            df_init = copy(st.session_state.dataframes[list(st.session_state.dataframes.keys())[0]])
 
             spatial_indicator_management(df_init, st.session_state.dataframes)
 

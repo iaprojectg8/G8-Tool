@@ -4,7 +4,7 @@ from indicators.calculation import *
 from indicators.plot import *
 from indicators.parametrization.update_indicator import * 
 from indicators.custom_indicators import heat_index_indicator
-from spatial.rasterization import rasterize_data, display_raster
+from spatial.rasterization import rasterize_data, display_raster_with_slider, raster_download_button, read_shape_zipped_shape_file
 
 
 
@@ -361,6 +361,7 @@ def spatial_calculation(df_season, df_indicators_parameters: pd.DataFrame,df_che
             # Initializing useful variables
             variable = row["Variable"]
             dataframes_dict_filtered = get_only_required_variable(copy(dataframes_dict), variable)
+            print(len(dataframes_dict))
             score_name = row["Name"]
             season_start_shift=row["Season Start Shift"]
             season_end_shift= row["Season End Shift"]
@@ -395,6 +396,11 @@ def spatial_calculation(df_season, df_indicators_parameters: pd.DataFrame,df_che
                         
                         # All the other parts are located here                                        
                         else:
+                            shape_gdf  = read_shape_zipped_shape_file()
+                            raster_resolution = st.number_input("Choose the raster resolution",
+                                                                min_value=0.001, max_value=1., 
+                                                                value=0.005,
+                                                                format="%0.3f")
                             if st.button(label="Compute Data to get the graphs", key=f"other_compute_{i}"):
                                 progress_bar = st.progress(0)
                                 for i, ((df_key, df), (all_df_key, all_df)) in enumerate(zip(dataframes_dict_filtered.items(), all_dataframes_dict.items())):
@@ -402,13 +408,15 @@ def spatial_calculation(df_season, df_indicators_parameters: pd.DataFrame,df_che
                                     progress_bar.progress((i+1)/len(dataframes_dict_filtered), text=df_key)
                                     sumup_df = spatial_calculation_for_raster(row, below_thresholds, above_thresholds, df, score_name, variable, periods)
                                     df_raster = pd.concat([df_raster, sumup_df])
-                                st.dataframe(df_raster)
-                                rasterize_data(df_raster)
+                            
+                                rasterize_data(df_raster, shape_gdf=shape_gdf, resolution=raster_resolution)
  
                 else:
                     st.warning("Your variable is not in the taken in the dataframes dictionary, please click on 'Filter the data' button to get it")
-
-    display_raster(periods)
+                if st.session_state.raster_params is not None:
+                    display_raster_with_slider(periods)
+                    raster_download_button()
+                
     return df_yearly
 
 

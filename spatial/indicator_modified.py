@@ -175,12 +175,3 @@ def filter_all_the_dataframe(dataframes:dict, long_period):
     st.write("The filtering is done")
     print(dataframes)
     return dataframes
-
-    # for (df_key, df), (df_all_key, df_all) in zip(dataframes_dict.items(), all_dataframes_dict.items()):
-    #     if isinstance(variable, list):  # Check if variable is a list
-    #         selected_columns = variable + ["lat", "lon"]  # Create a new list
-    #     else:
-    #         selected_columns = [variable, "lat", "lon"]  # Combine into a list
-        
-    #     df = df_all.loc[:, selected_columns]  # Use the new variable for column selection
-    #     dataframes_dict[df_key] = df
