@@ -42,6 +42,7 @@ def make_zone_average(folder_name, csv_output):
 
 def put_date_as_index(dataframe_dict:dict):
     for key, df in dataframe_dict.items():
+        print(df.index)
         df['date'] = pd.to_datetime(df['date'])  # Ensure the 'date' column is in datetime format
         df.set_index('date', inplace=True)  # Set the 'date' column as the index
         dataframe_dict[key] = df

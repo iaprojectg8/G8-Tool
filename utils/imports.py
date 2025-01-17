@@ -29,6 +29,7 @@ import ast
 # Raster viz part
 import rasterio
 from rasterio.transform import from_origin
+from rasterio import MemoryFile
 from scipy.interpolate import griddata
 from rasterio.features import geometry_mask
 from ipywidgets import interactive
