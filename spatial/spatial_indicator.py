@@ -28,15 +28,13 @@ def extract_coordinates(dataframes):
     return gdf
 
 
-def make_zone_average(folder_name, csv_output):
+def make_zone_average(dataframes:dict):
     # Open all the files with glob and put it in a list of dataframes
-    file_paths = glob.glob(os.path.join(folder_name, '**', '*.csv'))
-    dataframes = [pd.read_csv(file, index_col="date") for file in file_paths]
 
     # Step 2: Combine all datasets
-    combined_df = pd.concat(dataframes)
-    mean_df = combined_df.groupby(combined_df.index).mean().reset_index()
-    mean_df.to_csv(csv_output,index=False)
+    combined_df = pd.concat(dataframes.values(), ignore_index=False)
+    mean_df = combined_df.groupby(combined_df.index).mean()
+    st.session_state.all_df_mean = mean_df
 
 
 

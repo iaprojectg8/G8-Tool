@@ -9,7 +9,8 @@ from lib.session_variables import *
 from lib.data_process import *
 from lib.plot import *
 from indicators.plot import *
-from indicators.main_calculation import calculations_and_plots, spatial_calculation
+from indicators.main_calculation import calculations_and_plots, spatial_calculation, filter_all_the_dataframe
+from spatial.rasterization import read_shape_zipped_shape_file
 
 
 # # This is only because we use this session variable in a default value of a widget
@@ -35,7 +36,6 @@ def indicator_management(df):
     periods = split_into_periods_indicators(smaller_period_length, long_period_start, long_period_end)
 
     # Loading data and applying first filters
-    path = f"CSV_files/{FILENAME}"
     all_data = df
     data_long_period_filtered = period_filter(all_data, period=long_period)
     st.dataframe(data_long_period_filtered, height=DATAFRAME_HEIGHT, use_container_width=True)
@@ -91,12 +91,14 @@ def indicator_management(df):
             set_title_2("Indicators calculation")
             calculations_and_plots(df_season, st.session_state.df_indicators, st.session_state.df_checkbox,all_year_data, season_start, season_end, periods)
 
-def spatial_indicator_management(df_ind:pd.DataFrame, all_df_dict):
-    """Basic Streamlit app with a title."""
-    # Set some layout parameters for the page 
-    # st.set_page_config(layout="wide")
-    # set_page_title("Indicators Customization")
+def spatial_indicator_management(df_indicator_sample:pd.DataFrame, all_df_dict):
+    """
+    Manages spatial indicators based on user-selected periods, variables, seasons, and parameters.
 
+    Args:
+        df_ind (pd.DataFrame): The initial dataframe containing spatial indicators.
+        all_df_dict (dict): Dictionary of all dataframes to process.
+    """
 
     key = "spatial_indicator_part"
     set_title_2("Period")
@@ -109,27 +111,27 @@ def spatial_indicator_management(df_ind:pd.DataFrame, all_df_dict):
     periods = split_into_periods_indicators(smaller_period_length, long_period_start, long_period_end)
 
     # Loading data and applying first filters
-    df_ind = period_filter(df_ind, period=long_period)
-    st.dataframe(df_ind, height=DATAFRAME_HEIGHT, use_container_width=True)
+    df_indicator_sample = period_filter(df_indicator_sample, period=long_period)
+    st.dataframe(df_indicator_sample, height=DATAFRAME_HEIGHT, use_container_width=True)
     
     # Propose variables related to the dataset loaded 
     set_title_2("Variable Choice")
-    df_ind = column_choice(df_ind)
+    df_indicator_sample = column_choice(df_indicator_sample)
 
     # Variables intitialization
     season_start, season_end = None, None
 
-    if not df_ind.empty:
-        st.dataframe(df_ind, height=DATAFRAME_HEIGHT, use_container_width=True) 
+    if not df_indicator_sample.empty:
+        st.dataframe(df_indicator_sample, height=DATAFRAME_HEIGHT, use_container_width=True) 
 
         # Season handdling
         set_title_2("Season Choice")
         if st.checkbox("Need a season or a period study", value=st.session_state.season_checkbox):
             season_start, season_end = select_season()
-            df_ind_final = select_data_contained_in_season(df_ind, season_start, season_end)
-            st.dataframe(df_ind_final, height=DATAFRAME_HEIGHT, use_container_width=True)
+            df_indicator_sample_season = select_data_contained_in_season(df_indicator_sample, season_start, season_end)
+            st.dataframe(df_indicator_sample_season, height=DATAFRAME_HEIGHT, use_container_width=True)
         else:
-            df_ind_final = df_ind
+            df_indicator_sample_season = df_indicator_sample
         
         # Indicators parametrization handling
         set_title_2("Parametrize Indicators")
@@ -145,9 +147,8 @@ def spatial_indicator_management(df_ind:pd.DataFrame, all_df_dict):
                 st.session_state.df_checkbox = df_checkbox
 
         # Building the indicator in a popover
-        
         with st.popover("Create Indicator", use_container_width = True):
-            indicator_building(df_ind_final, season_start, season_end)
+            indicator_building(df_indicator_sample_season, season_start, season_end)
 
 
         # Display an indicator summary
@@ -159,19 +160,18 @@ def spatial_indicator_management(df_ind:pd.DataFrame, all_df_dict):
             download_indicators(st.session_state.df_indicators)
 
             # Need to calculate score with this parameters
-            set_title_2("Indicators calculation")
+            set_title_2("Indicators Calculation & Rasters Building")
+            shape_gdf  = read_shape_zipped_shape_file()
+            raster_resolution = st.number_input("Choose the raster resolution",
+                                                                min_value=0.001, max_value=1., 
+                                                                value=0.005,
+                                                                format="%0.3f")
             if st.button("Filter the data"):
                 with st.spinner("Filter all the dataframes"):
                     dataframes_dict = filter_all_the_dataframe(dataframes=copy(all_df_dict), long_period=long_period)
                     st.session_state.dataframes = dataframes_dict
-            spatial_calculation(df_ind_final, st.session_state.df_indicators, st.session_state.df_checkbox,st.session_state.dataframes, all_df_dict, season_start, season_end, periods)
+            spatial_calculation(df_indicator_sample_season, st.session_state.df_indicators, 
+                                st.session_state.df_checkbox,st.session_state.dataframes, 
+                                all_df_dict, season_start, season_end, periods, shape_gdf, raster_resolution)
 
-        
-def filter_all_the_dataframe(dataframes:dict, long_period):
-    for key_df, df in dataframes.items():
-        # do the filters that have been done on the first dataframe of the dictionary
-        data_long_period_filtered = period_filter(df, period=long_period)
-        dataframes[key_df] = data_long_period_filtered
-    st.write("The filtering is done")
-    print(dataframes)
-    return dataframes
+    
