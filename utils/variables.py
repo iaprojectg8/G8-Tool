@@ -146,8 +146,58 @@ MODEL_NAMES = [
         "MPI_ESM1_2_XR (51 km)",
         "NICAM16_8S (31 km)"
     ]
-
-
 TEMPLATE_COLOR = 'plotly_white'
 
 BUILTIN_INDICATORS = ["Heat Index", "Other"]
+
+
+# Everything involving the CMIP6 data
+
+
+CMIP6_TO_READABLE = {
+        "hurs": "relative_humidity_2m",   # Relative humidity at 2m
+        "huss": "specific_humidity_2m",   # Specific humidity at 2m
+        "pr": "precipitation_averaged_flux",        # precipitation average flux in kg m-2 s-1 if total preicipitation wanted then need to multiply by 86400
+        "rlds": "longwave_radiation",     # Longwave downward radiation
+        "rsds": "shortwave_radiation_sum",    # Shortwave downward radiation
+        "sfcWind": "wind_speed_10m_mean",       # Wind speed at 10m
+        "tas": "temperature_2m_mean",          # Air temperature at 2m
+        "tasmax": "temperature_2m_max",   # Daily maximum air temperature
+        "tasmin": "temperature_2m_min"    # Daily minimum air temperature
+    }
+
+READABLE_TO_CMIP6 = {
+    "relative_humidity_2m": "hurs",           # Relative humidity at 2m
+    "specific_humidity_2m": "huss",           # Specific humidity at 2m
+    "precipitation_averaged_flux": "pr",      # Precipitation average flux
+    "longwave_radiation": "rlds",             # Longwave downward radiation
+    "shortwave_radiation_sum": "rsds",        # Shortwave downward radiation
+    "wind_speed_10m_mean": "sfcWind",         # Wind speed at 10m
+    "temperature_2m_mean": "tas",             # Air temperature at 2m
+    "temperature_2m_max": "tasmax",           # Daily maximum air temperature
+    "temperature_2m_min": "tasmin"            # Daily minimum air temperature
+}
+
+CMIP6_VARIABLE = ["hurs", "huss", "pr", "rlds", "rsds", "sfcWind", "tas", "tasmax", "tasmin"]
+READABLE_VARIABLE = [
+        "relative_humidity_2m",
+        "specific_humidity_2m",
+        "precipitation_averaged_flux",
+        "longwave_radiation",
+        "shortwave_radiation_sum",
+        "wind_speed_10m_mean",
+        "temperature_2m_mean",
+        "temperature_2m_max",
+        "temperature_2m_min"]
+
+SSP = ["historical", "ssp126", "ssp245", "ssp370", "ssp585"]
+MODEL_NAMES_CMIP6 = ["CNRM-ESM2-1"]
+EXPERIMENTS = ["r1i1p1f2"]
+
+
+NC_FILE_DIR = "nc_files"
+CSV_FILE_DIR = "csv_files"
+EMPTY_REQUEST_FOLDER = "empty_request"
+
+REQUEST_TYPE = ["Request data through Open-Meteo", "Request data though CMIP6 projections"]
+

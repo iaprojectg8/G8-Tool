@@ -30,6 +30,30 @@ def read_shape_file(shapefile_path):
     return gdf
     
 
+def map_empty_request(combined_gdf, empty_gdf:gpd.GeoDataFrame):
+    center = [combined_gdf.geometry.centroid.y.mean(), combined_gdf.geometry.centroid.x.mean()]
+    bounds = combined_gdf.total_bounds
+    zoom_start = calculate_zoom_level(bounds)
+    m = folium.Map(location=center, zoom_start=zoom_start)
+
+    # Add generated points to the map
+    print("Adding points to map")
+    for _, row in empty_gdf.iterrows():
+        folium.CircleMarker(
+            location=[row['lat'], row['lon']],
+            radius=1,
+            color='blue',
+            fill=True,
+            fill_color='blue'
+        ).add_to(m)
+
+    folium.GeoJson(combined_gdf).add_to(m)
+    set_title_2("Map")
+    st_folium(m, height=500, use_container_width=True)
+
+    return st.session_state.point_df
+
+
 def main_map(combined_gdf):
 
     center = [combined_gdf.geometry.centroid.y.mean(), combined_gdf.geometry.centroid.x.mean()]
