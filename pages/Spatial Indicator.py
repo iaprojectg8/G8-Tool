@@ -49,29 +49,27 @@ def main():
             st.write("No coordinates found in the CSV files.")
 
         
-        st.write("What do you want to do ?")
+        set_title_2("What do you want to do ?") 
         indicator_choice = st.radio(
             label="Choose an indicator type:",
             options=["Make spatial indicators", "Make overall average indicator"],
             index=0  # Default selection
         )
         if indicator_choice == "Make spatial indicators":
-            set_title_2("Spatial indicator")
-            # st.session_state.dataframes = put_date_as_index(dataframe_dict=st.session_state.dataframes)
-            df_init = copy(st.session_state.dataframes[list(st.session_state.dataframes.keys())[0]])
+            # Define an indicator sample to simutlate the indicator building on a subset
+            df_indicator_sample = copy(st.session_state.dataframes[list(st.session_state.dataframes.keys())[0]])
 
-            spatial_indicator_management(df_init, st.session_state.dataframes)
+            spatial_indicator_management(df_indicator_sample, st.session_state.dataframes)
 
 
         elif indicator_choice == "Make overall average indicator":
             set_title_2("Overall average indicator")
-            csv_filename_output = "Overall_Average.csv"
             if st.button(label="Average your Dataset"):
-                make_zone_average(folder_name=extract_to, csv_output=csv_filename_output)
-            df = pd.read_csv(csv_filename_output, index_col="date", parse_dates=True)
-            if not df.empty :
+                make_zone_average(dataframes=st.session_state.dataframes)
+            if st.session_state.all_df_mean is not None :
+                df_overall_averaged = st.session_state.all_df_mean
                 with st.expander(label="Your dataset average is ready"):
-                    lat, lon = df.iloc[0][['lat', 'lon']]
+                    lat, lon = df_overall_averaged.iloc[0][['lat', 'lon']]
                     folium.Marker(location=[lat, lon],
                                     icon=folium.Icon(icon="glyphicon-ok-circle", 
                                                     prefix="glyphicon", 
@@ -82,9 +80,9 @@ def main():
                 # Tab init
                 tab_general, tab_indicator = st.tabs(["General", "Indicators"])
                 with tab_general:
-                    general_management(df)
+                    general_management(df_overall_averaged)
                 with tab_indicator:
-                    indicator_management(df)
+                    indicator_management(df_overall_averaged)
 
 if __name__ == "__main__":
     main()

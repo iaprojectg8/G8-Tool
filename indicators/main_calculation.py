@@ -5,7 +5,7 @@ from indicators.plot import *
 from indicators.parametrization.update_indicator import * 
 from indicators.custom_indicators import heat_index_indicator
 from spatial.rasterization import rasterize_data, display_raster_with_slider, raster_download_button, read_shape_zipped_shape_file
-
+from lib.data_process import period_filter
 
 
 # ------------------------------------------------
@@ -331,7 +331,8 @@ def calculations_and_plots(df_season, df_indicators_parameters: pd.DataFrame,df_
     return df_yearly
 
 
-def spatial_calculation(df_season, df_indicators_parameters: pd.DataFrame,df_checkbox:pd.DataFrame, dataframes_dict, all_dataframes_dict, season_start, season_end,periods):
+def spatial_calculation(df_season, df_indicators_parameters: pd.DataFrame,df_checkbox:pd.DataFrame, dataframes_dict, 
+                        all_dataframes_dict, season_start, season_end,periods, shape_gdf, raster_resolution):
     """
     Perform calculations and generate plots for each indicator in the given indicator parameters DataFrame.
 
@@ -361,7 +362,6 @@ def spatial_calculation(df_season, df_indicators_parameters: pd.DataFrame,df_che
             # Initializing useful variables
             variable = row["Variable"]
             dataframes_dict_filtered = get_only_required_variable(copy(dataframes_dict), variable)
-            print(len(dataframes_dict))
             score_name = row["Name"]
             season_start_shift=row["Season Start Shift"]
             season_end_shift= row["Season End Shift"]
@@ -396,11 +396,7 @@ def spatial_calculation(df_season, df_indicators_parameters: pd.DataFrame,df_che
                         
                         # All the other parts are located here                                        
                         else:
-                            shape_gdf  = read_shape_zipped_shape_file()
-                            raster_resolution = st.number_input("Choose the raster resolution",
-                                                                min_value=0.001, max_value=1., 
-                                                                value=0.005,
-                                                                format="%0.3f")
+                            
                             if st.button(label="Compute Data to get the graphs", key=f"other_compute_{i}"):
                                 progress_bar = st.progress(0)
                                 for i, ((df_key, df), (all_df_key, all_df)) in enumerate(zip(dataframes_dict_filtered.items(), all_dataframes_dict.items())):
@@ -414,8 +410,8 @@ def spatial_calculation(df_season, df_indicators_parameters: pd.DataFrame,df_che
                 else:
                     st.warning("Your variable is not in the taken in the dataframes dictionary, please click on 'Filter the data' button to get it")
                 if st.session_state.raster_params is not None:
-                    display_raster_with_slider(periods)
-                    raster_download_button()
+                    display_raster_with_slider(score_name, periods)
+                    raster_download_button(score_name, index=i)
                 
     return df_yearly
 
@@ -456,3 +452,12 @@ def spatial_calculation_for_raster(row, below_thresholds, above_thresholds, df, 
         observed=False
     )
     return sumup_df
+
+def filter_all_the_dataframe(dataframes:dict, long_period):
+    for key_df, df in dataframes.items():
+        # do the filters that have been done on the first dataframe of the dictionary
+        data_long_period_filtered = period_filter(df, period=long_period)
+        dataframes[key_df] = data_long_period_filtered
+    st.write("The filtering is done")
+    print(dataframes)
+    return dataframes

@@ -157,7 +157,7 @@ def rasterize_data(df: pd.DataFrame, shape_gdf, resolution):
     st.session_state.raster_params = grid_score_list, transform_list
 
 
-def display_raster_with_slider(periods):
+def display_raster_with_slider(score_name, periods):
     """
     Display a multi-band raster with a slider to switch between epochs using Plotly.
 
@@ -175,13 +175,12 @@ def display_raster_with_slider(periods):
     data_max = 4
 
     fig = px.imshow(
-        bands[0],  # Initial band for display
-        # animation_frame=
-        color_continuous_scale=["green", "yellow", "orange","red"],  # Choose your preferred colormap
+        bands[0], 
+        color_continuous_scale=["green", "yellow", "orange","red"],
         zmin=data_min,  # Use the actual min value from the data
         zmax=data_max,  # Use the actual max value from the data
-        title="Raster Visualization",
-        height=700
+        title=f"{score_name} Exposure through Periods",
+        height=800
     )
 
     # Building each step of the slider
@@ -194,24 +193,57 @@ def display_raster_with_slider(periods):
         }
         steps.append(step)
 
-    # Creating the raster
+    # Creating the slider for the raster
     sliders = [dict(active= 0,
-                    pad={"t": 50, "r":50, "l":50, "b":50},
+                    pad={"t": 120, "r":50, "l":50, "b":50},
                     steps = steps,
                     font=dict(size=17,
                               weight=800),
                     name = "Periods")]
 
     fig.update_layout(sliders=sliders,
-        font=dict(size=17, weight=800),
-        autosize=True)
+                        title=dict(x=0.5,
+                                    xanchor="center",
+                                    font_size=25),
+                        coloraxis_colorbar=dict(
+                                    title=dict(text="Exposure",
+                                                font=dict(size=20, color="white",weight=900),
+                                                        side="top",
+                                                        ),   
+                                    ticks="outside",  
+                                    tickvals=[1, 2, 3, 4],  # Custom tick values
+                                    ticktext=["Low","Moderate", "High", "Very High"],  # Custom tick labels
+                                    lenmode="fraction",            # Control the length of the colorbar
+                                    len=0.8, 
+                                    yanchor="middle",
+                                    y=0.5,
+                               ),
+                        xaxis=dict(tickfont_size=15,
+                                tickangle=0 ,
+                                    title = dict(
+                                        text="Longitude",
+                                        font_size=17,
+                                        standoff=50), 
+                                    ticklabelstandoff =15),
+                        yaxis=dict(tickfont_size=15,
+                                    range=[0,1],
+                                    title=dict(
+                                        text="Latitude",
+                                        font_size=17,
+                                        standoff=50),
+                                    ticklabelstandoff = 15),
+                        font=dict(size=17, weight=800),
+                        autosize=True)
+                        
 
     # Display the map in Streamlit
     st.plotly_chart(fig, use_container_width=True)
 
+# -------------------------------------------
+# --- Widget for the raster visualisation ---
+# -------------------------------------------
 
-
-def raster_download_button():
+def raster_download_button(score_name, index):
     """
     Creates a download button in Streamlit to allow users to download a raster file.
     The raster file is created in-memory using Rasterio's MemoryFile.
@@ -238,8 +270,9 @@ def raster_download_button():
     st.download_button(
         label="Download Raster",
         data=raster_data,
-        file_name="output_raster.tif",
-        mime="image/tiff"
+        file_name=f"{score_name}.tif",
+        mime="image/tiff",
+        key=f"download_raster{index}"
     )
 
 

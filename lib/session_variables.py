@@ -81,6 +81,9 @@ if "dataframes" not in st.session_state:
 
 if "raster_params" not in st.session_state:
     st.session_state.raster_params = None
+
+if "all_df_mean" not in st.session_state:
+    st.session_state.all_df_mean = None 
     
 
 def delete_indicator(index):
