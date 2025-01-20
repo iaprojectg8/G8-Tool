@@ -78,3 +78,4 @@ import requests
 import openmeteo_requests 
 import requests_cache
 from retry_requests import retry
+import xarray as xr
