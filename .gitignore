@@ -5,3 +5,4 @@ __pycache__
 extracted_files/
 *Moroni_Dataset*
 *sqlite
+nc_files/

@@ -3,7 +3,7 @@ from utils.variables import ZIP_FOLDER, UNIT_DICT, MODEL_NAMES, DATAFRAME_HEIGHT
 from maps_related.main_functions import *
 from lib.data_process import select_period
 from requests_api.open_meteo_request import request_all_data
-from requests_api.cmip6_requests import make_empty_request
+from requests_api.cmip6_requests import make_empty_request, make_whole_request
 
 
 
@@ -80,10 +80,9 @@ def cmip6_request(selected_shape_folder, gdf_list:list):
             st.dataframe(data=empty_request_gdf, height=DATAFRAME_HEIGHT, use_container_width=True)
         if not empty_request_gdf.empty:
             map_empty_request(combined_gdf, empty_request_gdf)
-        
+            make_whole_request(combined_gdf.total_bounds)
         
         # Here we will make the request with the point we have 
-        
         set_title_2("Interpolation")
         
 

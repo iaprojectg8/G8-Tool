@@ -51,8 +51,6 @@ def map_empty_request(combined_gdf, empty_gdf:gpd.GeoDataFrame):
     set_title_2("Map")
     st_folium(m, height=500, use_container_width=True)
 
-    return st.session_state.point_df
-
 
 def main_map(combined_gdf):
 

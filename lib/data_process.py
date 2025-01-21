@@ -115,6 +115,27 @@ def select_period(key):
         key=key)      
     return period_start, period_end
 
+def select_period_cmip6(key, ssp):
+    """
+    Allows the user to select a data period using an interactive Streamlit slider.
+
+    Returns:
+        tuple: The start and end values of the selected period.
+    """
+    # Display the slider that allows the user to select the bounds
+    if ssp == "historical":
+        start = 1950
+        end = 2014
+    else:
+        start = 2015
+        end = 2100
+    period_start, period_end = st.slider(
+        "Select the data period:",
+        min_value=start, 
+        max_value=end,
+        value=(start, end),
+        key=key)      
+    return period_start, period_end
 
 def split_into_periods_indicators(period_length, start_year, end_year):
     """
