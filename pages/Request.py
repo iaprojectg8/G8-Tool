@@ -78,12 +78,10 @@ def cmip6_request(selected_shape_folder, gdf_list:list):
                 empty_request_gdf = pd.concat([empty_request_gdf, df_unique], ignore_index=True)
         with st.expander(label="Your coordinates"):
             st.dataframe(data=empty_request_gdf, height=DATAFRAME_HEIGHT, use_container_width=True)
+        
         if not empty_request_gdf.empty:
             map_empty_request(combined_gdf, empty_request_gdf)
             make_whole_request(combined_gdf.total_bounds)
-        
-        # Here we will make the request with the point we have 
-        set_title_2("Interpolation")
         
 
 def open_meteo_request(selected_shape_folder, gdf_list):

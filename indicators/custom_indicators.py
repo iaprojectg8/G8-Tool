@@ -130,7 +130,6 @@ def plot_bar_stack_count(df: pd.DataFrame, periods):
 
     # Indicator part ??
     max_category_per_period = (category_counts_periods.loc[category_counts_periods.groupby('period')['count'].idxmax()])
-    print(max_category_per_period.size)
     fig3 = plot_bar(max_category_per_period, "period", "count", 'Periods', 'Max Count per Period')
     add_vertical_line(fig3, datetime.now().year, periods=periods)
     update_plot_layout(fig3)
@@ -156,6 +155,8 @@ def update_plot_layout(fig:go.Figure):
                     yanchor = "middle",
                     font = dict(size=25, weight=900)),
         xaxis=dict(tickfont_size=15,
+                   nticks = 10,
+                   ticklabeloverflow="hide past div",
                     title = dict(
                         font_size=17,
                         standoff=50),       
@@ -204,9 +205,127 @@ def from_celsius_to_fahrenheit(celsius):
     fahrenheit = celsius * 9/5 + 32
     return fahrenheit
 
+def heat_index_spatial_indicator(df, periods):
+    """
+    Calculate the spatial heat index for given periods based on temperature and relative humidity
+    Args:
+        df (pd.DataFrame): Input DataFrame containing temperature and relative humidity data along with latitude and longitude.
+        df_key (str): Key to identify the DataFrame (not used in the function but kept for consistency).
+        periods (list of tuples): List of period tuples where each tuple contains start and end period.
+
+    Returns:
+        pd.DataFrame: A pivot table DataFrame with latitude and longitude as index, periods as columns, and mean heat index values.
+    """
+
+    if "relative_humidity_2m_min" in df.columns:
+        relative_humidity_min = "relative_humidity_2m_min"
+    elif "relative_humidity_2m" in df.columns:  
+        relative_humidity_min = "relative_humidity_2m" 
+    temperature_max = "temperature_2m_mean"
+    heat_index = "heat_index"
+    df_heat_index = df[[temperature_max, relative_humidity_min, "lat", "lon"]]
+
+    # Calculate the heat index 
+    df_heat_index[temperature_max] = df_heat_index[temperature_max].apply(from_celsius_to_fahrenheit)
+    df_heat_index = heat_index_calculation(df_heat_index, relative_humidity_min, temperature_max)
+    df_heat_index[[heat_index, temperature_max]] = df_heat_index[[heat_index, temperature_max]].apply(from_fahrenheit_to_celsius)
+    categorize_heat_index(df_heat_index)
+    df_heat_index = add_periods_to_df(df_heat_index, periods)
+    df_heat_index["period"] = df_heat_index["period"].apply(lambda x: f"{x[0]}-{x[1]}")
+    df_period = df_heat_index.groupby(["period", "lat", "lon"], as_index=False, observed=False)[heat_index].mean()
+    sumup_df = df_period.pivot_table(
+        index=['lat', 'lon'], 
+        columns='period',
+        values='heat_index', # ['absolute_score', 'category', 'color', 'exposure_prob'], 
+        aggfunc='first',
+        observed=False
+    )
+    return sumup_df
 
 
-def heat_index_indicator(df,df_key, periods):
+def display_raster_with_slider_heat_index(score_name, periods):
+    """
+    Display a multi-band raster with a slider to switch between epochs using Plotly.
+
+    Args:
+        periods (list(tuple)) : Contains the list of the periods encapsulated in tuples
+    """
+    periods = [f"{period[0]}-{period[1]}" for period in periods]
+    # Open the raster file
+
+    grid_score_list, _ = st.session_state.raster_params[score_name]
+    bands = grid_score_list
+
+    # Colorscale min and max
+    data_min = 20
+    data_max = 40
+
+    fig = px.imshow(
+        bands[0], 
+        color_continuous_scale=["green", "yellow", "orange","red"],
+        zmin=data_min,  # Use the actual min value from the data
+        zmax=data_max,  # Use the actual max value from the data
+        title=f"{score_name} Exposure through Periods",
+        height=800
+    )
+
+    # Building each step of the slider
+    steps = []
+    for i, band in enumerate(bands):
+        step = {
+            "args": [{"z": [band]}],
+            "label": periods[i],
+            "method": "update",
+        }
+        steps.append(step)
+
+    # Creating the slider for the raster
+    sliders = [dict(active= 0,
+                    pad={"t": 120, "r":50, "l":50, "b":50},
+                    steps = steps,
+                    font=dict(size=17,
+                              weight=800),
+                    name = "Periods")]
+
+    fig.update_layout(sliders=sliders,
+                        title=dict(x=0.5,
+                                    xanchor="center",
+                                    font_size=25),
+                        coloraxis_colorbar=dict(
+                                    title=dict(text="Exposure",
+                                                font=dict(size=20, color="white",weight=900),
+                                                        side="top",
+                                                        ),   
+                                    ticks="outside",  
+                                    tickvals=[22, 27, 32, 39],  # Custom tick values
+                                    ticktext=['Low Discomfort', 'Moderate Discomfort', 'High Discomfort', 'Very High Discomfort'],  # Custom tick labels
+                                    lenmode="fraction",            # Control the length of the colorbar
+                                    len=0.8, 
+                                    yanchor="middle",
+                                    y=0.5,
+                               ),
+                        xaxis=dict(tickfont_size=15,
+                                tickangle=0 ,
+                                    title = dict(
+                                        text="Longitude",
+                                        font_size=17,
+                                        standoff=50), 
+                                    ticklabelstandoff =15),
+                        yaxis=dict(tickfont_size=15,
+                                    range=[0,1],
+                                    title=dict(
+                                        text="Latitude",
+                                        font_size=17,
+                                        standoff=50),
+                                    ticklabelstandoff = 15),
+                        font=dict(size=17, weight=800),
+                        autosize=True)
+                        
+
+    # Display the map in Streamlit
+    st.plotly_chart(fig, use_container_width=True)
+
+def heat_index_indicator(df, df_all, key, periods):
     """
     Processes the seasonal data to calculate and categorize the heat index, then plots the results.
 
@@ -218,40 +337,50 @@ def heat_index_indicator(df,df_key, periods):
     """
 
     set_title_1("Variable filter")
-    st.write("We are keeping only the daily max temperature and the daily mean relative humidity")
 
     # Get the right variable
-    relative_humidity_min = "relative_humidity_2m_min"
-    temperature_max = "temperature_2m_max"
+    if "relative_humidity_2m_min" in df_all.columns:
+        relative_humidity_min = "relative_humidity_2m_min"
+        temperature_max = "temperature_2m_max"
+    elif "relative_humidity_2m" in df_all.columns:  
+        relative_humidity_min = "relative_humidity_2m" 
+        temperature_max = "temperature_2m_mean"
+
     heat_index = "heat_index"
-    df_heat_index = df[[temperature_max, relative_humidity_min]]
+    if relative_humidity_min not in df or temperature_max not in df:
+        if relative_humidity_min not in df:
+            st.error(f"{relative_humidity_min} was not provided in the indicator variable. You should add it and update")
+        if temperature_max not in df:
+            st.error(f"{temperature_max} was not provided in the indicator variable. You should add it and update")
+    else:
+        df_heat_index = df[[temperature_max, relative_humidity_min]]
 
-    # Calculate the heat index 
-    df_heat_index[temperature_max] = df_heat_index[temperature_max].apply(from_celsius_to_fahrenheit)
-    df_heat_index = heat_index_calculation(df_heat_index, relative_humidity_min, temperature_max)
-    df_heat_index[[heat_index, temperature_max]] = df_heat_index[[heat_index, temperature_max]].apply(from_fahrenheit_to_celsius)
-    
-    
-    # Display the dataframe 
-    st.dataframe(df_heat_index, height=DATAFRAME_HEIGHT, use_container_width=True)
+        # Calculate the heat index 
+        df_heat_index[temperature_max] = df_heat_index[temperature_max].apply(from_celsius_to_fahrenheit)
+        df_heat_index = heat_index_calculation(df_heat_index, relative_humidity_min, temperature_max)
+        df_heat_index[[heat_index, temperature_max]] = df_heat_index[[heat_index, temperature_max]].apply(from_fahrenheit_to_celsius)
+        
+        
+        # Display the dataframe 
+        st.dataframe(df_heat_index, height=DATAFRAME_HEIGHT, use_container_width=True)
 
-    # Categorize the heat index
-    categorize_heat_index(df_heat_index)
+        # Categorize the heat index
+        categorize_heat_index(df_heat_index)
 
-    fig_list = list()
-    # Plot the heat index categories by year
-    fig1 = plot_daily_data(df_heat_index, relative_humidity_min)
-    fig2 = plot_daily_data(df_heat_index, temperature_max)
-    fig_list.extend([fig1, fig2])
-    fig1, fig2, fig3 = plot_bar_stack_count(df_heat_index, periods)
-    fig_list.extend([fig1, fig2, fig3])
-    pdf = wrap_indicator_into_pdf(fig_list=fig_list)
-    # Provide a button to download the generated PDF
-    st.download_button(
-        label="Download PDF",
-        data=pdf,
-        file_name="whatever.pdf",
-        mime="application/pdf",
-        key= df_key
-    )
+        fig_list = list()
+        # Plot the heat index categories by year
+        fig1 = plot_daily_data(df_heat_index, relative_humidity_min)
+        fig2 = plot_daily_data(df_heat_index, temperature_max)
+        fig_list.extend([fig1, fig2])
+        fig1, fig2, fig3 = plot_bar_stack_count(df_heat_index, periods)
+        fig_list.extend([fig1, fig2, fig3])
+        pdf = wrap_indicator_into_pdf(fig_list=fig_list)
+        # Provide a button to download the generated PDF
+        st.download_button(
+            label="Download PDF",
+            data=pdf,
+            file_name="whatever.pdf",
+            mime="application/pdf",
+            key= key
+        )
 

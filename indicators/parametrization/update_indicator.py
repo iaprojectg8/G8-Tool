@@ -22,8 +22,11 @@ def update_general_information(updated_indicator,i, df_chosen:pd.DataFrame):
                                                        index=INDICATOR_TYPES.index(updated_indicator["Indicator Type"]), 
                                                        key=f"edit_indicator_type_{i}")
     if updated_indicator["Indicator Type"] == "Crossed Variables":
-
-        updated_indicator["Variable"] = st.multiselect("Variable", options =df_chosen.columns,
+        print(updated_indicator["Variable"])
+        print(type(updated_indicator["Variable"]))
+        if not isinstance(updated_indicator["Variable"],list): 
+            updated_indicator["Variable"] = ast.literal_eval(updated_indicator["Variable"])
+        updated_indicator["Variable"] = st.multiselect("Variable", options =list(df_chosen.columns),
                                                     default=updated_indicator["Variable"], 
                                                     key=f"edit_variable_{i}")
     else :
@@ -31,7 +34,7 @@ def update_general_information(updated_indicator,i, df_chosen:pd.DataFrame):
                                                     index=list(df_chosen.columns).index(updated_indicator["Variable"]) 
                                                     if type(updated_indicator["Variable"]) is not list else 0, 
                                                     key=f"edit_variable_{i}")
-    
+
 
 
 ## Daily

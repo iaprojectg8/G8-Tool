@@ -16,7 +16,7 @@ def general_management(df):
     set_title_1("Climate Variables")
     key = "general_part"
     # Chosen variable has a certain case that might be broken to easier use
-    chosen_variables = variable_choice()
+    chosen_variables = variable_choice(df)
     
 
     # Period choice
@@ -25,7 +25,8 @@ def general_management(df):
     # Period cut
     smaller_period_length  = st.select_slider("Choose the length of smaller period to see the evolution of your data on them:",
                                               options=PERIOD_LENGTH,
-                                              key = f"smaller_period{key}")
+                                              key = f"smaller_period{key}",
+                                              value=10)
     periods = split_into_periods(smaller_period_length, long_period_start, long_period_end)
     
     # Loading CSV, this will almost surely be replaced by 

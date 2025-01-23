@@ -3,7 +3,7 @@ from utils.variables import *
 from indicators.calculation import *
 from indicators.plot import *
 from indicators.parametrization.update_indicator import * 
-from indicators.custom_indicators import heat_index_indicator
+from indicators.custom_indicators import heat_index_indicator, heat_index_spatial_indicator, display_raster_with_slider_heat_index
 from spatial.rasterization import rasterize_data, display_raster_with_slider, raster_download_button, read_shape_zipped_shape_file
 from lib.data_process import period_filter
 
@@ -202,7 +202,7 @@ def calculate_scores(row, df_season_temp, score_name, variable, spatial):
         tuple: A tuple containing the unit of measurement, the yearly variable DataFrame, and the aggregated column name.
     """
     if row["Indicator Type"] == "Season Aggregation":
-        unit = UNIT_FROM_VARIABLE[row["Variable"]]
+        unit = UNIT_DICT[row["Variable"]]
         df_yearly_var, aggregated_column_name = season_aggregation_calculation(row,df_season_temp, score_name, variable)
         return unit, df_yearly_var, aggregated_column_name
     
@@ -217,7 +217,7 @@ def calculate_scores(row, df_season_temp, score_name, variable, spatial):
         return unit, df_yearly_var, aggregated_column_name
         
     elif row["Indicator Type"] == "Sliding Windows Aggregation":
-        unit = UNIT_FROM_VARIABLE[row["Variable"]]
+        unit = UNIT_DICT[row["Variable"]]
         df_yearly_var, aggregated_column_name = sliding_window_calculation(row, df_season_temp, score_name, variable)
         return unit, df_yearly_var, aggregated_column_name
     
@@ -296,7 +296,7 @@ def calculations_and_plots(df_season, df_indicators_parameters: pd.DataFrame,df_
                     or season_start_shift is not None or season_end_shift is not None):
 
                     df_season = introduce_season_shift_in_calculation(season_start, season_start_shift, season_end, season_end_shift, all_year_data)
-            
+
             if type(variable) is list:
                 df_season_temp=df_season[variable]
             else:
@@ -304,7 +304,7 @@ def calculations_and_plots(df_season, df_indicators_parameters: pd.DataFrame,df_
 
             # Crossed Variable indicators have their own graph so don't need to go further there
             if row["Indicator Type"] == "Crossed Variables":
-                heat_index_indicator(df_season_temp, periods)
+                heat_index_indicator(df_season_temp, all_year_data, key=i, periods=periods)
             else:
                 unit, df_yearly_var, aggregated_column_name = calculate_scores(row,df_season_temp, score_name, variable, spatial=0)
                 # Plot preparation
@@ -389,10 +389,12 @@ def spatial_calculation(df_season, df_indicators_parameters: pd.DataFrame,df_che
                         # Specific part to allow crossed variable computation
                         if row["Indicator Type"] == "Crossed Variables":
                             if st.button(label="Compute Data to get the graphs", key="crossed_variable_compute"):
-                                with st.spinner("Looping over all the dataframes"):
-                                    for df_key, df in dataframes_dict_filtered.items():
-                                        st.write(df_key)
-                                        heat_index_indicator(df, df_key, periods)
+                                progress_bar = st.progress(0)
+                                for i,  (df_key, df) in enumerate(dataframes_dict_filtered.items()):
+                                    sumup_df = heat_index_spatial_indicator(df, periods)
+                                    df_raster = pd.concat([df_raster, sumup_df])
+                                    progress_bar.progress((i+1)/len(dataframes_dict_filtered), text=df_key)
+                                rasterize_data(df_raster, shape_gdf=shape_gdf, resolution=raster_resolution, score_name=score_name)
                         
                         # All the other parts are located here                                        
                         else:
@@ -401,17 +403,25 @@ def spatial_calculation(df_season, df_indicators_parameters: pd.DataFrame,df_che
                                 progress_bar = st.progress(0)
                                 for i, ((df_key, df), (all_df_key, all_df)) in enumerate(zip(dataframes_dict_filtered.items(), all_dataframes_dict.items())):
 
-                                    progress_bar.progress((i+1)/len(dataframes_dict_filtered), text=df_key)
+                                    
                                     sumup_df = spatial_calculation_for_raster(row, below_thresholds, above_thresholds, df, score_name, variable, periods)
                                     df_raster = pd.concat([df_raster, sumup_df])
-                            
-                                rasterize_data(df_raster, shape_gdf=shape_gdf, resolution=raster_resolution)
+                                    progress_bar.progress((i+1)/len(dataframes_dict_filtered), text=df_key)
+                                    
+                                rasterize_data(df_raster, shape_gdf=shape_gdf, resolution=raster_resolution, score_name=score_name)
  
                 else:
                     st.warning("Your variable is not in the taken in the dataframes dictionary, please click on 'Filter the data' button to get it")
                 if st.session_state.raster_params is not None:
-                    display_raster_with_slider(score_name, periods)
-                    raster_download_button(score_name, index=i)
+                    try :
+                        if row["Indicator Type"] == "Crossed Variables":
+                            display_raster_with_slider_heat_index(score_name, periods)
+                        else:
+                            display_raster_with_slider(score_name, periods)
+                        raster_download_button(score_name, index=i)
+                    except Exception as e:
+                        st.error(f"An error occurred while rendering the rasters: {e}")
+                        st.info("The data has changed, but it has not been recomputed yet. Please click on the button")
                 
     return df_yearly
 

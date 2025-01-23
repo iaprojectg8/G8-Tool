@@ -10,12 +10,26 @@ def read_csv_files_from_directory(directory):
     # L'utilisation de glob est surement plus approprié dans ce genre de cas
     extracted_dir_name = os.listdir(directory)[0]
     extracted_dir_path = os.path.join(directory, extracted_dir_name)
+    
+    # Just to manage different zip file structures
+    if os.path.isfile(extracted_dir_path):
+        extracted_dir_path = directory
+
     csv_files = [f for f in os.listdir(extracted_dir_path) if f.endswith('.csv')]
     dataframes = {}
     for file in csv_files:
         file_path = os.path.join(extracted_dir_path, file)
         dataframes[file] = pd.read_csv(file_path)
+    get_min_and_max_year(dataframes)
     return dataframes
+
+def get_min_and_max_year(dataframes:dict):
+    df = copy(dataframes[list(dataframes.keys())[0]])
+    df["date"] = pd.to_datetime(df["date"])
+    min_year = df['date'].min().year
+    max_year = df['date'].max().year
+    st.session_state.min_year = min_year
+    st.session_state.max_year = max_year
 
 def extract_coordinates(dataframes):
     coordinates = []

@@ -3,6 +3,11 @@ VARIABLES_LIST = ["temperature_2m_mean", "temperature_2m_max", "temperature_2m_m
           "wind_speed_10m_max", "shortwave_radiation_sum", "relative_humidity_2m_mean", "relative_humidity_2m_max", 
           "relative_humidity_2m_min", "precipitation_sum", "soil_moisture_0_to_10cm_mean"]
 
+CMIP6_VARIABLE = ["hurs", "huss", "pr", "rlds", "rsds", "sfcWind", "tas", "tasmax", "tasmin"]
+READABLE_VARIABLE = [
+        "relative_humidity_2m","specific_humidity_2m","precipitation_sum","longwave_radiation","shortwave_radiation",
+        "wind_speed_10m_mean","temperature_2m_mean","temperature_2m_max","temperature_2m_min"]
+
 DATASET_FOLDER ="Moroni_Dataset"
 COORDINATES_FILE="coordinates_to_extract/Sundarbans_02.csv"
 
@@ -17,7 +22,8 @@ MONTHS_LIST = [
     "January", "February", "March", "April", "May", "June", 
     "July", "August", "September", "October", "November", "December"
 ]
-AVAILABLE_VARIABLES = ["Temperature", "Precipitation", "Wind", "Shortwave Radiation", "Relative Humidity", "Soil Moisture"]
+AVAILABLE_VARIABLES = ["Temperature", "Precipitation", "Wind", "Shortwave Radiation", 
+                       "Relative Humidity", "Soil Moisture", "Longwave Radiation", "Specific Humidity" ]
 UNIT_DICT= {
     "temperature_2m_mean": "°C",
     "temperature_2m_max": "°C",
@@ -25,31 +31,32 @@ UNIT_DICT= {
     "wind_speed_10m_mean": "m/s",
     "wind_speed_10m_max": "m/s",
     "shortwave_radiation_sum": "MJ/m²",
+    "longwave_radiation": "W/m²",         # Longwave downward radiation
+    "shortwave_radiation": "W/m²",        # Shortwave downward radiation
+    "relative_humidity_2m": "%",
     "relative_humidity_2m_mean": "%",
     "relative_humidity_2m_max": "%",
     "relative_humidity_2m_min": "%",
+    "specific_humidity_2m": "",
     "precipitation_sum": "mm",
     "soil_moisture_0_to_10cm_mean": "m³/m³"
 }
 
+# CMIP6_UNIT = {
+#     "relative_humidity_2m": "%",           # Relative humidity at 2m
+#     "specific_humidity_2m": "",           # Specific humidity at 2m
+#     "precipitation_sum": "mm",      # Precipitation average flux
+#     "longwave_radiation": "W/m²",         # Longwave downward radiation
+#     "shortwave_radiation": "W/m²",        # Shortwave downward radiation
+#     "wind_speed_10m_mean": "km/h",         # Wind speed at 10m
+#     "temperature_2m_mean": "°C",             # Air temperature at 2m
+#     "temperature_2m_max": "°C",           # Daily maximum air temperature
+#     "temperature_2m_min": "°C"            # Daily minimum air temperature
+# }
 
 
 FILENAME = "Moroni_coords_mean.csv"
 
-
-UNIT_FROM_VARIABLE = {
-    "temperature_2m_mean": "°C",  # Mean temperature at 2 meters above ground
-    "temperature_2m_max": "°C",   # Maximum temperature at 2 meters
-    "temperature_2m_min": "°C",   # Minimum temperature at 2 meters
-    "wind_speed_10m_mean": "m/s", # Mean wind speed at 10 meters above ground
-    "wind_speed_10m_max": "m/s",  # Maximum wind speed at 10 meters
-    "shortwave_radiation_sum": "W/m²", # Sum of shortwave radiation (solar energy)
-    "relative_humidity_2m_mean": "%",  # Mean relative humidity at 2 meters
-    "relative_humidity_2m_max": "%",   # Maximum relative humidity at 2 meters
-    "relative_humidity_2m_min": "%",   # Minimum relative humidity at 2 meters
-    "precipitation_sum": "mm",         # Total precipitation
-    "soil_moisture_0_to_10cm_mean": "m³/m³" # Volumetric soil moisture content (0-10cm depth)
-}
 
 PERIOD_LENGTH = [10,15,20,25,30,35,40,45,50,55,60]
 
@@ -157,9 +164,9 @@ BUILTIN_INDICATORS = ["Heat Index", "Other"]
 CMIP6_TO_READABLE = {
         "hurs": "relative_humidity_2m",   # Relative humidity at 2m
         "huss": "specific_humidity_2m",   # Specific humidity at 2m
-        "pr": "precipitation_averaged_flux",        # precipitation average flux in kg m-2 s-1 if total preicipitation wanted then need to multiply by 86400
+        "pr": "precipitation_sum",        # precipitation average flux in kg m-2 s-1 if total preicipitation wanted then need to multiply by 86400
         "rlds": "longwave_radiation",     # Longwave downward radiation
-        "rsds": "shortwave_radiation_sum",    # Shortwave downward radiation
+        "rsds": "shortwave_radiation",    # Shortwave downward radiation
         "sfcWind": "wind_speed_10m_mean",       # Wind speed at 10m
         "tas": "temperature_2m_mean",          # Air temperature at 2m
         "tasmax": "temperature_2m_max",   # Daily maximum air temperature
@@ -169,26 +176,20 @@ CMIP6_TO_READABLE = {
 READABLE_TO_CMIP6 = {
     "relative_humidity_2m": "hurs",           # Relative humidity at 2m
     "specific_humidity_2m": "huss",           # Specific humidity at 2m
-    "precipitation_averaged_flux": "pr",      # Precipitation average flux
+    "precipitation_sum": "pr",      # Precipitation average flux
     "longwave_radiation": "rlds",             # Longwave downward radiation
-    "shortwave_radiation_sum": "rsds",        # Shortwave downward radiation
+    "shortwave_radiation": "rsds",        # Shortwave downward radiation
     "wind_speed_10m_mean": "sfcWind",         # Wind speed at 10m
     "temperature_2m_mean": "tas",             # Air temperature at 2m
     "temperature_2m_max": "tasmax",           # Daily maximum air temperature
     "temperature_2m_min": "tasmin"            # Daily minimum air temperature
 }
 
-CMIP6_VARIABLE = ["hurs", "huss", "pr", "rlds", "rsds", "sfcWind", "tas", "tasmax", "tasmin"]
-READABLE_VARIABLE = [
-        "relative_humidity_2m",
-        "specific_humidity_2m",
-        "precipitation_averaged_flux",
-        "longwave_radiation",
-        "shortwave_radiation_sum",
-        "wind_speed_10m_mean",
-        "temperature_2m_mean",
-        "temperature_2m_max",
-        "temperature_2m_min"]
+
+
+
+
+
 
 SSP = ["historical", "ssp126", "ssp245", "ssp370", "ssp585"]
 MODEL_NAMES_CMIP6 = ["CNRM-ESM2-1"]
@@ -196,6 +197,7 @@ EXPERIMENTS = ["r1i1p1f2"]
 
 
 NC_FILE_DIR = "nc_files"
+WORKING_NC_FILE = "all_variables_nc_1960"
 CSV_FILE_DIR = "csv_files"
 EMPTY_REQUEST_FOLDER = "empty_request"
 

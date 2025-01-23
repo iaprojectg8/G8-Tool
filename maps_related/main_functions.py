@@ -49,7 +49,7 @@ def map_empty_request(combined_gdf, empty_gdf:gpd.GeoDataFrame):
 
     folium.GeoJson(combined_gdf).add_to(m)
     set_title_2("Map")
-    st_folium(m, height=500, use_container_width=True)
+    st_folium(m, height=600, use_container_width=True)
 
 
 def main_map(combined_gdf):
@@ -83,7 +83,7 @@ def main_map(combined_gdf):
 
     folium.GeoJson(combined_gdf).add_to(m)
     set_title_2("Map")
-    st_folium(m, height=500, use_container_width=True)
+    st_folium(m, height=600, use_container_width=True)
 
     return st.session_state.point_df
     

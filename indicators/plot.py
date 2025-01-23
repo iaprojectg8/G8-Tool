@@ -84,10 +84,11 @@ def plot_daily_data(df:pd.DataFrame, variable, zoom=None):
     
     df = df.resample("ME").mean()
     df= df.reset_index()
-
+    print(datetime.now(pytz.utc) in df["date"])
     fig = go.Figure()
     daily_data_plot(df, fig, variable)
-    add_vertical_line(fig, year=datetime.now(pytz.utc))
+    if datetime.now(pytz.utc) in df["date"]:
+        add_vertical_line(fig, year=datetime.now(pytz.utc))
     daily_data_update_layout(fig, variable)
     st.plotly_chart(fig)
     return fig
@@ -253,7 +254,8 @@ def yearly_exposure_update_layout(fig:go.Figure, data_min, data_max, diff, df,sc
                     xanchor="center",
                     font_size=25),
         xaxis=dict(tickfont_size=15,
-                    tickangle=0 ,
+                    nticks=10,
+                    ticklabeloverflow= "hide past div",
                     categoryorder="array",
                     categoryarray=list(df["period"].cat.categories),  # Explicit period order
                     title = dict(
@@ -279,7 +281,9 @@ def yearly_exposure_update_layout(fig:go.Figure, data_min, data_max, diff, df,sc
                     y=0.5,
                     
                     ),
-        font=dict(size=17, weight=800),)
+        font=dict(size=17, weight=800),
+        autosize=True,)
+    
 
 # Main function
 def plot_years_exposure(df, aggregated_column_name, min_thresholds, max_thresholds, score_name, unit):
@@ -425,7 +429,8 @@ def deficit_and_excess_exposure_update_layout(fig:go.Figure, periods_size, score
                     xanchor="center",
                     font_size=25),
         xaxis=dict(tickfont_size=15,
-                   tickangle=0,
+                    nticks=10,
+                    ticklabeloverflow= "hide past div",
                     title = dict(
                         text="Periods",
                         font_size=17,
@@ -434,7 +439,7 @@ def deficit_and_excess_exposure_update_layout(fig:go.Figure, periods_size, score
         yaxis=dict(tickfont_size=15,
                     range=[-periods_size, periods_size],
                     title=dict(
-                        text="Year Count (days)",
+                        text="Year Count (years)",
                         font_size=17,
                         standoff=50),
                     ticklabelstandoff = 20),
@@ -661,7 +666,8 @@ def global_exposure_update_layout(fig:go.Figure, score_name, desired_order):
                     xanchor="center",
                     font_size=25),
         xaxis=dict(tickfont_size=15,
-                   tickangle=0 ,
+                    nticks=10,
+                    ticklabeloverflow= "hide past div",
                     title = dict(
                         text="Periods",
                         font_size=17,

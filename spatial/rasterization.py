@@ -68,7 +68,6 @@ def apply_mask(grid_score, shape_gdf, min_lon, max_lat, resolution):
         
         # Apply the mask to the interpolated scores
         grid_score[mask] = np.nan
-
     return grid_score
 
 def read_shape_file(shapefile_path):
@@ -77,7 +76,7 @@ def read_shape_file(shapefile_path):
     return gdf
 
 
-def create_raster_from_df(gdf,shape_gdf, period, resolution=0.002):
+def create_raster_from_df(gdf,shape_gdf, period, resolution):
     """
     Generates a raster from a GeoDataFrame and applies an optional mask.
     
@@ -100,10 +99,8 @@ def create_raster_from_df(gdf,shape_gdf, period, resolution=0.002):
 
     # Interpolate the irregular data to the regular grid
     grid_score = griddata((lon, lat), score, (grid_lon, grid_lat), method='cubic')
-    
     # Apply the mask is so
     grid_score = apply_mask(grid_score, shape_gdf, min_lon, max_lat, resolution)
-
     # Define the affine transform for the raster from top-left
     transform = from_origin(min_lon, max_lat, resolution, resolution)
 
@@ -138,7 +135,7 @@ def get_raster_info(gdf, shape_gdf, periods, resolution):
     return grid_score_list, transform_list
 
 
-def rasterize_data(df: pd.DataFrame, shape_gdf, resolution):
+def rasterize_data(df: pd.DataFrame, shape_gdf, resolution, score_name):
     """
     Converts a DataFrame with geospatial data into rasterized grids and saves the raster parameters for later use.
 
@@ -154,7 +151,7 @@ def rasterize_data(df: pd.DataFrame, shape_gdf, resolution):
     grid_score_list, transform_list = get_raster_info(gdf, shape_gdf,  periods=periods, resolution=resolution)
 
     # Save the raster variable in session variable for later uses
-    st.session_state.raster_params = grid_score_list, transform_list
+    st.session_state.raster_params[score_name] = grid_score_list, transform_list
 
 
 def display_raster_with_slider(score_name, periods):
@@ -167,8 +164,9 @@ def display_raster_with_slider(score_name, periods):
     periods = [f"{period[0]}-{period[1]}" for period in periods]
     # Open the raster file
 
-    grid_score_list, _ = st.session_state.raster_params 
+    grid_score_list, _ = st.session_state.raster_params[score_name]
     bands = grid_score_list
+
 
     # Colorscale min and max
     data_min = 1

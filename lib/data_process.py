@@ -103,8 +103,8 @@ def select_period(key):
         tuple: The start and end values of the selected period.
     """
     # Define the initial limits for the slider
-    period_start= 1950
-    period_end= 2050
+    period_start= st.session_state.min_year
+    period_end= st.session_state.max_year
 
     # Display the slider that allows the user to select the bounds
     period_start, period_end = st.slider(

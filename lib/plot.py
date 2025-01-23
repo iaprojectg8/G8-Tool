@@ -668,6 +668,7 @@ def general_plot(data: pd.DataFrame, periods, filename):
     variable_choice = st.selectbox("Choose the variable on which you want to see the plot", options=chosen_variables)
     
     # Loop through columns to find and plot data matching the selected variable
+    print(data)
     for column in data.columns:
         if "_".join(variable_choice.lower().split(" ")) in column:
             
@@ -706,13 +707,15 @@ def add_vertical_line(fig:go.Figure, year,  periods=None):
     None
     """
     if type(year) is datetime:
-        # For graph with x type datetime
+        # For graph with x type datetime (daily plot graphs)
+        print(year)
         line_and_annotation(fig, x=year.isoformat(), x_text=year.year)
 
     elif type(year) is int and periods:
         # For graph with x type periods (str)
         period = get_category_for_year(year, periods)
-        line_and_annotation(fig, x=period, x_text=year)
+        if period is not None:
+            line_and_annotation(fig, x=period, x_text=year)
 
     elif type(year) is int:
         # For graph with x type int (only for heat index for the moment)

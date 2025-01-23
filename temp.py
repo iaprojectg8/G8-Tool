@@ -1,167 +1,84 @@
-from utils.imports import *
-from layouts.layout import *
+import xarray as xr
+import os
+from utils.variables import *
+import pandas as pd
+from tqdm import tqdm
+import shutil
 
-# --- Main functions ---
-def loads_data(filename):
+def process_nc_file_to_dataframe(nc_file_path):
     """
-    Loads the CSV data with daily timestamps.
-    
-    Arg:
-    filename (str): The path to the CSV file.
-    
-    Returns:
-    tuple:
-        - (pd.DataFrame): Loaded data with 'date' as the index.
-        - (float): Latitude of the data point.
-        - (float): Longitude of the data point.
-    """
-    # Load the CSV data with daily timestamps
-    data = pd.read_csv(filename, parse_dates=['date'], index_col=0)
-    
-    # Extract the lat and lon and the point to identify it later to make the raster
-    lat = data.loc[0, "lat"]
-    lon = data.loc[0, "lon"]
-
-    # Set the index to the date for the process to be easier
-    data = data.set_index("date")
-    return data
-
-def column_choice(data : pd.DataFrame):
-    """
-    Allows a user to select a column of interest from a DataFrame, excluding certain columns.
+    Process a NetCDF file and convert it into a DataFrame.
 
     Args:
-        data (pd.DataFrame): The input DataFrame containing the data.
+        nc_file_path (str): The path to the NetCDF file.
 
     Returns:
-        pd.Series: The selected column from the DataFrame as a Pandas Series.
+        pd.DataFrame: The processed data as a DataFrame.
     """
-    not_a_variable = [ "lat", "lon"]
-    columns_list = [column  for column in data.columns if column not in not_a_variable]
-    columns_chosen = st.session_state.columns_chosen = st.multiselect("Chose variable of interest", options=columns_list, default=st.session_state.columns_chosen)
-    df_final = data[columns_chosen]
+    # Open the NetCDF file using xarray
+    ds = xr.open_dataset(nc_file_path, engine="netcdf4")
+    df = ds.to_dataframe().reset_index()
 
-    return df_final
+    # Change the name of the time columns to date to correspond to the future processing
+    df.rename(columns={"time": "date"}, inplace=True)
+    df.set_index(["date", "lat", "lon"], inplace=True)
+    # Sort the data we have to get the right order in terms of date
+    df.sort_index(inplace=True)
+    print(df)
+    return df
 
-def period_filter(data,period):
-    data_in_right_period = data[(data.index.year>=period[0]) & (data.index.year<=period[-1])]
-    return data_in_right_period
-
-def filtered_data(data:pd.DataFrame, chosen_variables, period):
+def save_dataframe_to_csv(df, csv_file_path):
     """
-    Filters a DataFrame based on selected variables and a specified time period, 
-    then displays the resulting DataFrame.
+    Save a DataFrame to a CSV file.
 
     Args:
-        data (pd.DataFrame): The input DataFrame with a datetime index.
-        chosen_variables (list of str): The list of variables to filter the columns.
-        period (tuple of int): The start and end years for filtering the DataFrame.
-
-    Returns:
-        pd.DataFrame: The filtered DataFrame containing only the relevant columns and rows within the specified period.
+        df (pd.DataFrame): The DataFrame to save.
+        csv_file_path (str): The path to the CSV file.
     """
+    df.to_csv(csv_file_path, index=True)
 
-    # Filter by the period
-    data_in_right_period = data[(data.index.year>=period[0]) & (data.index.year<=period[-1])]
-    
-    # Change the format of the proposition made to the user to correspond to the dataframe column name
-    chosen_variables_modified = ["_".join(variable.lower().split()) for variable in chosen_variables]
-
-    # Check whether the columns chould be taken or removed from the dataframe
-    columns_to_keep = [column for column in data.columns if any(variable in column for variable in chosen_variables_modified)]
-    
-    # Keep the relevant columns
-    data_to_keep = data_in_right_period[columns_to_keep]
-    
-    data_to_diplay = copy(data_to_keep)
-    data_to_diplay.index = data_to_diplay.index.date
-
-    # Display the dataframe
-    st.dataframe(data=data_to_diplay,use_container_width=True)
-    return data_to_keep
-
-
-def select_period():
-    
-    period_start= 1950
-    period_end= 2050
-
-    period_start, period_end = st.slider(
-        "Select the data period:",
-        min_value=period_start, 
-        max_value=period_end,
-        value=(period_start, period_end))      
-    return period_start, period_end
-
-
-def split_into_periods_indicators(period_length, start_year, end_year):
+def process_all_nc_files(nc_file_dir, csv_file_dir, years=list(range(1950, 2015))):
     """
-    Splits a given time range into multiple periods of a specified length.
+    Process all NetCDF files in a directory and save them as CSV files.
 
     Args:
-        period_length (int): The length of each period in years.
-        start_year (int): The starting year of the entire time range.
-        end_year (int): The ending year of the entire time range.
-
-    Returns:
-        list of tuples: A list of tuples where each tuple represents a period
-                        with the format (period_start, period_end).
+        nc_file_dir (str): The directory containing the NetCDF files.
+        csv_file_dir (str): The directory to save the CSV files.
     """
-    whole_period_length = end_year - start_year + 1
-    amount_of_periods = whole_period_length // period_length + 1
-    periods = []
+    # Ensure the CSV directory exists
+    
+    # Loop through all NetCDF files in the directory
+    whole_df = pd.DataFrame()
+    for year in tqdm(years):
+        whole_year_df = pd.DataFrame()
+        for nc_file in os.listdir(nc_file_dir):
+            if str(year) in nc_file and nc_file.endswith(".nc"):
+                nc_file_path = os.path.join(nc_file_dir, nc_file)
 
-    # Loop through each period index and calculate start and end years
-    for period_index in range(amount_of_periods):
-        period_start = start_year + period_index * period_length   # Start year of the current period
-        period_end = period_start + period_length -1  # End year of the current period
+                # Process the NetCDF file to a DataFrame
+                df = process_nc_file_to_dataframe(nc_file_path)
+                whole_year_df=pd.concat([whole_year_df, df], ignore_index=False, axis=1)
 
-        # Append the period to the list, ensuring it does not exceed the end year
-        if period_end <= end_year:
-            periods.append((period_start, period_end))
-        else:
-            periods.append((period_start, end_year))
+        whole_df = pd.concat([whole_df, whole_year_df], ignore_index=False, axis=0)  
+    for (lat, lon), group_df in whole_df.groupby(['lat', 'lon']):
+        # Create filename using lat/lon
+        filename = f"lat_{lat}_lon_{lon}.csv"
+        csv_file_path = os.path.join(csv_file_dir, filename)
+        
+        # Save individual lat/lon DataFrame to CSV
+        save_dataframe_to_csv(group_df, csv_file_path)
+        print(f"Saved {csv_file_path}")
 
-    return periods
 
-def split_into_periods(period_length, start_year, end_year):
+def zip_csv_files(csv_dir, zip_name):
     """
-    Splits a given time range into multiple periods of a specified length.
-
-    Args:
-        period_length (int): The length of each period in years.
-        start_year (int): The starting year of the entire time range.
-        end_year (int): The ending year of the entire time range.
-
-    Returns:
-        list of tuples: A list of tuples where each tuple represents a period
-                        with the format (period_start, period_end).
+    Zip all CSV files in the directory
     """
-    print(end_year)
-    whole_period_length = end_year - start_year + 1
-    amount_of_periods = whole_period_length // period_length + 1
-    periods = []
+    # Create zip file
+    shutil.make_archive(zip_name, 'zip', csv_dir)
+    return f"{zip_name}.zip"
 
-    # Loop through each period index and calculate start and end years
-    for period_index in range(amount_of_periods):
-        period_start = start_year + period_index * period_length  # Start year of the current period
-        period_end = period_start + period_length  # End year of the current period
-
-        # Append the period to the list, ensuring it does not exceed the end year
-        if period_end <= end_year:
-            periods.append((period_start, period_end))
-        elif period_index == amount_of_periods-1 and  end_year - period_start < 2:
-            last_period = periods.pop()
-            print(last_period)
-            print(last_period[0])
-            print(end_year)
-            periods.append((last_period[0], end_year))
-        else:
-            periods.append((period_start, end_year))
-
-    print(periods)
-
-    return periods
-
-
-
+# Example usage
+process_all_nc_files(NC_FILE_DIR, CSV_FILE_DIR)
+# Custom the name of the zip file in order to avoid user not knowing what he is downloading
+zip_csv_files(CSV_FILE_DIR, "csv_files")

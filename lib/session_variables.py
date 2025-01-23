@@ -80,11 +80,19 @@ if "dataframes" not in st.session_state:
     st.session_state.dataframes = dict()
 
 if "raster_params" not in st.session_state:
-    st.session_state.raster_params = None
+    st.session_state.raster_params = dict()
 
 if "all_df_mean" not in st.session_state:
     st.session_state.all_df_mean = None 
-    
+
+if "reset_folder" not in st.session_state:
+    st.session_state.reset_folder = None
+
+if "min_year" not in st.session_state:
+    st.session_state.min_year = None
+
+if "max_year" not in st.session_state:
+    st.session_state.max_year = None
 
 def delete_indicator(index):
     """
