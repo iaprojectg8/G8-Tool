@@ -1,4 +1,44 @@
 from utils.imports import * 
+from utils.variables import ZIP_FOLDER
+
+# -----------------------
+# --- Parametrization --- 
+# -----------------------
+
+
+# Variables initialization
+
+if "project_info" not in st.session_state:
+    st.session_state.project_info = dict()
+
+if "uploader_shape_checked" not in st.session_state:
+    st.session_state.uploader_shape_checked = False
+
+if "selected_shape_folder" not in st.session_state:
+    st.session_state.selected_shape_folder = []
+
+# Callback Functions
+
+def reset_uploader():
+    """Callback only runs after extraction complete"""
+    st.session_state.show_uploader = False
+
+def delete_shape_folder():
+    """Deletes the selected shape folder"""
+    for folder in st.session_state.selected_shape_folder:
+        shutil.rmtree(os.path.join(ZIP_FOLDER, folder))
+        st.session_state.selected_shape_folder.remove(folder)
+
+
+
+
+
+
+
+
+
+
+
 
 
 if "indicator" not in st.session_state:

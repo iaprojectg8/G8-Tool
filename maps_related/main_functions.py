@@ -34,7 +34,7 @@ def map_empty_request(combined_gdf, empty_gdf:gpd.GeoDataFrame):
     center = [combined_gdf.geometry.centroid.y.mean(), combined_gdf.geometry.centroid.x.mean()]
     bounds = combined_gdf.total_bounds
     zoom_start = calculate_zoom_level(bounds)
-    m = folium.Map(location=center, zoom_start=zoom_start)
+    m = folium.Map(location=center, zoom_start=zoom_start, control_scale=True)
 
     # Add generated points to the map
     print("Adding points to map")

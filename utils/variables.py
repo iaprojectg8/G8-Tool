@@ -142,7 +142,9 @@ EXPOSURE_AGGREGATION=["Category Mean", "Most Frequent Category", "Variable Mean 
 
 
 # For everything in the map part
-ZIP_FOLDER = "zip_files"
+# ZIP_FOLDER = "zip_files"
+
+ZIP_FOLDER = "zip_folder_test"
 
 MODEL_NAMES = [
         "CMCC_CM2_VHR4 (30 km)",
@@ -191,15 +193,15 @@ READABLE_TO_CMIP6 = {
 
 
 
-SSP = ["historical", "ssp126", "ssp245", "ssp370", "ssp585"]
+SSP = ["ssp126", "ssp245", "ssp370", "ssp585"]
 MODEL_NAMES_CMIP6 = ["CNRM-ESM2-1"]
 EXPERIMENTS = ["r1i1p1f2"]
-
+HISTORICAL_END_YEAR = 2014
 
 NC_FILE_DIR = "nc_files"
 WORKING_NC_FILE = "all_variables_nc_1960"
 CSV_FILE_DIR = "csv_files"
 EMPTY_REQUEST_FOLDER = "empty_request"
 
-REQUEST_TYPE = ["Request data through Open-Meteo", "Request data though CMIP6 projections"]
+REQUEST_TYPE = ["Request data though CMIP6 projections","Request data through Open-Meteo"]
 

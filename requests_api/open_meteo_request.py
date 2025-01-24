@@ -1,11 +1,12 @@
 from utils.imports import *
 from utils.variables import *
+from maps_related.main_functions import read_shape_file, main_map
+from lib.data_process import select_period
 
 
 
 
 # This open the available coordinates of open meteo that we will take
-
 def build_api_params(lat, lon, model, start_year, end_year, variable_list):
     """
     Constructs the API parameters for the request based on latitude, longitude, and variables.
@@ -30,6 +31,13 @@ def build_api_params(lat, lon, model, start_year, end_year, variable_list):
 
 
 def gdf_to_df(gdf):
+    """
+    Converts a GeoDataFrame to a DataFrame with latitude and longitude columns.
+    Args:
+        gdf (gpd.GeoDataFrame): A GeoDataFrame containing geometry data.
+    Returns:
+        pd.DataFrame: A DataFrame with latitude and longitude columns.
+    """
     df = gdf.copy()
     df['lat'] = df.geometry.y
     df['lon'] = df.geometry.x
@@ -177,3 +185,60 @@ def request_all_data(coordinates:gpd.GeoDataFrame, dataset_folder, filename_base
 
 
 
+
+
+# Main function
+def open_meteo_request(selected_shape_folder):
+    """
+    Main function to request data from Open Meteo API.
+    Args:
+        selected_shape_folder (list): List of selected shape files.
+    """
+    if selected_shape_folder:
+        gdf_list = []
+        for file in selected_shape_folder:
+            path_to_shapefile = os.path.join(ZIP_FOLDER, file)
+            shape_file = [file for file in os.listdir(path_to_shapefile) if file.endswith(".shp")][0]
+            shapefile_path = os.path.join(path_to_shapefile, shape_file)
+
+            gdf :gpd.GeoDataFrame = read_shape_file(shapefile_path)
+            # Ask the user to define a buffer distance
+            buffer_distance = st.number_input(
+                label=f"Enter buffer distance (in the same units as {file} coordinates):",
+                min_value=0.0, 
+                step=0.1,
+                value=0.0,
+                format="%0.3f",
+                key=file
+            )
+            
+            # Apply the buffer if the distance is greater than 0
+            if buffer_distance > 0:
+                gdf["geometry"] = gdf["geometry"].buffer(buffer_distance, resolution=0.05)
+                st.success(f"Buffer of {buffer_distance} applied to {file}")
+
+            gdf_list.append(gdf)
+        combined_gdf = pd.concat(gdf_list, ignore_index=True)
+        df = main_map(combined_gdf)
+        print(len(df))
+        with st.expander(label="Your coordinates"):
+            st.dataframe(data=df, height=DATAFRAME_HEIGHT, use_container_width=True)
+        if st.checkbox(label="Take all variables"):
+            selected_variables = st.multiselect("Chose variable to extract", 
+                                                UNIT_DICT.keys(), 
+                                                default=UNIT_DICT.keys())
+        else:
+            selected_variables = st.multiselect("Chose variable to extract", 
+                                                UNIT_DICT.keys(), 
+                                                default=np.random.choice(list(UNIT_DICT.keys())))
+        selected_model = st.selectbox("Chose the model to use", MODEL_NAMES)
+        (long_period_start, long_period_end) = select_period(key="request")
+
+        if st.button(label="Start the Request"):
+            request_all_data(coordinates=df,
+                                dataset_folder=DATASET_FOLDER,
+                                filename_base="moroni_extraction",
+                                model=selected_model,
+                                start_year=long_period_start,
+                                end_year=long_period_end,
+                                variable_list=selected_variables)
