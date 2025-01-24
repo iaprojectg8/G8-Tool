@@ -1,9 +1,9 @@
 from utils.imports import * 
 from utils.variables import ZIP_FOLDER
 
-# -----------------------
-# --- Parametrization --- 
-# -----------------------
+# -------------------------------------
+# --- Request & General Information --- 
+# -------------------------------------
 
 
 # Variables initialization
@@ -30,16 +30,13 @@ def delete_shape_folder():
         st.session_state.selected_shape_folder.remove(folder)
 
 
+# ----------------------------------
+# --- Indicators Parametrization ---
+# ----------------------------------
 
-
-
-
-
-
-
-
-
-
+# Variables initialization
+if "building_indicator_df" not in st.session_state:
+    st.session_state.building_indicator_df = pd.DataFrame()
 
 if "indicator" not in st.session_state:
     st.session_state.indicator = {
