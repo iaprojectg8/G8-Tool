@@ -269,8 +269,39 @@ def create_built_indicator():
     st.session_state["Builtin Indicator"] = st.selectbox("Indicator", options=BUILTIN_INDICATORS)
 
 
-    
+# ------------------------------------------
+# --- Main function to create indicators ---
+# ------------------------------------------
+
+def indicator_building(df_chosen:pd.DataFrame, season_start, season_end):
+    """
+    Handles the creation of indicators based on user input.
+
+    Args:
+        df_chosen (DataFrame): The selected data for which indicators will be created.
+        season_start (int): Starting month of the season.
+        season_end (int): Ending month of the season.
+    """
+        
+    indicator_type = general_information(df_chosen)
 
 
+    if indicator_type in ["Outlier Days", "Consecutive Outlier Days"]:
+        create_daily_threshold_input()
+        create_yearly_thresholds_input()
+    elif indicator_type == "Sliding Windows Aggregation":
+        create_rolling_window_input()
+        create_yearly_thresholds_input()
+    elif indicator_type == "Season Aggregation":
+        create_yearly_thresholds_input()
 
+    # Crossed variable indicator or not
+    if indicator_type == "Crossed Variables":
+        create_built_indicator()
+    else: 
+        create_yearly_aggregation()
+    if season_start is not None and season_end is not None:
+        create_season_shift_input(season_start, season_end)
 
+    # Buttons
+    create_buttons()

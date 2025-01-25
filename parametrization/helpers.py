@@ -1,171 +1,162 @@
 from utils.imports import *
-from utils.variables import *
 from layouts.layout import *
 from parametrization.create_inidicator import *
+from parametrization.update_indicator import *
+from parametrization.widgets_parametrization import *
 
-def select_period(key):
+# ---------------------------------------------------
+# --- Functions for the indicator parametrization ---
+# ---------------------------------------------------
+
+def process_dataframes_zip(uploaded_file, extract_to):
     """
-    Allows the user to select a data period using an interactive Streamlit slider.
-
-    Returns:
-        tuple: The start and end values of the selected period.
-    """
-    # Define the initial limits for the slider
-    period_start= st.session_state.min_year
-    period_end= st.session_state.max_year
-
-    # Display the slider that allows the user to select the bounds
-    period_start, period_end = st.slider(
-        "Select the data period:",
-        min_value=period_start, 
-        max_value=period_end,
-        value=(period_start, period_end),
-        key=key)      
-    return period_start, period_end
-
-def split_into_periods_indicators(period_length, start_year, end_year):
-    """
-    Splits a given time range into multiple periods of a specified length.
-
+    Processes the uploaded zip file containing CSV files.
     Args:
-        period_length (int): The length of each period in years.
-        start_year (int): The starting year of the entire time range.
-        end_year (int): The ending year of the entire time range.
-
-    Returns:
-        list of tuples: A list of tuples where each tuple represents a period
-                        with the format (period_start, period_end).
+        uploaded_file (BytesIO): The uploaded zip file.
+        extract_to (str): The directory to extract the files to.
     """
-    whole_period_length = end_year - start_year + 1
-    amount_of_periods = ceil(whole_period_length / period_length)
-    periods = []
+    if uploaded_file != st.session_state.uploaded_file_spatial:
+            
+        if os.path.exists(extract_to):
+            shutil.rmtree(extract_to)
+        
+        # Create the directory
+        os.makedirs(extract_to, exist_ok=True)
+        
+        extract_csv_from_zip(uploaded_file, extract_to)
+        st.session_state.uploaded_file_spatial = uploaded_file
 
-    # Loop through each period index and calculate start and end years
-    for period_index in range(amount_of_periods):
-        period_start = start_year + period_index * period_length   # Start year of the current period
-        period_end = period_start + period_length -1  # End year of the current period
-
-        # Append the period to the list, ensuring it does not exceed the end year
-        if period_end < end_year:
-            periods.append((period_start, period_end))
-        elif abs(period_start - end_year)<0.3*period_length:
-            # Needs to create last tuple periods before to remove the last element of the list
-            last_period = (periods[-1][0], end_year)
-            periods.pop()
-            periods.append(last_period)
-        else:
-            periods.append((period_start, end_year))
-
-    return periods
-
-def period_filter(data, period):
-    """
-    Filters the input data to include only rows within the specified period.
-
-    Args:
-        data (DataFrame): A pandas DataFrame with a DateTime index.
-        period (list or tuple): A list or tuple containing the start and end years [start_year, end_year].
-
-    Returns:
-        DataFrame: A filtered DataFrame containing only rows within the specified period.
-    """
-    # Select rows where the year in the index is between the start and end years of the period
-    data_in_right_period = data[(data.index.year >= period[0]) & (data.index.year <= period[-1])]
+        # This is a dataframe dictionary
+        st.session_state.dataframes = read_csv_files_from_directory(extract_to)
+        st.session_state.dataframes = put_date_as_index(dataframe_dict=st.session_state.dataframes)
+        st.session_state.building_indicator_df = st.session_state.dataframes[rd.choice(list(st.session_state.dataframes.keys()))]
     
-    return data_in_right_period
 
-def column_choice(data : pd.DataFrame):
+def period_management():
     """
-    Allows a user to select a column of interest from a DataFrame, excluding certain columns.
+    Manages the period selection for the indicators.
+    Returns:
+        pd.DataFrame: The filtered DataFrame containing the selected period
+    """
+    # User setting the periods of interest
+    long_period = select_period(key = "indicator_part")
 
+    # Loading data and applying first filters
+    all_data = st.session_state.building_indicator_df
+    data_long_period_filtered = period_filter(all_data, period=long_period)
+    st.dataframe(data_long_period_filtered, height=DATAFRAME_HEIGHT, use_container_width=True)
+
+    return data_long_period_filtered
+
+def season_management(df_chosen: pd.DataFrame):
+    """
+    Manages the season selection for the indicators.
     Args:
-        data (pd.DataFrame): The input DataFrame containing the data.
-
+        df_chosen (pd.DataFrame): The DataFrame containing the indicators.
     Returns:
-        pd.Series: The selected column from the DataFrame as a Pandas Series.
+        pd.DataFrame: The filtered DataFrame containing the selected season
+        int: The start month of the season
+        int: The end month of the season
     """
-    not_a_variable = [ "lat", "lon"]
-    columns_list = [column  for column in data.columns if column not in not_a_variable]
-
-    # Widget that allows the user to select the variable he wants to see plotted
-    st.session_state.columns_chosen = st.multiselect("Chose variable of interest", options=columns_list)
-    columns_chosen = st.session_state.columns_chosen
-
-    # Restrict the dataframe to the user selected columns
-    df_final = data[columns_chosen]
-
-    return df_final
-
-def select_season():
-    """
-    Allows the user to select a date range using a slider for months.
-
-    Returns:
-        tuple: A tuple containing the start and end month selected by the user.
-    """
-    # Building the avaailable option
-    start=1
-    end=12
-    options =  np.arange(start, end+1)
-
-    # Widget slider to chose the starting and ending month for each years
-    start_date, end_date = st.select_slider(
-        "Select a date range:",
-        options = options,
-        value=(st.session_state.season_start, st.session_state.season_end),
-        format_func=lambda x:MONTHS_LIST[x-1]  # Displays full month name, day, and year
-    )
-    # Display the selected range
-    selected_months = list(options[start_date-1:end_date])
-    st.write(f"The period chosen goes from {MONTHS_LIST[selected_months[0]-1]} to {MONTHS_LIST[selected_months[-1]-1]}")
-
-    return start_date, end_date
-
-def select_data_contained_in_season(data, season_start, season_end):
-    """
-    Filters the input data to select rows where the month is within the specified season range.
-
-    Args:
-        data (DataFrame): A pandas DataFrame with a DateTime index.
-        season_start (int): The starting month of the season (1 for January, 12 for December).
-        season_end (int): The ending month of the season (1 for January, 12 for December).
-
-    Returns:
-        DataFrame: A filtered DataFrame containing only the data for the selected season (month range).
-    """
-    return data[(data.index.month >= season_start) & (data.index.month <= season_end)].copy()
-
-def upload_csv_file():
-    """
-    Allows the user to upload a CSV file and returns the content as a pandas DataFrame.
-    
-    Returns:
-        pd.DataFrame: The loaded DataFrame if a file is uploaded, else None.
-    """
-    uploaded_file = st.file_uploader("Upload an Excel file", type="xlsx")
-    if uploaded_file is not None:
-        try:
-            data = pd.read_excel(uploaded_file)
-            for index, row in data.iterrows():
-                for col in data.columns:
-                    if "List" in col:
-                        data.at[index, col] = ast.literal_eval(row[col])
-            for index, row in data.iterrows():
-                for col in data.columns:
-
-               
-                    print(f"  {col}: {row[col]} ({type(row[col])})")
-                
-            st.success("File uploaded successfully!")
-    
-            return data
-        except Exception as e:
-            st.error(f"Error reading the file: {e}")
-            return None
+    season_start, season_end = None, None
+    if st.checkbox("Need a season or a period study", value=st.session_state.season_checkbox):
+        season_start, season_end = select_season(months_list=MONTHS_LIST)
+        df_season = select_data_contained_in_season(df_chosen, season_start, season_end)
+        st.dataframe(df_season, height=DATAFRAME_HEIGHT, use_container_width=True)
     else:
-        st.info("Please upload a CSV file.")
-        return None
+        df_season = df_chosen
+
+    return df_season, season_start, season_end
+
+def initialize_indicators_tool_management(df_uploaded):
+    """
+    Initializes the indicators tool management.
+    Args:
+        df_uploaded (pd.DataFrame): The DataFrame containing the uploaded indicators.
+    """
+    df_checkbox = fill_df_checkbox(df_uploaded)
+    st.session_state.uploaded_df = df_uploaded
+    st.session_state.df_indicators = copy(df_uploaded)
+    st.session_state.df_checkbox = df_checkbox
+
+
+
+
+# -------------------------------------------
+# --- Functions for the uploaded CSV file ---
+# -------------------------------------------
+
+def extract_csv_from_zip(zip_file, extract_to):
+    """
+    Extracts the CSV files from a zip file.
+    Args:
+        zip_file (BytesIO): The zip file containing the CSV files.
+        extract_to (str): The directory to extract the files
+    """
+    with zipfile.ZipFile(zip_file, 'r') as zip_ref:
+        zip_ref.extractall(extract_to)
+
+def read_csv_files_from_directory(folder):
+    """
+    Reads the CSV files from a directory and returns them as a dictionary of DataFrames.
+    Args:
+        folder (str): The directory containing the CSV files.
+    Returns:
+        dict: A dictionary of DataFrames containing the CSV files.
+    """
+    # L'utilisation de glob est surement plus approprié dans ce genre de cas
+    extracted_dir_name = os.listdir(folder)[0]
+    extracted_dir_path = os.path.join(folder, extracted_dir_name)
     
+    # Just to manage different zip file structures
+    if os.path.isfile(extracted_dir_path):
+        extracted_dir_path = folder
+
+    csv_files = [f for f in os.listdir(extracted_dir_path) if f.endswith('.csv')]
+    dataframes = {}
+    for file in csv_files:
+        file_path = os.path.join(extracted_dir_path, file)
+        dataframes[file] = pd.read_csv(file_path)
+    get_min_and_max_year(dataframes)
+    return dataframes
+
+
+def get_min_and_max_year(dataframes:dict):
+    """
+    Get the min and max year of the dataframes.
+    Args:
+        dataframes (dict): A dictionary of DataFrames containing the CSV files.
+    """
+    df = copy(dataframes[list(dataframes.keys())[0]])
+
+    # Put the date column in datetime format
+    df["date"] = pd.to_datetime(df["date"])
+    # Assign extreme years long period
+    min_year = df['date'].min().year
+    max_year = df['date'].max().year
+    st.session_state.min_year = min_year
+    st.session_state.max_year = max_year
+
+def put_date_as_index(dataframe_dict:dict):
+    """
+    Puts the 'date' column as the index of the DataFrames in the dictionary.
+    Args:
+        dataframe_dict (dict): A dictionary of DataFrames containing the CSV files.
+    Returns:
+        dict: A dictionary of DataFrames with the 'date' column as the index.
+    """
+    for key, df in dataframe_dict.items():
+        df['date'] = pd.to_datetime(df['date'])  # Ensure the 'date' column is in datetime format
+        df.set_index('date', inplace=True)  # Set the 'date' column as the index
+        dataframe_dict[key] = df
+    return dataframe_dict
+
+
+
+# --------------------------------------------------
+# --- Function to fill the df_checkbox DataFrame ---
+# --------------------------------------------------
+
 def fill_df_checkbox(df: pd.DataFrame):
     """
     Fills the df_checkbox Dataframe corresponding to the df content.
@@ -175,10 +166,8 @@ def fill_df_checkbox(df: pd.DataFrame):
         
     Returns:
         pd.DataFrame: The df_checkbox DataFrame with the same index as df.
-
     """
     # Initialize the df_checkbox DataFrame with the same index as df
-    
     df_checkbox = st.session_state.df_checkbox
     
     # Initialize all checkboxes to False
@@ -193,95 +182,3 @@ def fill_df_checkbox(df: pd.DataFrame):
         df_checkbox.at[index, "threshold_list_checkbox_max"] = pd.notna(row.get("Yearly Threshold Max"))
 
     return df_checkbox
-
-def indicator_building(df_chosen:pd.DataFrame, season_start, season_end):
-    """
-    Handles the creation of indicators based on user input.
-
-    Args:
-        df_chosen (DataFrame): The selected data for which indicators will be created.
-        season_start (int): Starting month of the season.
-        season_end (int): Ending month of the season.
-    """
-    # st.subheader("Create indicators")
-    # with st.expander("Indicator template",expanded=False):
-        
-    indicator_type = general_information(df_chosen)
-
-
-    if indicator_type in ["Outlier Days", "Consecutive Outlier Days"]:
-        create_daily_threshold_input()
-        create_yearly_thresholds_input()
-    elif indicator_type == "Sliding Windows Aggregation":
-        create_rolling_window_input()
-        create_yearly_thresholds_input()
-    elif indicator_type == "Season Aggregation":
-        create_yearly_thresholds_input()
-
-    # Crossed variable indicator or not
-    if indicator_type == "Crossed Variables":
-        create_built_indicator()
-    else: 
-        create_yearly_aggregation()
-    if season_start is not None and season_end is not None:
-        create_season_shift_input(season_start, season_end)
-
-    # Buttons
-    create_buttons()
-
-def indicator_management(df):
-    """Basic Streamlit app with a title."""
-    key = "indicator_part"
-    set_title_2("Period")
-
-    # User setting the periods of interest
-    long_period = (long_period_start, long_period_end) = select_period(key=key)
-    smaller_period_length  = st.select_slider("Choose the length of smaller period to see the evolution of your data on them:",
-                                              options=PERIOD_LENGTH, 
-                                              key=f"smaller_period{key}")
-    periods = split_into_periods_indicators(smaller_period_length, long_period_start, long_period_end)
-
-    # Loading data and applying first filters
-    all_data = df
-    data_long_period_filtered = period_filter(all_data, period=long_period)
-    st.dataframe(data_long_period_filtered, height=DATAFRAME_HEIGHT, use_container_width=True)
-    
-    # Propose variables related to the dataset loaded 
-    set_title_2("Variable Choice")
-    df_chosen = column_choice(data_long_period_filtered)
-
-    # Variables intitialization
-    season_start, season_end = None, None
-    all_year_data = pd.DataFrame()
-
-    if not df_chosen.empty:
-        st.dataframe(df_chosen, height=DATAFRAME_HEIGHT, use_container_width=True)
-        all_year_data = df_chosen  
-
-        # Season handdling
-        set_title_2("Season Choice")
-        if st.checkbox("Need a season or a period study", value=st.session_state.season_checkbox):
-            season_start, season_end = select_season()
-            df_season = select_data_contained_in_season(df_chosen, season_start, season_end)
-            st.dataframe(df_season, height=DATAFRAME_HEIGHT, use_container_width=True)
-        else:
-            df_season = df_chosen
-        
-        # Indicators parametrization handling
-        set_title_2("Parametrize Indicators")
-
-        # Load indicators from CSV
-        if st.checkbox(label="Load indicators from CSV"):
-            df_uploaded = upload_csv_file()
-            
-            if df_uploaded is not None and not df_uploaded.equals(st.session_state.uploaded_df):
-                df_checkbox = fill_df_checkbox(df_uploaded)
-                st.session_state.uploaded_df = df_uploaded
-                st.session_state.df_indicators = copy(df_uploaded)
-                st.session_state.df_checkbox = df_checkbox
-
-        # Building the indicator in a popover
-        with st.popover("Create Indicator", use_container_width = True):
-            indicator_building(df_season, season_start, season_end)
-
-        # Avec un popover, il faut pouvoir update

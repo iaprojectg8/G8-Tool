@@ -35,8 +35,15 @@ def delete_shape_folder():
 # ----------------------------------
 
 # Variables initialization
+
 if "building_indicator_df" not in st.session_state:
     st.session_state.building_indicator_df = pd.DataFrame()
+
+if "columns_chosen" not in st.session_state:
+    st.session_state.columns_chosen = None
+    
+if "season_checkbox" not in st.session_state:
+    st.session_state.season_checkbox = False
 
 if "indicator" not in st.session_state:
     st.session_state.indicator = {

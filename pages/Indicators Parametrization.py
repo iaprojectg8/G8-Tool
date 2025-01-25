@@ -1,9 +1,11 @@
 from utils.imports import * 
-from utils.variables import ZIP_FOLDER, UNIT_DICT, MODEL_NAMES, DATAFRAME_HEIGHT
-from maps_related.main_functions import *
+from utils.variables import MONTHS_LIST, DATAFRAME_HEIGHT
+from layouts.layout import *
 from lib.session_variables import *
-from spatial.spatial_indicator import *
-from parametrization.helpers import indicator_management
+from parametrization.helpers import *
+from parametrization.widgets_parametrization import *
+from parametrization.create_inidicator import indicator_building
+from parametrization.update_indicator import indicator_editing
 
 
 
@@ -12,9 +14,10 @@ def main():
     """Basic Streamlit app with a title."""
     # Set some layout parameters for the page 
     st.set_page_config(layout="wide")
-    set_page_title("SIG and visualization")
+    set_page_title("Indicators Parametrization")
+
+
     set_title_2("Chose the shapefile to load for creating a raster")
-    
     uploaded_file = st.file_uploader("Upload a zip file containing CSV files", type="zip")
     
     if uploaded_file is not None:
@@ -22,39 +25,49 @@ def main():
         # Remove the directory if it exists
         if uploaded_file != st.session_state.uploaded_file_spatial:
             
-            if os.path.exists(extract_to):
-                shutil.rmtree(extract_to)
-            
-            # Create the directory
-            os.makedirs(extract_to, exist_ok=True)
-            
-            extract_csv_from_zip(uploaded_file, extract_to)
-            st.session_state.uploaded_file_spatial = uploaded_file
-
-            # This is a dataframe dictionary
-            st.session_state.dataframes = read_csv_files_from_directory(extract_to)
-            st.session_state.gdf = extract_coordinates(st.session_state.dataframes)
-            st.session_state.dataframes = put_date_as_index(dataframe_dict=st.session_state.dataframes)
-            st.session_state.building_indicator_df = st.session_state.dataframes[rd.choice(list(st.session_state.dataframes.keys()))]
-
-
+            process_dataframes_zip(uploaded_file, extract_to)
         
-        # Create a map centered at the first coordinate
-        if st.session_state.gdf is not None:
-            with st.expander(label="Dataset coordinates on map"):
-                gdf = st.session_state.gdf
-                centroid = gdf.geometry.centroid
-                bounds = gdf.total_bounds
-                zoom_start = calculate_zoom_level(bounds)
-                m = folium.Map(location=[gdf.geometry.centroid.y.mean(), gdf.geometry.centroid.x.mean()], zoom_start=zoom_start)
-                for _, row in gdf.iterrows():
-                    folium.Marker(location=[row.lat, row.lon]).add_to(m)
-                st_folium(m,height= 300, use_container_width=True)
-        else:
-            st.write("No coordinates found in the CSV files.")
+        # Period
+        set_title_2("Period")
+        data_long_period_filtered = period_management()
+        
+        # Variable choice
+        set_title_2("Variable Choice")
+        df_chosen = variable_choice(data_long_period_filtered)
+        
 
+        if not df_chosen.empty:
+            
+            # Season choice
+            set_title_2("Season Choice")
+            df_season, season_start, season_end = season_management(df_chosen)
+            
+            # Indicators parametrization
+            set_title_2("Parametrize Indicators")
 
-        indicator_management(st.session_state.building_indicator_df)
+            # Load indicators from CSV
+            if st.checkbox(label="Load indicators from CSV"):
+                df_uploaded = upload_csv_file()
+                
+                if df_uploaded is not None and not df_uploaded.equals(st.session_state.uploaded_df):
+                    initialize_indicators_tool_management(df_uploaded)
 
+            # Building the indicator in a popover
+            with st.popover("Create Indicator", use_container_width = True):
+                indicator_building(df_season, season_start, season_end)
+            
+            
+            if not st.session_state.df_indicators.empty:
+                st.dataframe(st.session_state.df_indicators, use_container_width=True)
+                download_indicators(st.session_state.df_indicators, filename="indicators.xlsx")
+                tabs = st.tabs(list(st.session_state.df_indicators["Name"].values))
+
+                # Iterating over indicators dataframe
+                for (i, row), (j, row_checkbox) in zip(st.session_state.df_indicators.iterrows(), st.session_state.df_checkbox.iterrows()):
+                    with tabs[i]:
+                    
+                        indicator_editing(df_season, season_start, season_end, row, row_checkbox, i)
+                    
+        
 if __name__ == "__main__":
     main()

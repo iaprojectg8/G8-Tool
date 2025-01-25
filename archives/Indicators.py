@@ -14,10 +14,7 @@ from indicators.main_calculation import calculations_and_plots
 
 # # This is only because we use this session variable in a default value of a widget
 # All the other session
-if "columns_chosen" not in st.session_state:
-    st.session_state.columns_chosen = None
-if "season_checkbox" not in st.session_state:
-    st.session_state.season_checkbox = False
+
 
 def main():
     """Basic Streamlit app with a title."""
