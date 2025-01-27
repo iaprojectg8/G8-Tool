@@ -14,7 +14,10 @@ def select_period(key):
     # Define the initial limits for the slider
     min_year, max_year = st.session_state.min_year, st.session_state.max_year
     if st.session_state.last_page != "Indicator Parametrization":
-        period_start, period_end = st.session_state.long_period
+        if st.session_state.long_period is not None:
+            period_start, period_end = st.session_state.long_period
+        else: period_start, period_end = min_year, max_year
+
 
     else:
         period_start, period_end = (min_year, max_year)

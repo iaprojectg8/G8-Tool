@@ -6,7 +6,12 @@ from parametrization.helpers import select_season, select_data_contained_in_seas
 
 
 def make_zone_average(dataframes:dict):
-    # Open all the files with glob and put it in a list of dataframes
+    """
+    Calculate average values across all geographical points for each timestamp.
+    
+    Args:
+        dataframes (dict): Dictionary containing DataFrames for each lat/lon point
+    """
 
     # Step 2: Combine all datasets
     combined_df = pd.concat(dataframes.values(), ignore_index=False)
@@ -15,7 +20,11 @@ def make_zone_average(dataframes:dict):
 
 
 def general_management(df):
-    """Basic Streamlit app with a title."""
+    """
+    Function to manage the general results got with the data selected in the Indicator Parametrizer
+    Args:
+        df (pd.dataframe) : Dataframe that contains the averaged data
+    """
     set_title_1("Climate Variables")
     key = "general_part"
     # Chosen variable has a certain case that might be broken to easier use
@@ -45,7 +54,11 @@ def general_management(df):
 
 
 def indicator_management(df):
-    """Basic Streamlit app with a title."""
+    """
+    Function to manage the indicators results got with the data selected in the Indicator Parametrizer
+    Args:
+        df (pd.dataframe) : Dataframe that contains the averaged data
+    """
     key = "indicator_part"
     set_title_2("Period")
 

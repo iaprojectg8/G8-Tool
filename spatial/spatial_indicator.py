@@ -1,4 +1,13 @@
 from utils.imports import *
+from results.main_calculation import calculate_scores, preparing_dataframe_for_plot, introduce_season_shift_in_calculation
+from results.helpers import aggregate_category
+
+from parametrization.helpers import period_filter
+from parametrization.update_indicator import indicator_editing
+
+from spatial.rasterization import rasterize_data, display_raster_with_slider, raster_download_button
+
+from results.custom_indicators import heat_index_spatial_indicator, display_raster_with_slider_heat_index
 
 
 def extract_csv_from_zip(zip_file, extract_to):
@@ -61,85 +70,142 @@ def put_date_as_index(dataframe_dict:dict):
     return dataframe_dict
 
 
-def spatial_indicator_management(df_indicator_sample:pd.DataFrame, all_df_dict):
+def get_only_required_variable(dataframes_dict, variable):
+    for (df_key, df) in dataframes_dict.items() :
+            if isinstance(variable, list):  # Check if variable is a list
+                selected_columns = variable + ["lat", "lon"]  # Create a new list
+            else:
+                selected_columns = [variable, "lat", "lon"]  # Combine into a list
+            
+            df = df.loc[:, selected_columns]  # Use the new variable for column selection
+            dataframes_dict[df_key] = df
+    return dataframes_dict
+
+def spatial_calculation_for_raster(row, below_thresholds, above_thresholds, df, score_name, variable, periods):
     """
-    Manages spatial indicators based on user-selected periods, variables, seasons, and parameters.
+    This needs to be cleaned
+    """
+     # Get the score_column
+    lat, lon = df.at[df.index[0],"lat"], df.at[df.index[0],"lon"]
+    unit, df_yearly_var, aggregated_column_name = calculate_scores(row,df, score_name, variable,spatial=1)
+    # Plot preparation
+    df_yearly = preparing_dataframe_for_plot(df_yearly_var, periods, score_name)
+    score_column = f"yearly_indicator_{score_name}"
+    
+    # Asks the user to choose the aggregation type and then aggregates the data
+    aggregation_type = "Variable Mean Category"
+    # aggregation_type = st.selectbox(label="Aggregation Type", options=EXPOSURE_AGGREGATION, key=f"aggregation_type_{index}_{additional_key}")
+    df_period = aggregate_category(aggregation_type, df_yearly, score_column, aggregated_column_name, below_thresholds, above_thresholds)
+    df_period['lat'] = lat
+    df_period['lon'] = lon
+    sumup_df = df_period.pivot_table(
+        index=['lat', 'lon'], 
+        columns='period', 
+        values='absolute_score', # ['absolute_score', 'category', 'color', 'exposure_prob'], 
+        aggfunc='first',
+        observed=False
+    )
+    return sumup_df
+
+def filter_all_the_dataframe(dataframes:dict, long_period):
+    for key_df, df in dataframes.items():
+        # do the filters that have been done on the first dataframe of the dictionary
+        data_long_period_filtered = period_filter(df, period=long_period)
+        dataframes[key_df] = data_long_period_filtered
+
+    return dataframes
+
+def spatial_calculation(df_season, df_indicators_parameters: pd.DataFrame,df_checkbox:pd.DataFrame, dataframes_dict, 
+                         season_start, season_end,periods, shape_gdf, raster_resolution):
+    """
+    Perform calculations and generate plots for each indicator in the given indicator parameters DataFrame.
 
     Args:
-        df_ind (pd.DataFrame): The initial dataframe containing spatial indicators.
-        all_df_dict (dict): Dictionary of all dataframes to process.
+        df_season (pandas.DataFrame): Seasonal data containing variables for calculation.
+        df_indicators_parameters (pandas.DataFrame): DataFrame containing the parameters for each indicator.
+        all_year_data (pandas.DataFrame): Data containing all yearly data to be used for shifting and calculation.
+        season_start (int): The starting month for the season.
+        season_end (int): The ending month for the season.
+        periods (list): List of periods for categorization.
+
+    Returns:
+        pandas.DataFrame: A DataFrame containing the yearly data after processing all indicators.
     """
+    # Store all newly created columns in a dictionary to merge later
+    df_yearly = pd.DataFrame()
+    tabs = st.tabs(list(df_indicators_parameters["Name"].values))
 
-    key = "spatial_indicator_part"
-    set_title_2("Period")
-
-    # User setting the periods of interest
-    long_period = (long_period_start, long_period_end) = select_period(key=key)
-    smaller_period_length  = st.select_slider("Choose the length of smaller period to see the evolution of your data on them:",
-                                              options=PERIOD_LENGTH, 
-                                              key=f"smaller_period{key}")
-    periods = split_into_periods_indicators(smaller_period_length, long_period_start, long_period_end)
-
-    # Loading data and applying first filters
-    df_indicator_sample = period_filter(df_indicator_sample, period=long_period)
-    st.dataframe(df_indicator_sample, height=DATAFRAME_HEIGHT, use_container_width=True)
-    
-    # Propose variables related to the dataset loaded 
-    set_title_2("Variable Choice")
-    df_indicator_sample = column_choice(df_indicator_sample)
-
-    # Variables intitialization
-    season_start, season_end = None, None
-
-    if not df_indicator_sample.empty:
-        st.dataframe(df_indicator_sample, height=DATAFRAME_HEIGHT, use_container_width=True) 
-
-        # Season handdling
-        set_title_2("Season Choice")
-        if st.checkbox("Need a season or a period study", value=st.session_state.season_checkbox):
-            season_start, season_end = select_season()
-            df_indicator_sample_season = select_data_contained_in_season(df_indicator_sample, season_start, season_end)
-            st.dataframe(df_indicator_sample_season, height=DATAFRAME_HEIGHT, use_container_width=True)
-        else:
-            df_indicator_sample_season = df_indicator_sample
-        
-        # Indicators parametrization handling
-        set_title_2("Parametrize Indicators")
-
-        # Load indicators from CSV
-        if st.checkbox(label="Load indicators from CSV"):
-            df_uploaded = upload_csv_file()
+    # Iterating over indicators dataframe
+    for (i, row), (j, row_checkbox) in zip(df_indicators_parameters.iterrows(), df_checkbox.iterrows()):
+        with tabs[i]:
             
-            if df_uploaded is not None and not df_uploaded.equals(st.session_state.uploaded_df):
-                df_checkbox = fill_df_checkbox(df_uploaded)
-                st.session_state.uploaded_df = df_uploaded
-                st.session_state.df_indicators = copy(df_uploaded)
-                st.session_state.df_checkbox = df_checkbox
+            # Offer the possibility to edit the indicator
 
-        # Building the indicator in a popover
-        with st.popover("Create Indicator", use_container_width = True):
-            indicator_building(df_indicator_sample_season, season_start, season_end)
+            indicator_editing(df_season, season_start, season_end, row, row_checkbox, i)
+            
+            # Initializing useful variables
+            variable = row["Variable"]
+            dataframes_dict_filtered = get_only_required_variable(copy(dataframes_dict), variable)
+            score_name = row["Name"]
+            season_start_shift=row["Season Start Shift"]
+            season_end_shift= row["Season End Shift"]
+            below_thresholds=copy(row["Yearly Threshold Min List"])
+            above_thresholds= copy(row["Yearly Threshold Max List"])
+
+            
+            df_raster = pd.DataFrame()
+            # Season shift handling
+            if dataframes_dict_filtered is not None:
+                random_dataframe = rd.choice(list(dataframes_dict_filtered.values()))           
+                if ((isinstance(variable,list) and all(var in list(random_dataframe.columns) for var in variable)) 
+                    or (not isinstance(variable,list) and (variable in random_dataframe.columns))):
+                    with st.spinner("Handling season shift"):
+                        
+                        if season_start is not None or season_end is not None:
+                            if (not pd.isna(season_start_shift) or not pd.isna(season_end_shift)
+                                or season_start_shift is not None or season_end_shift is not None):
+                                for (df_key, df), (df_all_key, df_all) in zip(dataframes_dict_filtered.items(), dataframes_dict.items()):
+                                    df = introduce_season_shift_in_calculation(season_start, season_start_shift, season_end, season_end_shift, df_all)
+                       
+                        # Specific part to allow crossed variable computation
+                        if row["Indicator Type"] == "Crossed Variables":
+                            if st.button(label="Compute Data to get the graphs", key="crossed_variable_compute"):
+                                progress_bar = st.progress(0)
+                                for i,  (df_key, df) in enumerate(dataframes_dict_filtered.items()):
+                                    sumup_df = heat_index_spatial_indicator(df, periods)
+                                    df_raster = pd.concat([df_raster, sumup_df])
+                                    progress_bar.progress((i+1)/len(dataframes_dict_filtered), text=df_key)
+                                rasterize_data(df_raster, shape_gdf=shape_gdf, resolution=raster_resolution, score_name=score_name)
+                        
+                        # All the other parts are located here                                        
+                        else:
+                            
+                            if st.button(label="Compute Data to get the graphs", key=f"other_compute_{i}"):
+                                progress_bar = st.progress(0)
+                                print(dataframes_dict_filtered.items())
+                                for i, (df_key, df) in enumerate(dataframes_dict_filtered.items()):
+
+                                    sumup_df = spatial_calculation_for_raster(row, below_thresholds, above_thresholds, df, score_name, variable, periods)
+                                    df_raster = pd.concat([df_raster, sumup_df])
+                                    progress_bar.progress((i+1)/len(dataframes_dict_filtered), text=df_key)
+                                    
+                                rasterize_data(df_raster, shape_gdf=shape_gdf, resolution=raster_resolution, score_name=score_name)
+ 
+                else:
+                    st.warning("Your variable is not in the taken in the dataframes dictionary, please click on 'Filter the data' button to get it")
+                if st.session_state.raster_params[score_name] is not None:
+                    try :
+                        if row["Indicator Type"] == "Crossed Variables":
+                            display_raster_with_slider_heat_index(score_name, periods)
+                        else:
+                            display_raster_with_slider(score_name, periods)
+                        raster_download_button(score_name, index=i)
+                    except IndexError as e:
+                        st.error(f"Index out of range error: You changed something with the periods, please recompute the raster")
+                    except Exception as e:
+                        st.error(f"An error occurred while rendering the rasters: {e}")
+                        
+                
+    return df_yearly
 
 
-        # Display an indicator summary
-        if not st.session_state.df_indicators.empty:
-            # The copy done is only to display the indicators dataframe on the app
-            df_indicator_copy = copy(st.session_state.df_indicators)
-            df_indicator_copy["Variable"] = df_indicator_copy["Variable"].astype(str)
-            st.dataframe(df_indicator_copy, use_container_width=True)
-            download_indicators(st.session_state.df_indicators)
-
-            # Need to calculate score with this parameters
-            set_title_2("Indicators Calculation & Rasters Building")
-            shape_gdf  = read_shape_zipped_shape_file()
-            raster_resolution = st.number_input("Choose the raster resolution",
-                                                                min_value=0.001, max_value=1., 
-                                                                value=0.005,
-                                                                format="%0.3f")
-            if st.button("Filter the data"):
-                with st.spinner("Filter all the dataframes"):
-                    dataframes_dict = filter_all_the_dataframe(dataframes=copy(all_df_dict), long_period=long_period)
-                    st.session_state.dataframes = dataframes_dict
-            spatial_calculation(df_indicator_sample_season, st.session_state.df_indicators, 
-                                st.session_state.df_checkbox,st.session_state.dataframes, 
-                                all_df_dict, season_start, season_end, periods, shape_gdf, raster_resolution)

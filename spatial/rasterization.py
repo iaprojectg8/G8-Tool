@@ -247,7 +247,7 @@ def raster_download_button(score_name, index):
     The raster file is created in-memory using Rasterio's MemoryFile.
     """
     # Use Rasterio MemoryFile to create an in order do save the file
-    grid_score_list, transform_list = st.session_state.raster_params 
+    grid_score_list, transform_list = st.session_state.raster_params[score_name]
     with MemoryFile() as memfile:
         with memfile.open(
             driver='GTiff',
