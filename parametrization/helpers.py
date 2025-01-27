@@ -15,21 +15,20 @@ def process_dataframes_zip(uploaded_file, extract_to):
         uploaded_file (BytesIO): The uploaded zip file.
         extract_to (str): The directory to extract the files to.
     """
-    if uploaded_file != st.session_state.uploaded_file_spatial:
             
-        if os.path.exists(extract_to):
-            shutil.rmtree(extract_to)
-        
-        # Create the directory
-        os.makedirs(extract_to, exist_ok=True)
-        
-        extract_csv_from_zip(uploaded_file, extract_to)
-        st.session_state.uploaded_file_spatial = uploaded_file
+    if os.path.exists(extract_to):
+        shutil.rmtree(extract_to)
+    
+    # Create the directory
+    os.makedirs(extract_to, exist_ok=True)
+    
+    extract_csv_from_zip(uploaded_file, extract_to)
+    st.session_state.already_uploaded_file = uploaded_file
 
-        # This is a dataframe dictionary
-        st.session_state.dataframes = read_csv_files_from_directory(extract_to)
-        st.session_state.dataframes = put_date_as_index(dataframe_dict=st.session_state.dataframes)
-        st.session_state.building_indicator_df = st.session_state.dataframes[rd.choice(list(st.session_state.dataframes.keys()))]
+    # This is a dataframe dictionary
+    st.session_state.dataframes = read_csv_files_from_directory(extract_to)
+    st.session_state.dataframes = put_date_as_index(dataframe_dict=st.session_state.dataframes)
+    st.session_state.building_indicator_df = st.session_state.dataframes[rd.choice(list(st.session_state.dataframes.keys()))]
     
 
 def period_management():
@@ -39,14 +38,31 @@ def period_management():
         pd.DataFrame: The filtered DataFrame containing the selected period
     """
     # User setting the periods of interest
-    long_period = select_period(key = "indicator_part")
+    st.session_state.long_period = select_period(key = "indicator_part")
 
     # Loading data and applying first filters
     all_data = st.session_state.building_indicator_df
-    data_long_period_filtered = period_filter(all_data, period=long_period)
+    data_long_period_filtered = period_filter(all_data, period=st.session_state.long_period)
     st.dataframe(data_long_period_filtered, height=DATAFRAME_HEIGHT, use_container_width=True)
 
     return data_long_period_filtered
+
+
+def period_filter(data, period):
+    """
+    Filters the input data to include only rows within the specified period.
+
+    Args:
+        data (DataFrame): A pandas DataFrame with a DateTime index.
+        period (list or tuple): A list or tuple containing the start and end years [start_year, end_year].
+
+    Returns:
+        DataFrame: A filtered DataFrame containing only rows within the specified period.
+    """
+    # Select rows where the year in the index is between the start and end years of the period
+    data_in_right_period = data[(data.index.year >= period[0]) & (data.index.year <= period[-1])]
+    
+    return data_in_right_period
 
 def season_management(df_chosen: pd.DataFrame):
     """
@@ -134,8 +150,7 @@ def get_min_and_max_year(dataframes:dict):
     # Assign extreme years long period
     min_year = df['date'].min().year
     max_year = df['date'].max().year
-    st.session_state.min_year = min_year
-    st.session_state.max_year = max_year
+    st.session_state.min_year, st.session_state.max_year = min_year, max_year
 
 def put_date_as_index(dataframe_dict:dict):
     """
@@ -182,3 +197,17 @@ def fill_df_checkbox(df: pd.DataFrame):
         df_checkbox.at[index, "threshold_list_checkbox_max"] = pd.notna(row.get("Yearly Threshold Max"))
 
     return df_checkbox
+
+# ---------------------------------------------------
+# --- Function to update the dataframe dictionary ---
+# ---------------------------------------------------
+def apply_change_to_dataframes():
+    """
+    Applies the changes to the dataframes.
+    Args:
+        dataframes (dict): The dictionary of dataframes.
+    """
+    st.session_state.dataframes_modified = copy(st.session_state.dataframes)
+    for key, df in st.session_state.dataframes_modified.items():
+        df = period_filter(df, st.session_state.long_period)
+        st.session_state.dataframes_modified[key] = df 

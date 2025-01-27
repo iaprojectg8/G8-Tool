@@ -36,12 +36,29 @@ def delete_shape_folder():
 
 # Variables initialization
 
+if "already_uploaded_file" not in st.session_state:
+    st.session_state.already_uploaded_file = None
+
 if "building_indicator_df" not in st.session_state:
     st.session_state.building_indicator_df = pd.DataFrame()
 
-if "columns_chosen" not in st.session_state:
-    st.session_state.columns_chosen = None
+if "variable_chosen" not in st.session_state:
+    st.session_state.variable_chosen = None
     
+if "long_period" not in st.session_state:
+    st.session_state.long_period = None
+
+if "min_year" not in st.session_state:
+    st.session_state.min_year = None
+if "max_year" not in st.session_state:
+    st.session_state.max_year = None
+
+if "last_page" not in st.session_state:
+    st.session_state["last_page"] = None
+
+if "dataframes_modified" not in st.session_state:
+    st.session_state.dataframes_modified = dict()
+
 if "season_checkbox" not in st.session_state:
     st.session_state.season_checkbox = False
 
@@ -85,13 +102,9 @@ if "checkbox_defaults" not in st.session_state:
 if "df_checkbox" not in st.session_state:
     st.session_state.df_checkbox = pd.DataFrame(columns=st.session_state.checkbox_defaults.keys())
     
-if "columns_chosen" not in st.session_state:
-    st.session_state.columns_chosen = None
-
 
 if "season_start" not in st.session_state:
     st.session_state.season_start = 6
-
 
 if "season_end" not in st.session_state:
     st.session_state.season_end = 10
@@ -107,9 +120,6 @@ if "points_df" not in st.session_state:
 
 if "combined_gdf" not in st.session_state:
     st.session_state.combined_gdf = None
-
-if "uploaded_file_spatial" not in st.session_state:
-    st.session_state.uploaded_file_spatial = None
 
 if "lat_lon" not in st.session_state:
     st.session_state.lat_lon = (None, None)
@@ -131,12 +141,6 @@ if "all_df_mean" not in st.session_state:
 
 if "reset_folder" not in st.session_state:
     st.session_state.reset_folder = None
-
-if "min_year" not in st.session_state:
-    st.session_state.min_year = None
-
-if "max_year" not in st.session_state:
-    st.session_state.max_year = None
 
 def delete_indicator(index):
     """

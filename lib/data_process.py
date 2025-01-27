@@ -61,38 +61,9 @@ def period_filter(data, period):
     
     return data_in_right_period
 
-def filtered_data(data:pd.DataFrame, chosen_variables, period):
-    """
-    Filters a DataFrame based on selected variables and a specified time period, 
-    then displays the resulting DataFrame.
 
-    Args:
-        data (pd.DataFrame): The input DataFrame with a datetime index.
-        chosen_variables (list of str): The list of variables to filter the columns.
-        period (tuple of int): The start and end years for filtering the DataFrame.
 
-    Returns:
-        pd.DataFrame: The filtered DataFrame containing only the relevant columns and rows within the specified period.
-    """
 
-    # Filter by the period
-    data_in_right_period = data[(data.index.year>=period[0]) & (data.index.year<=period[-1])]
-    
-    # Change the format of the proposition made to the user to correspond to the dataframe column name
-    chosen_variables_modified = ["_".join(variable.lower().split()) for variable in chosen_variables]
-
-    # Check whether the columns chould be taken or removed from the dataframe
-    columns_to_keep = [column for column in data.columns if any(variable in column for variable in chosen_variables_modified)]
-    
-    # Keep the relevant columns
-    data_to_keep = data_in_right_period[columns_to_keep]
-    
-    data_to_diplay = copy(data_to_keep)
-    data_to_diplay.index = data_to_diplay.index.date
-
-    # Display the dataframe
-    st.dataframe(data=data_to_diplay,height=DATAFRAME_HEIGHT, use_container_width=True)
-    return data_to_keep
 
 
 def select_period(key):

@@ -5,6 +5,21 @@ from utils.variables import *
 # --- Calculation and data process function done for the plot ---
 # ---------------------------------------------------------------
 
+def add_periods_to_df(df:pd.DataFrame, periods):
+    """
+    Assigns a period to each row in the DataFrame based on the 'year' column.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame containing a 'year' column.
+        periods (list of tuples): A list of periods, where each period is a tuple (start_year, end_year).
+
+    Returns:
+        pd.DataFrame: The DataFrame with an additional 'period' column indicating the assigned period.
+    """
+    # Assign the first matching period to each 'year' using the next() function that iterates over periods
+    df["period"] = df["year"].apply(lambda x: next((period for period in periods if period[0] <= x <= period[1]), None))
+    return df
+
 def add_month_name_to_df(df:pd.DataFrame):
     """
     Adds a 'month_name' column to the DataFrame based on the numeric 'month' column.

@@ -6,32 +6,6 @@ from indicators.parametrization.create_inidicator import *
 from indicators.parametrization.update_indicator import *
 
 
-def variable_choice(df:pd.DataFrame):
-    """
-    Provides a user interface for selecting climate variables using checkboxes.
-
-    Returns:
-        variables_choice (list): A list of selected variables chosen by the user.
-    """
-    available_variables = select_variables_in_columns(df)
-    st.write("Choose the climate variable you are interested in: ")
-    variables_choice = []
-    col1, col2 = st.columns(2)
-
-    # Looping on the available variable to make two checkbox columns and appending variables in the list
-    for index, variable in enumerate(available_variables):
-        if index%2 == 0:
-            with col1:
-                if st.checkbox(label=variable):
-                    variables_choice.append(variable)
-        else:
-            with col2:
-                if st.checkbox(label=variable):
-                    variables_choice.append(variable)
-
-    return variables_choice
-
-
 def select_variables_in_columns(df:pd.DataFrame):
     """
     Select variables availables in the columns of the dataframe

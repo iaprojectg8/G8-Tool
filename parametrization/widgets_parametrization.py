@@ -12,34 +12,24 @@ def select_period(key):
         tuple: The start and end values of the selected period.
     """
     # Define the initial limits for the slider
-    period_start= st.session_state.min_year
-    period_end= st.session_state.max_year
+    min_year, max_year = st.session_state.min_year, st.session_state.max_year
+    if st.session_state.last_page != "Indicator Parametrization":
+        period_start, period_end = st.session_state.long_period
 
+    else:
+        period_start, period_end = (min_year, max_year)
+    
+    st.session_state.last_page = "Indicator Parametrization"
     # Display the slider that allows the user to select the bounds
     period_start, period_end = st.slider(
         "Select the data period:",
-        min_value=period_start, 
-        max_value=period_end,
+        min_value=min_year, 
+        max_value=max_year,
         value=(period_start, period_end),
-        key=key)      
+        key=key)
     return period_start, period_end
 
 
-def period_filter(data, period):
-    """
-    Filters the input data to include only rows within the specified period.
-
-    Args:
-        data (DataFrame): A pandas DataFrame with a DateTime index.
-        period (list or tuple): A list or tuple containing the start and end years [start_year, end_year].
-
-    Returns:
-        DataFrame: A filtered DataFrame containing only rows within the specified period.
-    """
-    # Select rows where the year in the index is between the start and end years of the period
-    data_in_right_period = data[(data.index.year >= period[0]) & (data.index.year <= period[-1])]
-    
-    return data_in_right_period
 
 def variable_choice(data : pd.DataFrame):
     """
@@ -56,13 +46,13 @@ def variable_choice(data : pd.DataFrame):
 
     # Widget that allows the user to select the variable he wants to see plotted
     if st.checkbox("All variables"):
-        st.session_state.columns_chosen = st.multiselect("Chose variable of interest", options=columns_list, default=columns_list)
+        st.session_state.variable_chosen = st.multiselect("Chose variable of interest", options=columns_list, default=columns_list)
     else:
-        st.session_state.columns_chosen = st.multiselect("Chose variable of interest", options=columns_list)
-    columns_chosen = st.session_state.columns_chosen
+        st.session_state.variable_chosen = st.multiselect("Chose variable of interest", options=columns_list)
+    variable_chosen = st.session_state.variable_chosen
 
     # Restrict the dataframe to the user selected columns
-    df_final = data[columns_chosen]
+    df_final = data[variable_chosen]
 
     return df_final
 
@@ -118,7 +108,8 @@ def upload_csv_file():
             data = pd.read_excel(uploaded_file)
             for index, row in data.iterrows():
                 for col in data.columns:
-                    if "List" in col:
+                    print(row[col])
+                    if isinstance(row[col], str) and row[col][0] == "[":
                         data.at[index, col] = ast.literal_eval(row[col])
                 
             st.success("File uploaded successfully!")

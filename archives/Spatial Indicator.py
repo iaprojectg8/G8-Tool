@@ -3,8 +3,7 @@ from utils.variables import ZIP_FOLDER, UNIT_DICT, MODEL_NAMES, DATAFRAME_HEIGHT
 from maps_related.main_functions import *
 from lib.session_variables import *
 from spatial.spatial_indicator import *
-from spatial.indicator_modified import indicator_management, spatial_indicator_management
-from spatial.general_modified import general_management
+
 
 def main():
     """Basic Streamlit app with a title."""

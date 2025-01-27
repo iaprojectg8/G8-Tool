@@ -14,33 +14,30 @@ def main():
     """Basic Streamlit app with a title."""
     # Set some layout parameters for the page 
     st.set_page_config(layout="wide")
-    set_page_title("Indicators Parametrization")
+    set_page_title("Indicators Parametrizations")
 
 
     set_title_2("Chose the shapefile to load for creating a raster")
     uploaded_file = st.file_uploader("Upload a zip file containing CSV files", type="zip")
     
-    if uploaded_file is not None:
+    if uploaded_file is not None or st.session_state.already_uploaded_file is not None:
         extract_to = 'extracted_files'
         # Remove the directory if it exists
-        if uploaded_file != st.session_state.uploaded_file_spatial:
+        if uploaded_file is not None and uploaded_file != st.session_state.already_uploaded_file:
             
             process_dataframes_zip(uploaded_file, extract_to)
         
         # Period
         set_title_2("Period")
-        data_long_period_filtered = period_management()
-        
-        # Variable choice
-        set_title_2("Variable Choice")
-        df_chosen = variable_choice(data_long_period_filtered)
+        df_time_filtered = period_management()
         
 
-        if not df_chosen.empty:
+        if not df_time_filtered.empty:
             
-            # Season choice
+            # Season choice 
             set_title_2("Season Choice")
-            df_season, season_start, season_end = season_management(df_chosen)
+            df_season, season_start, season_end = season_management(df_time_filtered)
+            apply_change_to_dataframes()
             
             # Indicators parametrization
             set_title_2("Parametrize Indicators")
