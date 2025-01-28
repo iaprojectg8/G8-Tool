@@ -95,6 +95,7 @@ def indicator_management(df):
             # The copy done is only to display the indicators dataframe on the app
             df_indicator_copy = copy(st.session_state.df_indicators)
             df_indicator_copy["Variable"] = df_indicator_copy["Variable"].astype(str)
+            set_title_2("Indicators Summary")
             st.dataframe(df_indicator_copy, use_container_width=True)
             download_indicators(st.session_state.df_indicators, filename="indicators.xlsx")
 

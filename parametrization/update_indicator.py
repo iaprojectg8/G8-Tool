@@ -110,10 +110,13 @@ def update_yearly_thresholds(updated_indicator,label, updated_checkbox, checkbox
                                                            value=updated_indicator[label],
                                                            label_visibility="collapsed", 
                                                            key=f"edit{"_".join(label.lower().split(" "))}_{i}")
+                updated_indicator[label+" List"][0] = updated_indicator[label]
+        
         else:
             updated_indicator[label] = None
             updated_indicator[label+" Step"] = 0
             updated_indicator[label+" List"] = []
+        
 
     if updated_indicator[label] is not None:
 
@@ -139,7 +142,7 @@ def update_yearly_thresholds(updated_indicator,label, updated_checkbox, checkbox
                                                                                 else updated_indicator[label] - updated_indicator[label+" Step"] * k
                                                                                 for k in range(NUM_THRESHOLDS)]),
 
-                                                                            key=f"edit_text_input{i}_{thresholds_position}", 
+                                                                            key=f"edit_text_input{i}_{thresholds_position}",
                                                                             label_visibility="collapsed")
                                                                             )
 
@@ -148,10 +151,10 @@ def update_yearly_thresholds(updated_indicator,label, updated_checkbox, checkbox
             with col1:
                 st.subheader(f"Step {thresholds_position}")
                 st.write(f"""
-                                Specify a step value to create additional thresholds above the main threshold. 
-                                These thresholds will represent distinct hazard levels (e.g., Low, Moderate, High, Very High). 
-                                Each range is calculated by {"adding" if thresholds_position == "above" else "subtraction"} multiples of the step value to the current threshold.
-                            """)
+                            Specify a step value to create additional thresholds above the main threshold. 
+                            These thresholds will represent distinct hazard levels (e.g., Low, Moderate, High, Very High). 
+                            Each range is calculated by {"adding" if thresholds_position == "above" else "subtraction"} multiples of the step value to the current threshold.
+                        """)
             with col2:
 
                 updated_indicator[label+" Step"] = step = st.number_input(label="Step",

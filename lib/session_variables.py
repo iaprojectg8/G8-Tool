@@ -166,6 +166,14 @@ def update_indicator(index, updated_indicator, updated_checkbox):
     st.session_state.df_indicators.loc[index] = updated_indicator
     st.session_state.df_checkbox.loc[index] = updated_checkbox
 
+def modify_custom_list(updated_indicator, label):
+    """
+    Modifies the custom list of thresholds in the indicator session state.
+    Args:
+        updated_indicator (dict): The updated indicator.
+        label (str): The label of the threshold to modify.
+    """
+    updated_indicator[f"{label} List"][0] = updated_indicator[label]
 
      
 

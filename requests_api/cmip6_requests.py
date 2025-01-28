@@ -111,7 +111,7 @@ def make_whole_request(bounds, nc_directory):
         request_loop(selected_variables, selected_model, ssp, experiment, years, bounds)
 
 
-def request_loop(selected_variables, selected_model, ssp, experiment, years, bounds):
+def request_loop(selected_variables, selected_model, ssp_list, experiment, years_list, bounds):
     """
     This function will loop through the request to the NASA server and download the files
     Args:
@@ -122,12 +122,12 @@ def request_loop(selected_variables, selected_model, ssp, experiment, years, bou
         years (list): The years to extract
         bounds (tuple): The bounds of the area to extract
     """
-    total_requests = len(selected_variables) * len(sum(years, []))
+    total_requests = len(selected_variables) * len(sum(years_list, []))
     progress_bar = st.progress(0, text="Request Progress: 0%")
     progress = 0
     # one request about 15 points, takes apoxximatly 10 seconds for one year, one variable
     for variable in selected_variables:
-        for ssp, years in zip(ssp, years):
+        for ssp, years in zip(ssp_list, years_list):
             for year in years:
                 make_year_request(variable, selected_model, ssp, experiment, bounds, year)
                 progress += 1
@@ -327,6 +327,15 @@ def create_request_url(params, model, ssp, experiment, variable, year):
     return url
 
 def try_request(url, year, variable):
+    """
+    This function will try to make a request to the NASA server
+    Args:
+        url (str): The url to request
+        year (int): The year to extract
+        variable (str): The variable to extract
+    Returns:
+        pd.DataFrame: The dataframe with the coordinates
+    """
     try:
         response = requests.get(url)
         response.raise_for_status()
@@ -545,8 +554,7 @@ def cmip6_request(selected_shape_folder):
                 empty_request_gdf = pd.concat([empty_request_gdf, df_unique], ignore_index=True)
         with st.expander(label="Your coordinates"):
             st.dataframe(data=empty_request_gdf, height=DATAFRAME_HEIGHT, use_container_width=True)
-        print(combined_gdf)
-        print(st.session_state.combined_gdf)
+
         if not empty_request_gdf.empty:
             map_empty_request(combined_gdf, empty_request_gdf)
             make_whole_request(combined_gdf.total_bounds, nc_directory=NC_FILE_DIR)
