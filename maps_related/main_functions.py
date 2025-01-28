@@ -47,7 +47,7 @@ def map_empty_request(combined_gdf, empty_gdf:gpd.GeoDataFrame):
             fill_color='blue'
         ).add_to(m)
 
-    folium.GeoJson(combined_gdf).add_to(m)
+    folium.GeoJson(st.session_state.combined_gdf).add_to(m)
     set_title_2("Map")
     st_folium(m, height=600, use_container_width=True)
 

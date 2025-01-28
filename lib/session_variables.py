@@ -118,14 +118,14 @@ if "resolution" not in st.session_state:
 if "points_df" not in st.session_state:
     st.session_state.points_df = None
 
-if "combined_gdf" not in st.session_state:
-    st.session_state.combined_gdf = None
-
 if "lat_lon" not in st.session_state:
     st.session_state.lat_lon = (None, None)
 
-if "gdf" not in st.session_state:
-    st.session_state.gdf = None
+if "gdf_list" not in st.session_state:
+    st.session_state.gdf_list = []
+
+if "combined_gdf" not in st.session_state:
+    st.session_state.combined_gdf = pd.DataFrame()
 
 if "xaxis_range" not in st.session_state:
     st.session_state.xaxis_range = None

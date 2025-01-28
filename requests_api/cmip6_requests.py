@@ -3,6 +3,7 @@ from utils.variables import *
 from lib.data_process import select_period_cmip6
 from layouts.layout import *
 from maps_related.main_functions import map_empty_request, read_shape_file
+from lib.session_variables import *
 
 
 
@@ -512,13 +513,14 @@ def cmip6_request(selected_shape_folder):
     """
     if selected_shape_folder:
         gdf_list = []
+        st.session_state.gdf_list = []
         for folder in selected_shape_folder:
 
             path_to_shapefolder = os.path.join(ZIP_FOLDER, folder)
             shape_file = [file for file in os.listdir(path_to_shapefolder) if file.endswith(".shp")][0]
             shapefile_path = os.path.join(path_to_shapefolder, shape_file)
 
-            gdf :gpd.GeoDataFrame = read_shape_file(shapefile_path)
+            gdf = read_shape_file(shapefile_path)
             # Ask the user to define a buffer distance
             buffer_distance = st.number_input(
                 label=f"Enter buffer distance for {folder} in degree (0.25 is about 25 kilometers):",
@@ -528,13 +530,13 @@ def cmip6_request(selected_shape_folder):
                 format="%0.3f",
                 key=folder
             )
-            
+            st.session_state.gdf_list.append(copy(gdf))
             # Apply the buffer if the distance is greater than 0
             if buffer_distance > 0:
                 gdf["geometry"] = gdf["geometry"].buffer(buffer_distance, resolution=0.05)
                 st.success(f"Buffer of {buffer_distance} applied to {folder}")
             gdf_list.append(gdf)
-
+        st.session_state.combined_gdf = pd.concat(st.session_state.gdf_list, ignore_index=True)
         combined_gdf = pd.concat(gdf_list, ignore_index=True)
         empty_request_gdf = pd.DataFrame()
         for gdf in gdf_list:
@@ -543,7 +545,8 @@ def cmip6_request(selected_shape_folder):
                 empty_request_gdf = pd.concat([empty_request_gdf, df_unique], ignore_index=True)
         with st.expander(label="Your coordinates"):
             st.dataframe(data=empty_request_gdf, height=DATAFRAME_HEIGHT, use_container_width=True)
-        
+        print(combined_gdf)
+        print(st.session_state.combined_gdf)
         if not empty_request_gdf.empty:
             map_empty_request(combined_gdf, empty_request_gdf)
             make_whole_request(combined_gdf.total_bounds, nc_directory=NC_FILE_DIR)
