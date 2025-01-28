@@ -79,7 +79,7 @@ def indicator_management(df):
     all_year_data = pd.DataFrame()
 
     if not data_long_period_filtered.empty:
-        all_year_data = data_long_period_filtered  
+        all_year_data = data_long_period_filtered 
 
         # Season handdling
         set_title_2("Season Choice")
