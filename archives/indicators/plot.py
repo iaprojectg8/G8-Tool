@@ -1,6 +1,7 @@
 from utils.imports import *
 from utils.variables import *
-from results.general_plots import add_vertical_line
+from indicators.calculation import categorize_both
+from lib.plot import add_vertical_line
 
 
 # --------------------------------------------
@@ -26,12 +27,11 @@ def daily_data_plot(df:pd.DataFrame, fig:go.Figure, variable:str):
 def daily_data_update_layout(fig:go.Figure, variable:str):
 
     # Update the layout of the figure
-    mean = "Mean "
     fig.update_layout(
         width=1500, height=500,
-        
+
         title=dict(
-            text=f"Distribution of Monthly {mean if variable != "precipitation_sum" else ''}{' '.join(variable.split('_')).title()}",
+            text=f"Distribution of Monthly Mean {' '.join(variable.split('_')).title()}",
             x=0.5,
             xanchor="center",
             font_size=25
@@ -48,7 +48,7 @@ def daily_data_update_layout(fig:go.Figure, variable:str):
         yaxis=dict(
             tickfont_size=15,
             title=dict(
-                text=f"Monthly {mean if variable != "precipitation_sum" else ''}{' '.join(variable.split('_')).title()} ({UNIT_DICT[variable]})",
+                text=f"Monthly Mean {' '.join(variable.split('_')).title()} ({UNIT_DICT[variable]})",
                 font_size=17,
                 standoff=50
             ),
@@ -81,10 +81,8 @@ def plot_daily_data(df:pd.DataFrame, variable, zoom=None):
     """
     # Reset the index and extract the relevant data
     df = df.loc[:,variable]
-    if variable == "precipitation_sum":
-        df = df.resample("ME").sum()
-    else :
-        df = df.resample("ME").mean()
+    
+    df = df.resample("ME").mean()
     df= df.reset_index()
     print(datetime.now(pytz.utc) in df["date"])
     fig = go.Figure()
@@ -545,7 +543,6 @@ def category_mean_aggregation(df_yearly: pd.DataFrame, score_column: str) -> pd.
     df_period = df_yearly.groupby("period", as_index=False, observed=False)["absolute_score"].mean().round()
     # Map the mean absolute score to the corresponding risk category
     df_period["category"] = df_period["absolute_score"].apply(CATEGORY_TO_RISK.get)
-
     
     return df_period
 
@@ -831,58 +828,3 @@ def wrap_indicator_into_pdf(fig_list):
     pdf_buffer.close()
 
     return pdf_bytes
-
-
-def categorize_both(value, below_thresholds=None,above_thresholds=None):
-    """
-    Categorizes a value based on both above and below thresholds.
-    
-    Args:
-        value (float): The value to categorize.
-        above_thresholds (list, optional): A sorted list of thresholds for values above the normal range.
-        below_thresholds (list, optional): A sorted list of thresholds for values below the normal range (in descending order).
-    
-    Returns:
-        int: The category, positive for above thresholds, negative for below thresholds, and 0 for normal.
-    """
-    # Check if value is above thresholds
-    if below_thresholds and above_thresholds:
-        if  below_thresholds [0] <value < above_thresholds[0]:
-            return 1
-        elif above_thresholds[0] <= value < above_thresholds[1]:
-            return 2
-        elif above_thresholds[1] <= value < above_thresholds[2]:
-            return 3
-        elif above_thresholds[2] <= value :
-            return 4
-        
-        elif above_thresholds[0] > value > below_thresholds[0]:
-            return -1
-        elif below_thresholds[0] >= value > below_thresholds[1]:
-            return -2
-        elif below_thresholds[1] >= value > below_thresholds[2]:
-            return -3
-        elif value <= below_thresholds[2]:
-            return -4
-        
-    elif below_thresholds:
-        if  value > below_thresholds[0]:
-            return -1
-        elif below_thresholds[0] >= value > below_thresholds[1]:
-            return -2
-        elif below_thresholds[1] >= value > below_thresholds[2]:
-            return -3
-        elif value <= below_thresholds[2]:
-            return -4
-        
-    elif above_thresholds:
-        if  value < above_thresholds[0]:
-            return 1
-        elif above_thresholds[0] <= value < above_thresholds[1]:
-            return 2
-        elif above_thresholds[1] <= value < above_thresholds[2]:
-            return 3
-        elif above_thresholds[2] <= value :
-            return 4
-
-    return 0

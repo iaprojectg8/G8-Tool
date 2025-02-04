@@ -156,4 +156,28 @@ def delete_all_indicators():
     Deletes all the indicators stored in the session state.
     """
     st.button("Delete all indicators", on_click=reset_df_indicators,use_container_width=True)
-    
+
+def page_config(logo_path):
+    with open(logo_path, "rb") as file:
+        svg_content = file.read()
+    st.set_page_config(page_icon=svg_content, layout="wide")
+
+def increase_logo():
+    """
+    Increase the GroupeHuit logo size on the top left of the page
+    """
+
+    st.markdown("""
+                <style>
+        div[data-testid="stSidebarHeader"] > img, div[data-testid="collapsedControl"] > img {
+            height: 3rem;
+            width: auto;
+        }
+        
+        div[data-testid="stSidebarHeader"], div[data-testid="stSidebarHeader"] > *,
+        div[data-testid="collapsedControl"], div[data-testid="collapsedControl"] > * {
+            display: flex;
+            align-items: center;
+        }
+    </style>
+                """,unsafe_allow_html=True)

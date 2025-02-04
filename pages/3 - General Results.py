@@ -1,15 +1,18 @@
 from utils.imports import * 
-from utils.variables import DATAFRAME_HEIGHT
+from utils.variables import DATAFRAME_HEIGHT, LOGO_PATH, G8_LOGO_PATH
 from layouts.layout import *
 from lib.session_variables import *
 from results.result_functions import make_zone_average, general_management, indicator_management
+from parametrization.widgets_parametrization import page_config, increase_logo
 
 
 def main():
     """Basic Streamlit app with a title."""
     # Set some layout parameters for the page 
     st.session_state.last_page = "General Results"
-    st.set_page_config(layout="wide", page_title="General Results")
+    page_config(LOGO_PATH)
+    st.logo(G8_LOGO_PATH)
+    increase_logo()
     set_page_title("General Results")
     if len(st.session_state.dataframes_modified) == 0:
         st.error("You should upload a file on the Indicator Parametrization page")

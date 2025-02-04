@@ -1,10 +1,11 @@
 from utils.imports import * 
-from utils.variables import ZIP_FOLDER, REQUEST_TYPE
+from utils.variables import ZIP_FOLDER, REQUEST_TYPE, LOGO_PATH, G8_LOGO_PATH
 from layouts.layout import *
 from lib.session_variables import *
 from requests_api.helpers import *
 from requests_api.open_meteo_request import open_meteo_request
 from requests_api.cmip6_requests import cmip6_request
+from parametrization.widgets_parametrization import page_config, increase_logo
 
 
 
@@ -12,7 +13,9 @@ from requests_api.cmip6_requests import cmip6_request
 def main():
     """Basic Streamlit app with a title."""
     # Set some layout parameters for the page 
-    st.set_page_config(layout="wide")
+    page_config(LOGO_PATH)
+    st.logo(G8_LOGO_PATH)
+    increase_logo()
     set_page_title("General Information & Requests")
 
     # Project info

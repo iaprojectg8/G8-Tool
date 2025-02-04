@@ -1,5 +1,5 @@
 from utils.imports import * 
-from utils.variables import MONTHS_LIST, DATAFRAME_HEIGHT
+from utils.variables import MONTHS_LIST, DATAFRAME_HEIGHT, LOGO_PATH, G8_LOGO_PATH
 from layouts.layout import *
 from lib.session_variables import *
 from parametrization.helpers import *
@@ -13,8 +13,10 @@ from parametrization.update_indicator import indicator_editing
 def main():
     """Basic Streamlit app with a title."""
     # Set some layout parameters for the page 
-    st.set_page_config(layout="wide")
-    set_page_title("Indicators Parametrizations")
+    page_config(LOGO_PATH)
+    st.logo(G8_LOGO_PATH)
+    increase_logo()
+    set_page_title("Indicators Parametrization")
 
 
     set_title_2("Choose ZIP file containing CSV files")

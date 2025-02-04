@@ -201,3 +201,5 @@ EMPTY_REQUEST_FOLDER = "empty_request"
 
 REQUEST_TYPE = ["Request data though CMIP6 projections","Request data through Open-Meteo"]
 
+LOGO_PATH = "logos/tool_logo.png"
+G8_LOGO_PATH = "logos/Logo_G8.png"

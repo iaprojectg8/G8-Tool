@@ -105,7 +105,7 @@ def make_whole_request(bounds, nc_directory):
     choice = ask_reset_directory(nc_directory)
     # Add a progress bar to see the evolution of the request
 
-    if st.button("Make request", key="cmip6_button"):
+    if st.button("Make request", key="cmip6_button", use_container_width=True):
         # Reset the directory that will contain the data files
         reset_directory_if_needed(choice, nc_directory)
         request_loop(selected_variables, selected_model, ssp, experiment, years, bounds)
@@ -157,7 +157,7 @@ def convert_nc_to_csv(nc_file_path, csv_file_path):
         nc_file_path (str): The path to the netcdf files
         csv_file_path (str): The path to the csv files
     """
-    if st.button("Convert everything you downloaded into CSV zip"):    
+    if st.button("Convert everything you downloaded into CSV zip", use_container_width=True):    
 
         process_all_nc_files(nc_file_path, csv_file_path)
         create_zip_download_button(csv_file_path, button_text="Download ZIP file")

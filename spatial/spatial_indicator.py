@@ -88,12 +88,13 @@ def spatial_calculation_for_raster(row, below_thresholds, above_thresholds, df, 
      # Get the score_column
     lat, lon = df.at[df.index[0],"lat"], df.at[df.index[0],"lon"]
     unit, df_yearly_var, aggregated_column_name = calculate_scores(row,df, score_name, variable,spatial=1)
+
     # Plot preparation
     df_yearly = preparing_dataframe_for_plot(df_yearly_var, periods, score_name)
     score_column = f"yearly_indicator_{score_name}"
     
     # Asks the user to choose the aggregation type and then aggregates the data
-    aggregation_type = "Variable Mean Category"
+    aggregation_type = "Category Mean"
     # aggregation_type = st.selectbox(label="Aggregation Type", options=EXPOSURE_AGGREGATION, key=f"aggregation_type_{index}_{additional_key}")
     df_period = aggregate_category(aggregation_type, df_yearly, score_column, aggregated_column_name, below_thresholds, above_thresholds)
     df_period['lat'] = lat
@@ -105,6 +106,7 @@ def spatial_calculation_for_raster(row, below_thresholds, above_thresholds, df, 
         aggfunc='first',
         observed=False
     )
+
     return sumup_df
 
 def filter_all_the_dataframe(dataframes:dict, long_period):

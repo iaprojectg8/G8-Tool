@@ -190,10 +190,10 @@ def layout_monthly_plot(fig:go.Figure, column_name,  unit):
         fig (go.Figure): The Plotly figure to update.
         variable (str): The name of the variable being plotted, used for title and axis labels.
     """
-    
+    mean  = "Mean "
     fig.update_layout(
         width=1500, height=500,
-        title=dict(text=f'Monthly Mean {column_name} through years',
+        title=dict(text=f'Monthly {mean if column_name != "Precipitation Sum" else ''}{column_name} through years',
                 x=0.5,
                 xanchor="center",
                 font_size=25),
@@ -323,9 +323,10 @@ def yearly_layout(fig:go.Figure, column_name, unit):
         column_name (str): The column name used for title and axis labels.
         unit (str) : The unit that corresponds to the variable ploted
     """
+    mean = "Mean "
     fig.update_layout(
         width=1500, height=500,
-        title=dict(text=f'Mean Year {column_name} and Trends from Different Periods',
+        title=dict(text=f'Yearly {mean if column_name != "Precipitation Sum" else ''}{column_name} and Trends from Different Periods',
                     x=0.5,
                     xanchor="center",
                     font_size=25),
@@ -556,7 +557,7 @@ def plot_monthly_period_variation(monthly_mean: pd.DataFrame, monthly_data: pd.D
     # Sidebar for color scale selection and reversing
     with col1:
         color_scale = st.selectbox("Choose the colorscale you want", options=COLORSCALE)
-        color_scale_reversed = st.checkbox("Reverse the colorscale")
+        color_scale_reversed = st.checkbox("Reverse the colorscale", value="temperature" in column)
         color_scale = change_color_scale(color_scale_reversed, color_scale)
 
     # Initialize the Plotly figure
@@ -709,7 +710,6 @@ def add_vertical_line(fig:go.Figure, year,  periods=None):
     """
     if type(year) is datetime:
         # For graph with x type datetime (daily plot graphs)
-        print(year)
         line_and_annotation(fig, x=year.isoformat(), x_text=year.year)
 
     elif type(year) is int and periods:
