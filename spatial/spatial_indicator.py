@@ -133,15 +133,19 @@ def spatial_calculation(df_season, df_indicators_parameters: pd.DataFrame,df_che
     """
     # Store all newly created columns in a dictionary to merge later
     df_yearly = pd.DataFrame()
-    tabs = st.tabs(list(df_indicators_parameters["Name"].values))
+    _, col, _ = st.columns([1, 2, 1])
+    with col:
+        general_compute = st.button(label="Compute rasters for all indicators", key = f"general_compute", use_container_width=True,type="primary")
 
+
+    tabs = st.tabs(list(df_indicators_parameters["Name"].values))
     # Iterating over indicators dataframe
-    for (i, row), (j, row_checkbox) in zip(df_indicators_parameters.iterrows(), df_checkbox.iterrows()):
-        with tabs[i]:
+    for (index, row), (j, row_checkbox) in zip(df_indicators_parameters.iterrows(), df_checkbox.iterrows()):
+        with tabs[index]:
             
             # Offer the possibility to edit the indicator
 
-            indicator_editing(df_season, season_start, season_end, row, row_checkbox, i)
+            indicator_editing(df_season, season_start, season_end, row, row_checkbox, index)
             
             # Initializing useful variables
             variable = row["Variable"]
@@ -168,38 +172,40 @@ def spatial_calculation(df_season, df_indicators_parameters: pd.DataFrame,df_che
                                     df = introduce_season_shift_in_calculation(season_start, season_start_shift, season_end, season_end_shift, df_all)
                        
                         # Specific part to allow crossed variable computation
+                    with st.spinner("Computing raster"):
+                        _, col, _ = st.columns([1, 2, 1])
+                        with col:
+                            specific_compute = st.button(label="Compute raster for current indicator", key=f"compute_raster{index}",
+                                                         use_container_width=True,
+                                                         type="secondary")
                         if row["Indicator Type"] == "Crossed Variables":
-                            if st.button(label="Compute Data to get the graphs", key="crossed_variable_compute"):
-                                progress_bar = st.progress(0)
-                                for i,  (df_key, df) in enumerate(dataframes_dict_filtered.items()):
+                            if specific_compute or general_compute:
+                                for df in dataframes_dict_filtered.values():
                                     sumup_df = heat_index_spatial_indicator(df, periods)
                                     df_raster = pd.concat([df_raster, sumup_df])
-                                    progress_bar.progress((i+1)/len(dataframes_dict_filtered), text=df_key)
                                 rasterize_data(df_raster, shape_gdf=shape_gdf, resolution=raster_resolution, score_name=score_name)
                         
                         # All the other parts are located here                                        
                         else:
                             
-                            if st.button(label="Compute Data to get the graphs", key=f"other_compute_{i}"):
-                                progress_bar = st.progress(0)
-                                print(dataframes_dict_filtered.items())
-                                for i, (df_key, df) in enumerate(dataframes_dict_filtered.items()):
+                            if specific_compute or general_compute:
+                                for df in dataframes_dict_filtered.values():
 
                                     sumup_df = spatial_calculation_for_raster(row, below_thresholds, above_thresholds, df, score_name, variable, periods)
                                     df_raster = pd.concat([df_raster, sumup_df])
-                                    progress_bar.progress((i+1)/len(dataframes_dict_filtered), text=df_key)
                                     
                                 rasterize_data(df_raster, shape_gdf=shape_gdf, resolution=raster_resolution, score_name=score_name)
  
                 else:
                     st.warning("Your variable is not in the taken in the dataframes dictionary, please click on 'Filter the data' button to get it")
-                if st.session_state.raster_params[score_name] is not None:
+                if len(st.session_state.raster_params) !=0 and score_name in st.session_state.raster_params:
                     try :
                         if row["Indicator Type"] == "Crossed Variables":
                             display_raster_with_slider_heat_index(score_name, periods)
+                            raster_download_button(score_name, periods, index=index)
                         else:
                             display_raster_with_slider(score_name, periods)
-                        raster_download_button(score_name, index=i)
+                            raster_download_button(score_name, periods, index=index)
                     except IndexError as e:
                         st.error(f"Index out of range error: You changed something with the periods, please recompute the raster")
                     except Exception as e:

@@ -8,10 +8,6 @@ READABLE_VARIABLE = [
         "relative_humidity_2m","specific_humidity_2m","precipitation_sum","longwave_radiation","shortwave_radiation",
         "wind_speed_10m_mean","temperature_2m_mean","temperature_2m_max","temperature_2m_min"]
 
-DATASET_FOLDER ="Moroni_Dataset"
-COORDINATES_FILE="coordinates_to_extract/Sundarbans_02.csv"
-
-FILENAME_BASE="era5_daily_sundarbans"
 
 
 # Some other things
@@ -71,7 +67,7 @@ INDICATOR_TYPES = ["Outlier Days", "Consecutive Outlier Days", "Season Aggregati
 
 # This is very useful to chose the right indicator in the function
 INDICATOR_AGG = {"Outlier Days":[1, 1], 
-                 "Consecutive Outlier Days": [3,1], 
+                 "Consecutive Outlier Days": [3,0], 
                  "Season Aggregation": [1, 0], 
                  "Monthly Variation Coefficient":[0,0], 
                  "Sliding Windows Aggregation": [0,0]

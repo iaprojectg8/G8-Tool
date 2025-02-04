@@ -138,7 +138,7 @@ def filtered_data(data:pd.DataFrame, chosen_variables, period):
 
 
 
-def general_plot(data: pd.DataFrame, periods, filename):
+def general_plot(data: pd.DataFrame, periods):
     """
     Generates a plot for the selected variable and period, including monthly and yearly means,
     trends, and the option to download the plots as a PDF.
@@ -182,7 +182,7 @@ def general_plot(data: pd.DataFrame, periods, filename):
             st.download_button(
                 label="Download PDF",
                 data=pdf,
-                file_name=f"{filename}_{variable_choice}.pdf",
+                file_name=f"{st.session_state.project_info["project_name"]}_{column.title()}_General_Graph.pdf",
                 mime="application/pdf"
             )
 
@@ -299,7 +299,7 @@ def calculations_and_plots(df_season, df_indicators_parameters: pd.DataFrame,df_
                 st.download_button(
                     label="Download PDF",
                     data=pdf,
-                    file_name="whatever.pdf",
+                    file_name=f"{score_name}.pdf",
                     mime="application/pdf",
                     key=f"download_{i}"
                 )

@@ -32,6 +32,7 @@ def update_general_information(updated_indicator,i, df_chosen:pd.DataFrame):
        
         if not all(var in df_chosen.columns for var in updated_indicator["Variable"]):
             variable_ok = [var for var in updated_indicator["Variable"] if var in df_chosen.columns]
+
             variable_not_ok = [var for var in updated_indicator["Variable"] if var not in df_chosen.columns]
             
             updated_indicator["Variable"] = st.multiselect("Variable", options =list(df_chosen.columns),
@@ -110,7 +111,9 @@ def update_yearly_thresholds(updated_indicator,label, updated_checkbox, checkbox
                                                            value=updated_indicator[label],
                                                            label_visibility="collapsed", 
                                                            key=f"edit{"_".join(label.lower().split(" "))}_{i}")
-                updated_indicator[label+" List"][0] = updated_indicator[label]
+                print(updated_indicator[label+" List"])
+                if updated_indicator[label+" List"] != []:
+                    updated_indicator[label+" List"][0] = updated_indicator[label]
         
         else:
             updated_indicator[label] = None
@@ -132,6 +135,12 @@ def update_yearly_thresholds(updated_indicator,label, updated_checkbox, checkbox
                         """)
                 
             with col2:
+                # print(updated_indicator["Name"])
+                # if updated_indicator["Name"] == "Precipitation Dailly Max":
+                #     print("iam there")
+                #     updated_indicator[label+" List"] = [0,0,0]
+                # print(updated_indicator[label], updated_indicator[label+" Step"])
+                # print([updated_indicator[label] + updated_indicator[label+" Step"] * k for k in range(NUM_THRESHOLDS)])
                 updated_indicator[label+" List"] = ast.literal_eval(st.text_input(
                                                                             label="Put a list",
 
@@ -322,7 +331,8 @@ def update_yearly_aggregation(updated_indicator, i, label):
     st.subheader("Aggregation functions")
     updated_indicator[label] = st.selectbox(label="Yearly Aggregation",
                                             options=AGG_FUNC,
-                                            index=INDICATOR_AGG[updated_indicator["Indicator Type"]][0],
+                                            index=AGG_FUNC.index(updated_indicator[label]) if updated_indicator[label] is not None
+                                            else INDICATOR_AGG[updated_indicator["Indicator Type"]][0],
                                             key=f"edit_yearly_aggregation_{i}",
                                             disabled=INDICATOR_AGG[updated_indicator["Indicator Type"]][1])
     
@@ -335,7 +345,6 @@ def update_buttons(updated_indicator, updated_checkbox, i):
         row (pandas.Series): The row corresponding to the current indicator in the dataframe.
         i (int): The index or identifier for the indicator, used for widget keys.
     """
-
     st.button("Update Indicator", key=f"edit_update_{i}", 
               on_click=lambda index=i,updated_indicator=updated_indicator, updated_checkbox=updated_checkbox : update_indicator(index, updated_indicator, updated_checkbox))
 

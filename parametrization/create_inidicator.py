@@ -23,10 +23,12 @@ def general_information(df_chosen :pd.DataFrame):
     st.subheader("General Information")
     st.session_state.indicator["Name"] = st.text_input("Indicator Name", value=st.session_state.indicator["Name"])
     indicator_type = st.session_state.indicator["Indicator Type"] = st.selectbox("Indicator Type", options=INDICATOR_TYPES, key="indicator_type")
+    if "lat" in df_chosen.columns and "lon" in df_chosen.columns:
+        variable_options = [variable for variable in df_chosen.columns if variable not in ["lat", "lon"]]
     if indicator_type == "Crossed Variables":
-        st.session_state.indicator["Variable"] = st.multiselect(label="Variables", options=df_chosen.columns,key="variables")
+        st.session_state.indicator["Variable"] = st.multiselect(label="Variables", options=variable_options,key="variables")
     else :
-        st.session_state.indicator["Variable"] = st.selectbox("Variable", options=df_chosen.columns,key="variable")
+        st.session_state.indicator["Variable"] = st.selectbox("Variable", options=variable_options,key="variable")
 
     return indicator_type
 

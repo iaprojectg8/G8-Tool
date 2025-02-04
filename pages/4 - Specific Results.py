@@ -58,10 +58,10 @@ def main():
             shape_gdf  = read_shape_zipped_shape_file()
             raster_resolution = st.number_input("Choose the raster resolution",
                                                                 min_value=0.001, max_value=1., 
-                                                                value=0.005,
+                                                                value=0.25,
                                                                 format="%0.3f")
            
-        
+            
             dataframes_dict = filter_all_the_dataframe(dataframes=copy(st.session_state.dataframes_modified), long_period=long_period)
                     
             spatial_calculation(df_indicator_sample_season, st.session_state.df_indicators, 

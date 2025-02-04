@@ -91,9 +91,9 @@ def initialize_indicators_tool_management(df_uploaded):
         df_uploaded (pd.DataFrame): The DataFrame containing the uploaded indicators.
     """
     df_checkbox = fill_df_checkbox(df_uploaded)
-    st.session_state.uploaded_df = df_uploaded
     st.session_state.df_indicators = copy(df_uploaded)
     st.session_state.df_checkbox = df_checkbox
+    
 
 
 

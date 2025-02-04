@@ -32,8 +32,8 @@ def widget_init():
                                             default=READABLE_TO_CMIP6.keys())
     else:
         selected_variables = st.multiselect("Chose variable to extract", 
-                                            READABLE_TO_CMIP6.keys(), 
-                                            default=np.random.choice(list(READABLE_TO_CMIP6.keys())))
+                                            READABLE_TO_CMIP6.keys())
+        
     real_selected_variables = list(map(lambda key : READABLE_TO_CMIP6.get(key),selected_variables))
 
     # Period
@@ -413,9 +413,7 @@ def process_all_nc_files(nc_file_dir, csv_file_dir):
     # Ensure the CSV directory exists
     all_file_list = os.listdir(nc_file_dir)
     years = list(set([int(file.split("_")[0]) for file in all_file_list]))
-    print(years)
     years.sort()
-    print(years)
     # Loop through all NetCDF files in the directory
     whole_df = pd.DataFrame()
     progress_bar = st.progress(0, text="Convert Progress: 0%")
@@ -436,10 +434,12 @@ def process_all_nc_files(nc_file_dir, csv_file_dir):
         progress_percentage = int((progress / total_progress) * 100)
         progress_bar.progress(progress / total_progress, text=f"Convert Progress: {progress_percentage}%")
     whole_df = convert_variable_units(whole_df)
-    print(whole_df)
     progress_bar = st.progress(0, text="Restructuration Progress: 0%")
     progress = 0
     total_progress = len(whole_df.groupby(['lat', 'lon']))
+    if os.path.exists(csv_file_dir):
+        shutil.rmtree(csv_file_dir)  # Delete the directory and its contents
+    os.makedirs(csv_file_dir)  # Recreate the directory
     for (lat, lon), group_df in whole_df.groupby(['lat', 'lon']):
         # Create filename using lat/lon
         filename = f"lat_{lat}_lon_{lon}.csv"
@@ -492,15 +492,19 @@ def convert_variable_units(df):
     - Precipitation is converted from kg m^-2 s^-1 to mm
     - Wind speed is converted from m s^-1 to km h^-1
     """
-    print(df)
     # Convert all the temperature field from Kelvin to Celsius
-    df["tas"] = df["tas"] - 273.15
-    df["tasmin"] = df["tasmin"] - 273.15
-    df["tasmax"] = df["tasmax"] - 273.15
+    if "tas" in df.columns:
+        df["tas"] = df["tas"] - 273.15
+    if "tasmin" in df.columns:
+        df["tasmin"] = df["tasmin"] - 273.15
+    if "tasmax" in df.columns:
+        df["tasmax"] = df["tasmax"] - 273.15
     # Convert all the precipitation field from kg m^-2 s^-1 to mm multiplied by 86400 to get the daily precipitation
-    df["pr"] = df["pr"] * 86400 
+    if "pr" in df.columns:
+        df["pr"] = df["pr"] * 86400 
     # Convert the wind speed from m s^-1 to km h^-1
-    df["sfcWind"] = df["sfcWind"] * 3.6
+    if "sfcWind" in df.columns:
+        df["sfcWind"] = df["sfcWind"] * 3.6
     # Convert the radiation from W m^-2 to MJ m^-2 day^-1
     # df["rsds"] = df["rsds"] * 0.0864
     # df["rlds"] = df["rlds"] * 0.0864

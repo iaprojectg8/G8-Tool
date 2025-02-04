@@ -1,4 +1,5 @@
 from utils.imports import *
+from lib.session_variables import reset_df_indicators
 
 # ----------------------------------------------------------------
 # --- All the widgets needed for the indicator parametrization ---
@@ -111,7 +112,7 @@ def upload_csv_file():
             data = pd.read_excel(uploaded_file)
             for index, row in data.iterrows():
                 for col in data.columns:
-                    print(row[col])
+                    # print(row[col])
                     if isinstance(row[col], str) and row[col][0] == "[":
                         data.at[index, col] = ast.literal_eval(row[col])
                 
@@ -147,4 +148,12 @@ def download_indicators(df: pd.DataFrame, filename):
         data=buffer,
         file_name=filename,
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        use_container_width=True,
     )
+
+def delete_all_indicators():
+    """
+    Deletes all the indicators stored in the session state.
+    """
+    st.button("Delete all indicators", on_click=reset_df_indicators,use_container_width=True)
+    

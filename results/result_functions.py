@@ -49,8 +49,7 @@ def general_management(df):
 
         
         # Plot part with monthly means and regression through all time
-        filename = FILENAME.split(".")[0]
-        general_plot(data_to_keep, periods, filename)
+        general_plot(data_to_keep, periods)
 
 
 def indicator_management(df):

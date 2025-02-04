@@ -259,7 +259,7 @@ def heat_index_indicator(df, df_all, key, periods):
         st.download_button(
             label="Download PDF",
             data=pdf,
-            file_name="whatever.pdf",
+            file_name="Heat Index.pdf",
             mime="application/pdf",
             key= key
         )

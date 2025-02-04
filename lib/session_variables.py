@@ -158,11 +158,11 @@ def update_indicator(index, updated_indicator, updated_checkbox):
         index (int): The index of the indicator to update.
         updated_indicator (dict): The updated indicator.
     """
-    print("Indicators updated")
     if updated_indicator["Yearly Threshold Min List"] != []:
         updated_indicator["Yearly Threshold Min"] = updated_indicator["Yearly Threshold Min List"][0] 
     if updated_indicator["Yearly Threshold Max List"] != []:
         updated_indicator["Yearly Threshold Max"] = updated_indicator["Yearly Threshold Max List"][0]
+
     st.session_state.df_indicators.loc[index] = updated_indicator
     st.session_state.df_checkbox.loc[index] = updated_checkbox
 
@@ -225,4 +225,6 @@ def reset_indicator():
     st.session_state.threshold_list_checkbox_max = False
     
 
-    
+def reset_df_indicators():
+    st.session_state.df_indicators = pd.DataFrame(columns=st.session_state.indicator.keys())
+    st.session_state.df_checkbox = pd.DataFrame(columns=st.session_state.checkbox_defaults.keys())
