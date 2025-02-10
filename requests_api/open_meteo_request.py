@@ -1,7 +1,6 @@
 from utils.imports import *
 from utils.variables import *
 from maps_related.main_functions import read_shape_file, main_map
-from lib.data_process import select_period
 
 
 
@@ -86,6 +85,25 @@ def get_data_from_open_meteo(url, params):
     response = responses[0]
     return response
 
+def select_period(key):
+    """
+    Allows the user to select a data period using an interactive Streamlit slider.
+
+    Returns:
+        tuple: The start and end values of the selected period.
+    """
+    # Define the initial limits for the slider
+    period_start= st.session_state.min_year
+    period_end= st.session_state.max_year
+
+    # Display the slider that allows the user to select the bounds
+    period_start, period_end = st.slider(
+        "Select the data period:",
+        min_value=period_start, 
+        max_value=period_end,
+        value=(period_start, period_end),
+        key=key)      
+    return period_start, period_end
 
 def fill_daily_dict(daily, lat, lon):
     """
@@ -236,7 +254,7 @@ def open_meteo_request(selected_shape_folder):
 
         if st.button(label="Start the Request"):
             request_all_data(coordinates=df,
-                                dataset_folder=DATASET_FOLDER,
+                                dataset_folder=OPEN_METEO_FOLDER,
                                 filename_base="moroni_extraction",
                                 model=selected_model,
                                 start_year=long_period_start,

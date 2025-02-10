@@ -1,6 +1,6 @@
 from utils.imports import *
 from utils.variables import *
-from lib.data_process import select_period_cmip6
+
 from layouts.layout import *
 from maps_related.main_functions import map_empty_request, read_shape_file
 from lib.session_variables import *
@@ -18,6 +18,8 @@ def reset_directory(dir_name):
     else:
         shutil.rmtree(dir_name) 
         os.makedirs(dir_name)
+
+
 
 def widget_init():
     """
@@ -51,6 +53,45 @@ def widget_init():
     
     return real_selected_variables, selected_model, ssp, experiment, years
 
+
+def select_period_cmip6(key):
+    """
+    Allows the user to select a data period using an interactive Streamlit slider.
+
+    Returns:
+        tuple: The start and end values of the selected period.
+    """
+    # Display the slider that allows the user to select the bounds
+    
+    start = 1950
+    end = 2100
+    period_start, period_end = st.slider(
+        "Select the data period:",
+        min_value=start, 
+        max_value=end,
+        value=(start, end),
+        key=key)      
+    return period_start, period_end
+
+def select_ssp(long_period_start, long_period_end):
+    """
+    This function will allow the user to select the ssp to use
+    Args:
+        long_period_start (int): The start year of the period
+        long_period_end (int): The end year of the period
+    Returns:
+        str: The ssp to use
+    """
+    if long_period_end<=HISTORICAL_END_YEAR:
+        ssp = ["historical"]
+    elif long_period_start > HISTORICAL_END_YEAR :
+        ssp = st.multiselect(label="Chose the ssp to use", options=SSP, default=SSP[0])
+    else:
+        ssp = st.multiselect(label="Chose the ssp to use", options=SSP, default=SSP[0])
+        ssp = ["historical", *ssp]
+    return ssp
+
+
 def get_years_from_ssp(ssp, long_period_start, long_period_end):
     """
     This function will get the years from the ssp
@@ -77,23 +118,6 @@ def get_years_from_ssp(ssp, long_period_start, long_period_end):
 
 
 
-def select_ssp(long_period_start, long_period_end):
-    """
-    This function will allow the user to select the ssp to use
-    Args:
-        long_period_start (int): The start year of the period
-        long_period_end (int): The end year of the period
-    Returns:
-        str: The ssp to use
-    """
-    if long_period_end<=HISTORICAL_END_YEAR:
-        ssp = ["historical"]
-    elif long_period_start > HISTORICAL_END_YEAR :
-        ssp = st.multiselect(label="Chose the ssp to use", options=SSP, default=SSP[0])
-    else:
-        ssp = st.multiselect(label="Chose the ssp to use", options=SSP, default=SSP[0])
-        ssp = ["historical", *ssp]
-    return ssp
 
 def make_whole_request(bounds, nc_directory):
     """

@@ -1,7 +1,7 @@
 from utils.imports import * 
 from utils.variables import ZIP_FOLDER, UNIT_DICT, MODEL_NAMES, DATAFRAME_HEIGHT, DATASET_FOLDER, REQUEST_TYPE
 from maps_related.main_functions import *
-from lib.data_process import select_period
+from archives.data_process import select_period
 from requests_api.open_meteo_request import request_all_data
 from requests_api.cmip6_requests import make_empty_request, make_whole_request
 

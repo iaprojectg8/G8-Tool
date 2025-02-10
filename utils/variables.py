@@ -38,19 +38,8 @@ UNIT_DICT= {
     "soil_moisture_0_to_10cm_mean": "m³/m³"
 }
 
-# CMIP6_UNIT = {
-#     "relative_humidity_2m": "%",           # Relative humidity at 2m
-#     "specific_humidity_2m": "",           # Specific humidity at 2m
-#     "precipitation_sum": "mm",      # Precipitation average flux
-#     "longwave_radiation": "W/m²",         # Longwave downward radiation
-#     "shortwave_radiation": "W/m²",        # Shortwave downward radiation
-#     "wind_speed_10m_mean": "km/h",         # Wind speed at 10m
-#     "temperature_2m_mean": "°C",             # Air temperature at 2m
-#     "temperature_2m_max": "°C",           # Daily maximum air temperature
-#     "temperature_2m_min": "°C"            # Daily minimum air temperature
-# }
 
-
+OPEN_METEO_FOLDER = "open_meteo_data"
 FILENAME = "Moroni_coords_mean.csv"
 
 

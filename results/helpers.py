@@ -1,14 +1,14 @@
 from utils.imports import *
 from utils.variables import DATAFRAME_HEIGHT, FILENAME
+
 from layouts.layout import *
+
 from results.general_plots import *
-
 from results.indicators_plot import *
-from results.custom_indicators import heat_index_indicator
-from parametrization.helpers import indicator_editing
-
 from results.main_calculation import introduce_season_shift_in_calculation, calculate_scores, preparing_dataframe_for_plot
+from results.custom_indicators import heat_index_indicator
 
+from parametrization.helpers import indicator_editing
 # ---------------------------------------
 # --- Function for General management ---
 # ---------------------------------------

@@ -5,7 +5,7 @@ from indicators.plot import *
 from indicators.parametrization.update_indicator import * 
 from indicators.custom_indicators import heat_index_indicator, heat_index_spatial_indicator, display_raster_with_slider_heat_index
 from spatial.rasterization import rasterize_data, display_raster_with_slider, raster_download_button, read_shape_zipped_shape_file
-from lib.data_process import period_filter
+from archives.data_process import period_filter
 
 
 # ------------------------------------------------

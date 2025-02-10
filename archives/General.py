@@ -1,6 +1,6 @@
 from utils.imports import *
 from utils.variables import DATAFRAME_HEIGHT, FILENAME
-from lib.data_process import * 
+from archives.data_process import * 
 from indicators.parametrization.parametrization import *
 from lib.plot import *
 from layouts.layout import *

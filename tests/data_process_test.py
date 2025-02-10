@@ -1,5 +1,5 @@
 from utils.imports import *
-from lib.data_process import loads_data, column_choice
+from archives.data_process import loads_data, column_choice
 
 # Test for the loads_data function
 def test_loads_data():

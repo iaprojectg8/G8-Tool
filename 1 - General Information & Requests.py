@@ -14,7 +14,7 @@ def main():
     """Basic Streamlit app with a title."""
     # Set some layout parameters for the page 
     page_config(LOGO_PATH)
-    st.logo(G8_LOGO_PATH)
+    st.logo(G8_LOGO_PATH, size="large", link="https://groupehuit.com/")
     increase_logo()
     set_page_title("General Information & Requests")
 
