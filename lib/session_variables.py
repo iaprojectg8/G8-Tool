@@ -1,5 +1,66 @@
 from utils.imports import * 
+from utils.variables import ZIP_FOLDER
 
+# -------------------------------------
+# --- Request & General Information --- 
+# -------------------------------------
+
+
+# Variables initialization
+
+if "project_info" not in st.session_state:
+    st.session_state.project_info = dict()
+
+if "uploader_shape_checked" not in st.session_state:
+    st.session_state.uploader_shape_checked = False
+
+if "selected_shape_folder" not in st.session_state:
+    st.session_state.selected_shape_folder = []
+
+# Callback Functions
+
+def reset_uploader():
+    """Callback only runs after extraction complete"""
+    st.session_state.show_uploader = False
+
+def delete_shape_folder():
+    """Deletes the selected shape folder"""
+    for folder in st.session_state.selected_shape_folder:
+        shutil.rmtree(os.path.join(ZIP_FOLDER, folder))
+        st.session_state.selected_shape_folder.remove(folder)
+
+
+# ----------------------------------
+# --- Indicators Parametrization ---
+# ----------------------------------
+
+# Variables initialization
+
+if "already_uploaded_file" not in st.session_state:
+    st.session_state.already_uploaded_file = None
+
+if "building_indicator_df" not in st.session_state:
+    st.session_state.building_indicator_df = pd.DataFrame()
+
+if "variable_chosen" not in st.session_state:
+    st.session_state.variable_chosen = None
+    
+if "long_period" not in st.session_state:
+    st.session_state.long_period = None
+
+if "min_year" not in st.session_state:
+    st.session_state.min_year = None
+if "max_year" not in st.session_state:
+    st.session_state.max_year = None
+
+if "last_page" not in st.session_state:
+    st.session_state["last_page"] = None
+
+if "dataframes_modified" not in st.session_state:
+    st.session_state.dataframes_modified = dict()
+
+if "season_checkbox" not in st.session_state:
+    st.session_state.season_checkbox = False
 
 if "indicator" not in st.session_state:
     st.session_state.indicator = {
@@ -41,13 +102,9 @@ if "checkbox_defaults" not in st.session_state:
 if "df_checkbox" not in st.session_state:
     st.session_state.df_checkbox = pd.DataFrame(columns=st.session_state.checkbox_defaults.keys())
     
-if "columns_chosen" not in st.session_state:
-    st.session_state.columns_chosen = None
-
 
 if "season_start" not in st.session_state:
     st.session_state.season_start = 6
-
 
 if "season_end" not in st.session_state:
     st.session_state.season_end = 10
@@ -61,17 +118,14 @@ if "resolution" not in st.session_state:
 if "points_df" not in st.session_state:
     st.session_state.points_df = None
 
-if "combined_gdf" not in st.session_state:
-    st.session_state.combined_gdf = None
-
-if "uploaded_file_spatial" not in st.session_state:
-    st.session_state.uploaded_file_spatial = None
-
 if "lat_lon" not in st.session_state:
     st.session_state.lat_lon = (None, None)
 
-if "gdf" not in st.session_state:
-    st.session_state.gdf = None
+if "gdf_list" not in st.session_state:
+    st.session_state.gdf_list = []
+
+if "combined_gdf" not in st.session_state:
+    st.session_state.combined_gdf = pd.DataFrame()
 
 if "xaxis_range" not in st.session_state:
     st.session_state.xaxis_range = None
@@ -87,12 +141,6 @@ if "all_df_mean" not in st.session_state:
 
 if "reset_folder" not in st.session_state:
     st.session_state.reset_folder = None
-
-if "min_year" not in st.session_state:
-    st.session_state.min_year = None
-
-if "max_year" not in st.session_state:
-    st.session_state.max_year = None
 
 def delete_indicator(index):
     """
@@ -110,14 +158,22 @@ def update_indicator(index, updated_indicator, updated_checkbox):
         index (int): The index of the indicator to update.
         updated_indicator (dict): The updated indicator.
     """
-    print("Indicators updated")
     if updated_indicator["Yearly Threshold Min List"] != []:
         updated_indicator["Yearly Threshold Min"] = updated_indicator["Yearly Threshold Min List"][0] 
     if updated_indicator["Yearly Threshold Max List"] != []:
         updated_indicator["Yearly Threshold Max"] = updated_indicator["Yearly Threshold Max List"][0]
+
     st.session_state.df_indicators.loc[index] = updated_indicator
     st.session_state.df_checkbox.loc[index] = updated_checkbox
 
+def modify_custom_list(updated_indicator, label):
+    """
+    Modifies the custom list of thresholds in the indicator session state.
+    Args:
+        updated_indicator (dict): The updated indicator.
+        label (str): The label of the threshold to modify.
+    """
+    updated_indicator[f"{label} List"][0] = updated_indicator[label]
 
      
 
@@ -169,4 +225,6 @@ def reset_indicator():
     st.session_state.threshold_list_checkbox_max = False
     
 
-    
+def reset_df_indicators():
+    st.session_state.df_indicators = pd.DataFrame(columns=st.session_state.indicator.keys())
+    st.session_state.df_checkbox = pd.DataFrame(columns=st.session_state.checkbox_defaults.keys())

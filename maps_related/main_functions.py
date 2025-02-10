@@ -3,6 +3,14 @@ from layouts.layout import *
 
 # Function to create a grid of points within a shapefile
 def generate_csv_from_shape(gdf, resolution):
+    """
+    Generate a CSV file with points at a certain resolution within the bounds of the GeoDataFrame.
+    Args:
+        gdf (gpd.GeoDataFrame): The input GeoDataFrame.
+        resolution (float): The resolution for the grid points.
+    Returns:
+        pd.DataFrame: DataFrame with 'lat' and 'lon' columns for the generated points.
+    """
     # Calculate the bounding box of the shapefile
     bounds = gdf.total_bounds
     min_x, min_y, max_x, max_y = bounds
@@ -25,16 +33,29 @@ def generate_csv_from_shape(gdf, resolution):
     return points_df
 
 def read_shape_file(shapefile_path):
+    """
+    Read a shapefile and return a GeoDataFrame in EPSG:4326 projection.
+    Args:
+        shapefile_path (str): The path to the shapefile.
+    Returns:
+        gpd.GeoDataFrame: The GeoDataFrame read from the shapefile.
+    """
     gdf = gpd.read_file(shapefile_path)
     gdf = gdf.to_crs("EPSG:4326")
     return gdf
     
 
 def map_empty_request(combined_gdf, empty_gdf:gpd.GeoDataFrame):
+    """
+    Generate a map with the GeoDataFrame and the empty points.
+    Args:
+        combined_gdf (gpd.GeoDataFrame): The GeoDataFrame to display.
+        empty_gdf (gpd.GeoDataFrame): The GeoDataFrame with empty points.
+    """
     center = [combined_gdf.geometry.centroid.y.mean(), combined_gdf.geometry.centroid.x.mean()]
     bounds = combined_gdf.total_bounds
     zoom_start = calculate_zoom_level(bounds)
-    m = folium.Map(location=center, zoom_start=zoom_start)
+    m = folium.Map(location=center, zoom_start=zoom_start, control_scale=True)
 
     # Add generated points to the map
     print("Adding points to map")
@@ -47,13 +68,19 @@ def map_empty_request(combined_gdf, empty_gdf:gpd.GeoDataFrame):
             fill_color='blue'
         ).add_to(m)
 
-    folium.GeoJson(combined_gdf).add_to(m)
+    folium.GeoJson(st.session_state.combined_gdf).add_to(m)
     set_title_2("Map")
     st_folium(m, height=600, use_container_width=True)
 
 
 def main_map(combined_gdf):
-
+    """
+    Generate a map with the GeoDataFrame and the generated points.
+    Args:
+        combined_gdf (gpd.GeoDataFrame): The GeoDataFrame to display.
+    Returns:
+        pd.DataFrame: The generated points DataFrame.
+    """
     center = [combined_gdf.geometry.centroid.y.mean(), combined_gdf.geometry.centroid.x.mean()]
     bounds = combined_gdf.total_bounds
     zoom_start = calculate_zoom_level(bounds)

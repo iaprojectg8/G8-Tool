@@ -8,10 +8,6 @@ READABLE_VARIABLE = [
         "relative_humidity_2m","specific_humidity_2m","precipitation_sum","longwave_radiation","shortwave_radiation",
         "wind_speed_10m_mean","temperature_2m_mean","temperature_2m_max","temperature_2m_min"]
 
-DATASET_FOLDER ="Moroni_Dataset"
-COORDINATES_FILE="coordinates_to_extract/Sundarbans_02.csv"
-
-FILENAME_BASE="era5_daily_sundarbans"
 
 
 # Some other things
@@ -71,7 +67,7 @@ INDICATOR_TYPES = ["Outlier Days", "Consecutive Outlier Days", "Season Aggregati
 
 # This is very useful to chose the right indicator in the function
 INDICATOR_AGG = {"Outlier Days":[1, 1], 
-                 "Consecutive Outlier Days": [3,1], 
+                 "Consecutive Outlier Days": [3,0], 
                  "Season Aggregation": [1, 0], 
                  "Monthly Variation Coefficient":[0,0], 
                  "Sliding Windows Aggregation": [0,0]
@@ -142,7 +138,9 @@ EXPOSURE_AGGREGATION=["Category Mean", "Most Frequent Category", "Variable Mean 
 
 
 # For everything in the map part
-ZIP_FOLDER = "zip_files"
+# ZIP_FOLDER = "zip_files"
+
+ZIP_FOLDER = "zip_folder_test"
 
 MODEL_NAMES = [
         "CMCC_CM2_VHR4 (30 km)",
@@ -191,15 +189,17 @@ READABLE_TO_CMIP6 = {
 
 
 
-SSP = ["historical", "ssp126", "ssp245", "ssp370", "ssp585"]
+SSP = ["ssp126", "ssp245", "ssp370", "ssp585"]
 MODEL_NAMES_CMIP6 = ["CNRM-ESM2-1"]
 EXPERIMENTS = ["r1i1p1f2"]
-
+HISTORICAL_END_YEAR = 2014
 
 NC_FILE_DIR = "nc_files"
 WORKING_NC_FILE = "all_variables_nc_1960"
 CSV_FILE_DIR = "csv_files"
 EMPTY_REQUEST_FOLDER = "empty_request"
 
-REQUEST_TYPE = ["Request data through Open-Meteo", "Request data though CMIP6 projections"]
+REQUEST_TYPE = ["Request data though CMIP6 projections","Request data through Open-Meteo"]
 
+LOGO_PATH = "logos/tool_logo.png"
+G8_LOGO_PATH = "logos/Logo_G8.png"

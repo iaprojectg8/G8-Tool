@@ -98,7 +98,7 @@ def create_raster_from_df(gdf,shape_gdf, period, resolution):
     grid_lon, grid_lat = create_grid(min_lon, min_lat, max_lon, max_lat, resolution)
 
     # Interpolate the irregular data to the regular grid
-    grid_score = griddata((lon, lat), score, (grid_lon, grid_lat), method='cubic')
+    grid_score = griddata((lon, lat), score, (grid_lon, grid_lat), method='nearest')
     # Apply the mask is so
     grid_score = apply_mask(grid_score, shape_gdf, min_lon, max_lat, resolution)
     # Define the affine transform for the raster from top-left
@@ -241,13 +241,15 @@ def display_raster_with_slider(score_name, periods):
 # --- Widget for the raster visualisation ---
 # -------------------------------------------
 
-def raster_download_button(score_name, index):
+def raster_download_button(score_name,periods, index):
     """
     Creates a download button in Streamlit to allow users to download a raster file.
     The raster file is created in-memory using Rasterio's MemoryFile.
     """
     # Use Rasterio MemoryFile to create an in order do save the file
-    grid_score_list, transform_list = st.session_state.raster_params 
+    periods = [f"{period[0]}-{period[1]}" for period in periods]
+    grid_score_list, transform_list = st.session_state.raster_params[score_name]
+    print(grid_score_list[1].shape)
     with MemoryFile() as memfile:
         with memfile.open(
             driver='GTiff',
@@ -260,7 +262,8 @@ def raster_download_button(score_name, index):
         ) as dst:
             for i in range(len(grid_score_list)):
                 dst.write(grid_score_list[i], i+1)
-                
+                dst.set_band_description(i+1, periods[i])
+               
         # Return the in-memory file's content as bytes
         raster_data = memfile.read()
 

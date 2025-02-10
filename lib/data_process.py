@@ -61,38 +61,9 @@ def period_filter(data, period):
     
     return data_in_right_period
 
-def filtered_data(data:pd.DataFrame, chosen_variables, period):
-    """
-    Filters a DataFrame based on selected variables and a specified time period, 
-    then displays the resulting DataFrame.
 
-    Args:
-        data (pd.DataFrame): The input DataFrame with a datetime index.
-        chosen_variables (list of str): The list of variables to filter the columns.
-        period (tuple of int): The start and end years for filtering the DataFrame.
 
-    Returns:
-        pd.DataFrame: The filtered DataFrame containing only the relevant columns and rows within the specified period.
-    """
 
-    # Filter by the period
-    data_in_right_period = data[(data.index.year>=period[0]) & (data.index.year<=period[-1])]
-    
-    # Change the format of the proposition made to the user to correspond to the dataframe column name
-    chosen_variables_modified = ["_".join(variable.lower().split()) for variable in chosen_variables]
-
-    # Check whether the columns chould be taken or removed from the dataframe
-    columns_to_keep = [column for column in data.columns if any(variable in column for variable in chosen_variables_modified)]
-    
-    # Keep the relevant columns
-    data_to_keep = data_in_right_period[columns_to_keep]
-    
-    data_to_diplay = copy(data_to_keep)
-    data_to_diplay.index = data_to_diplay.index.date
-
-    # Display the dataframe
-    st.dataframe(data=data_to_diplay,height=DATAFRAME_HEIGHT, use_container_width=True)
-    return data_to_keep
 
 
 def select_period(key):
@@ -115,7 +86,7 @@ def select_period(key):
         key=key)      
     return period_start, period_end
 
-def select_period_cmip6(key, ssp):
+def select_period_cmip6(key):
     """
     Allows the user to select a data period using an interactive Streamlit slider.
 
@@ -123,12 +94,9 @@ def select_period_cmip6(key, ssp):
         tuple: The start and end values of the selected period.
     """
     # Display the slider that allows the user to select the bounds
-    if ssp == "historical":
-        start = 1950
-        end = 2014
-    else:
-        start = 2015
-        end = 2100
+    
+    start = 1950
+    end = 2100
     period_start, period_end = st.slider(
         "Select the data period:",
         min_value=start, 
