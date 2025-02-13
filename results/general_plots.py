@@ -64,6 +64,7 @@ def calculate_mothly_mean_through_year(data:pd.DataFrame, periods):
     monthly_mean = add_month_name_to_df(monthly_mean)
     monthly_mean =  add_periods_to_df(monthly_mean, periods)
 
+
     # These two lines are exlusively to improve the plot layout
     monthly_mean["period_index"] = monthly_mean["period"].apply(lambda p: periods.index(p))
     monthly_mean["customdata"] = monthly_mean["period"].apply(lambda x: "-".join([str(list(x)[0]),str(list(x)[1])]))
@@ -261,7 +262,6 @@ def get_period_trend(df : pd.DataFrame,column, start, stop):
 
         # Creating the parameters for the line, only slope and intercept will be useful in our case
         slope, intercept, _ , _ , _ = linregress(years, annual_values)
-        print("Line slope:",slope)
         
         # Create the trend using the line parameters got
         trend_line = slope * years + intercept
@@ -287,7 +287,6 @@ def build_trend_plot(year_mean_df, periods, column):
     for period in periods: 
         start, end = period
         if start != end:
-            print(start, end)
             trend_line, years, slope = get_period_trend(year_mean_df,column, int(start), int(end))
             trend_lines.append(trend_line)
             years_all.append(years)
@@ -371,8 +370,9 @@ def plot_all_trend_lines(fig:go.Figure, yearly_mean, monthly_mean, periods, colu
             line=dict(color=color),
             customdata= monthly_mean["customdata"],
                 hovertemplate=(
-                f"Slope: {round(slope[i],3)} {unit}/year<br>" +
-                "Period: %{customdata}<br>"
+                f"Slope: {round(slope[i],3)} {unit}/year <br>" +
+                f"Slope: {round(slope[i]*(periods[i][1] - periods[i][0]),3)} {unit}/period <br>" +
+                f"Period: {periods[i][0]}-{periods[i][1]}<br>"
             ),
             ))
 
@@ -528,7 +528,7 @@ def monthly_variation_layout(fig:go.Figure, graph_part, column_name):
                     ticklabelstandoff =20),
         yaxis=dict(tickfont_size=15,
                     title=dict(
-                        text="Year",
+                        text="Period",
                         font_size=17,
                         standoff=50),
                     ticklabelstandoff = 20),
@@ -580,10 +580,141 @@ def plot_monthly_period_variation(monthly_mean: pd.DataFrame, monthly_data: pd.D
 
     return fig
 
+
+# -------------------------
+# --- Current Year Plot ---
+# -------------------------
+
+def add_vertical_line(fig:go.Figure, year,  periods=None):
+    """
+    Adds a vertical line to the Plotly figure to indicate a specific year.
+
+    Parameters:
+    fig (Figure): The Plotly figure to update.
+    year (int): The year to indicate with the vertical line.
+    periods (list of str): List of periods to display on the x-axis.
+    """
+    if type(year) is datetime:
+        # For graph with x type datetime (daily plot graphs)
+        line_and_annotation(fig, x=year.isoformat(), x_text=year.year)
+
+    elif type(year) is int and periods:
+        # For graph with x type periods (str)
+        period = get_period_for_year(year, periods)
+        if period is not None:
+            line_and_annotation(fig, x=period, x_text=year)
+
+    elif type(year) is int:
+        # For graph with x type int (only for heat index for the moment)
+        line_and_annotation(fig, x=year, x_text=year)
+        
+def get_period_for_year(year, periods):
+    """
+    Determines the period a given year belongs to.
+    
+    Args:
+        year (int): The year to check.
+        categories (list of str): List of categories in the format "start-end".
+        
+    Returns:
+        str: The category the year belongs to, or None if no category matches.
+    """
+    for period in periods:
+        try:
+            start, end = map(int, period.split('-'))
+            if start <= year <= end:
+                return period
+        except ValueError:
+            raise ValueError(f"Invalid period format: '{period}'. Expected 'start-end'.")
+    return None  
+
+def line_and_annotation(fig : go.Figure,x, x_text):
+    """
+    Adds a vertical line and an annotation to the given Plotly figure.
+
+    Args:
+        fig (go.Figure): The Plotly figure to which the line and annotation are added.
+        x (float): The x-coordinate where the vertical line is drawn.
+        x_text (str): The text displayed as an annotation near the vertical line.
+
+    """
+    fig.add_vline(x=x, line=dict(color='green', width=2))
+    fig.add_annotation(
+        x=x,
+        y=1.08,
+        yref="paper",
+        text= x_text,
+        showarrow=False
+    )
+
 # --------------------
 # --- PDF filling  ---
 # --------------------
 
+def create_header_text():
+    """
+    Creates a dynamic header text by concatenating available project details.
+    
+    Returns:
+        str: The header text to display on the PDF.
+    """
+    project_info = st.session_state.project_info
+
+    parts = []  # List to store non-empty values
+
+    if project_info.get("project_name"):
+        parts.append(f"Project: {project_info['project_name']}")
+    if project_info.get("client_name"):
+        parts.append(f"Client: {project_info['client_name']}")
+    if project_info.get("financier_name"):
+        parts.append(f"Financier: {project_info['financier_name']}")
+    header_text = "  |  ".join(parts) 
+
+    return header_text
+
+def create_header(c: canvas.Canvas):
+    """
+    Draws the header and a separating line on each page.
+    
+    Args:
+        c (canvas.Canvas): The PDF canvas object to draw on.
+    """
+
+    # Build and position the header text
+    header_text = create_header_text()
+    c.setFont("Helvetica-Bold", 14)
+    text_width = c.stringWidth(header_text)
+    page_width = landscape(A4)[0]
+    x_position = (page_width - text_width) / 2
+    c.drawString(x_position, 560, header_text)
+    
+    # Draw a separating line
+    c.setStrokeColorRGB(0, 0, 0)
+    c.setLineWidth(1)
+    c.line(40, 540, 800, 540) 
+
+    # Add logos on both sides of the header
+    logo_width = 80  
+    logo_height = 40  
+    c.drawImage(G8_LOGO, 40, 545, width=logo_width, height=logo_height, mask='auto', preserveAspectRatio=True)
+    c.drawImage(NCCS_LOGO, page_width - logo_width - 40, 545, width=logo_width, height=logo_height, mask='auto', preserveAspectRatio=True)
+    # c.drawImage(NCCS_LOGO, page_width - logo_width- logo_height - 10, 547, width=logo_width, height=logo_height, mask='auto', preserveAspectRatio=True)
+
+def make_layout_improvement(fig1, fig2, fig3):
+    """
+    Improves the layout of the Plotly figures for better readability.
+    """
+    # Adjustement done on the layout of several graph to better fit the page
+    fig1.layout.font.color = "black"
+    fig1.layout.font.family = "Helvetica"
+    fig1.layout.font.weight = 600
+    fig2.layout.font.color = "black"
+    fig2.layout.font.family = "Helvetica"
+    fig2.layout.font.weight = 600 
+    fig2.layout.legend.font.size = 13
+    fig3.layout.font.color = "black"
+    fig3.layout.font.family = "Helvetica"
+    fig3.layout.font.weight = 600
 
 def wrap_into_pdf(fig1, fig2, fig3):
     """
@@ -603,11 +734,10 @@ def wrap_into_pdf(fig1, fig2, fig3):
     # Initialize the PDF canvas with landscape orientation A4 size
     c = canvas.Canvas(pdf_buffer, pagesize=landscape(A4))
 
-    # Set the background color to black
-    # c.setFillColorRGB(0, 0, 0)
-    # c.rect(0, 0, 892, 612, fill=1)  # Fill the entire page with black color
+    make_layout_improvement(fig1, fig2, fig3)
 
-    # Convert the Plotly figures to PNG images in memory using kaleido
+    create_header(c)
+    # Convert the Plotly figures to JPG images in memory using kaleido
     fig1_image = pio.to_image(fig1, format="jpg", width=fig1.layout.width, height=fig1.layout.height)
     fig2_image = pio.to_image(fig2, format="jpg", width=fig2.layout.width, height=fig2.layout.height)
     fig3_image = pio.to_image(fig3, format="jpg", width=fig3.layout.width, height=fig3.layout.height)
@@ -618,13 +748,15 @@ def wrap_into_pdf(fig1, fig2, fig3):
     img3_reader = ImageReader(BytesIO(fig3_image))
 
     # Place the first figure image on the PDF at a specific location with scaled dimensions
-    c.drawImage(img1_reader, x=-330, y=320, height=fig1.layout.height / 2, width=fig1.layout.width, preserveAspectRatio=True)
+    c.drawImage(img1_reader, x=-330, y=280, height=fig1.layout.height / 2, width=fig1.layout.width, preserveAspectRatio=True)
     
     # Place the second figure image on the PDF at a specific location with scaled dimensions
     c.drawImage(img2_reader, x=-330, y=20, height=fig2.layout.height / 2, width=fig2.layout.width, preserveAspectRatio=True)
     c.showPage()
+
+    create_header(c)
     # c.rect(0, 0, 892, 612, fill=1)  # Fill the entire page with black color
-    c.drawImage(img3_reader, x=-220, y=40, height=fig3.layout.height*0.60, width=fig3.layout.width, preserveAspectRatio=True)
+    c.drawImage(img3_reader, x=-220, y=20, height=fig3.layout.height*0.60, width=fig3.layout.width, preserveAspectRatio=True)
     # Finalize the PDF document
     c.save()
 
@@ -657,7 +789,6 @@ def general_plot(data: pd.DataFrame, periods, filename):
     """
     # Define columns to keep from the original dataframe
     columns_to_keep = data.columns
-    print(columns_to_keep)
     chosen_variables = [" ".join(column.split("_")).title() for column in columns_to_keep]
     
 
@@ -670,7 +801,6 @@ def general_plot(data: pd.DataFrame, periods, filename):
     variable_choice = st.selectbox("Choose the variable on which you want to see the plot", options=chosen_variables)
     
     # Loop through columns to find and plot data matching the selected variable
-    print(data)
     for column in data.columns:
         if "_".join(variable_choice.lower().split(" ")) in column:
             
@@ -691,72 +821,3 @@ def general_plot(data: pd.DataFrame, periods, filename):
                 mime="application/pdf"
             )
 
-# -------------------------
-# --- Current Year Plot ---
-# -------------------------
-
-def add_vertical_line(fig:go.Figure, year,  periods=None):
-    """
-    Adds a vertical line to the Plotly figure to indicate a specific year.
-
-    Parameters:
-    fig (Figure): The Plotly figure to update.
-    year (int): The year to indicate with the vertical line.
-    line_color (str): The color of the vertical line.
-    line_width (int): The width of the vertical line.
-
-    Returns:
-    None
-    """
-    if type(year) is datetime:
-        # For graph with x type datetime (daily plot graphs)
-        line_and_annotation(fig, x=year.isoformat(), x_text=year.year)
-
-    elif type(year) is int and periods:
-        # For graph with x type periods (str)
-        period = get_category_for_year(year, periods)
-        if period is not None:
-            line_and_annotation(fig, x=period, x_text=year)
-
-    elif type(year) is int:
-        # For graph with x type int (only for heat index for the moment)
-        line_and_annotation(fig, x=year, x_text=year)
-        
-def get_category_for_year(year, periods):
-    """
-    Determines the category a given year belongs to.
-    
-    Args:
-        year (int): The year to check.
-        categories (list of str): List of categories in the format "start-end".
-        
-    Returns:
-        str: The category the year belongs to, or None if no category matches.
-    """
-    for period in periods:
-        try:
-            start, end = map(int, period.split('-'))  # Parse period range
-            if start <= year <= end:
-                return period  # Return matching period
-        except ValueError:
-            raise ValueError(f"Invalid period format: '{period}'. Expected 'start-end'.")
-    return None  # No matching category found
-
-def line_and_annotation(fig : go.Figure,x, x_text):
-    """
-    Adds a vertical line and an annotation to the given Plotly figure.
-
-    Args:
-        fig (go.Figure): The Plotly figure to which the line and annotation are added.
-        x (float): The x-coordinate where the vertical line is drawn.
-        x_text (str): The text displayed as an annotation near the vertical line.
-
-    """
-    fig.add_vline(x=x, line=dict(color='green', width=2))
-    fig.add_annotation(
-        x=x,
-        y=1.12,
-        yref="paper",
-        text= x_text,
-        showarrow=False
-    )

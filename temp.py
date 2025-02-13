@@ -1,25 +1,37 @@
-from qgis.core import QgsProject, QgsRasterLayer, QgsLayerTreeGroup
+from PIL import Image
 
-# Path to your multi-band raster file
-raster_path = 'C:/Users/FlorianBERGERE/Downloads/Days above 35°C(6).tif'
+def convert_jpeg_to_png_with_transparency(jpeg_path, png_path, background_color=(255, 255, 255)):
+    """
+    Convert a JPEG image with a solid background to a PNG with a transparent background.
 
-# Load the raster layer
-raster_layer = QgsRasterLayer(raster_path, 'Multi-band Raster')
+    Args:
+        jpeg_path (str): Path to the input JPEG file.
+        png_path (str): Path to save the output PNG file.
+        background_color (tuple): RGB color of the background to be made transparent.
+    """
+    # Open the JPEG image
+    img = Image.open(jpeg_path).convert("RGBA")
 
-if not raster_layer.isValid():
-    print("Failed to load the raster layer!")
-else:
-    # Create a new group in the layer tree
-    root = QgsProject.instance().layerTreeRoot()
-    group = root.addGroup('Raster Bands')
+    # Get data of the image
+    data = img.getdata()
 
-    # Add each band as a separate layer in the group
-    for band in range(1, raster_layer.bandCount() + 1):
-        single_band_layer = QgsRasterLayer(raster_path, f'Band {band}', 'gdal', band)
-        if single_band_layer.isValid():
-            QgsProject.instance().addMapLayer(single_band_layer, False)
-            group.addLayer(single_band_layer)
+    # Create a new list to hold the modified image data
+    new_data = []
+    for item in data:
+        # Change all white (also shades of whites)
+        # pixels to transparent
+        if item[:3] == background_color:
+            new_data.append((255, 255, 255, 0))
         else:
-            print(f"Failed to load band {band}!")
+            new_data.append(item)
 
-    print("Raster bands added to the group successfully!")
+    # Update image data
+    img.putdata(new_data)
+
+    # Save as PNG
+    img.save(png_path, "PNG")
+
+# Example usage
+jpeg_path = "logos/tool_logo.png"
+png_path = "logos/new_tool_logo.png"
+convert_jpeg_to_png_with_transparency(jpeg_path, png_path)

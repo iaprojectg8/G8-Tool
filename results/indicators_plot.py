@@ -72,7 +72,7 @@ def daily_data_update_layout(fig:go.Figure, variable:str):
     )
 
 # Main function
-def plot_daily_data(df:pd.DataFrame, variable, zoom=None):
+def plot_daily_data(df:pd.DataFrame, variable, key):
     """
     Plots the daily data for a given variable using Plotly and Streamlit.
 
@@ -93,7 +93,7 @@ def plot_daily_data(df:pd.DataFrame, variable, zoom=None):
     if datetime.now(pytz.utc) in df["date"]:
         add_vertical_line(fig, year=datetime.now(pytz.utc))
     daily_data_update_layout(fig, variable)
-    st.plotly_chart(fig)
+    st.plotly_chart(fig, key=f"{key}_{variable}")
     return fig
     
 

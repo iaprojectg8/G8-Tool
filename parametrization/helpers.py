@@ -8,6 +8,17 @@ from parametrization.widgets_parametrization import *
 # --- Functions for the indicator parametrization ---
 # ---------------------------------------------------
 
+def process_dataframes_zip_beginner(filepath, extract_dir):
+    if os.path.exists(extract_dir):
+        shutil.rmtree(extract_dir)
+    
+    # Create the directory
+    os.makedirs(extract_dir)
+
+    extract_csv_from_zip(filepath, extract_dir)
+    st.session_state.dataframes = read_csv_files_from_directory(extract_dir)
+    st.session_state.dataframes = put_date_as_index(dataframe_dict=st.session_state.dataframes)
+
 def process_dataframes_zip(uploaded_file, extract_to):
     """
     Processes the uploaded zip file containing CSV files.

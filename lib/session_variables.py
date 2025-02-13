@@ -1,5 +1,14 @@
 from utils.imports import * 
-from utils.variables import ZIP_FOLDER
+from utils.variables import ZIP_FOLDER, CSV_ZIPPED
+
+# -------------------------------------
+# --- Welcome page & Mode Selection ---
+# -------------------------------------
+
+def set_mode():
+    # Callback function to save the role selection to Session State
+        st.session_state.mode = st.session_state._mode
+
 
 # -------------------------------------
 # --- Request & General Information --- 
@@ -11,17 +20,28 @@ from utils.variables import ZIP_FOLDER
 if "project_info" not in st.session_state:
     st.session_state.project_info = dict()
 
+if "location" not in st.session_state:
+    st.session_state.location = None
+
 if "uploader_shape_checked" not in st.session_state:
     st.session_state.uploader_shape_checked = False
 
 if "selected_shape_folder" not in st.session_state:
     st.session_state.selected_shape_folder = []
 
+if "selected_csv_folder" not in st.session_state:
+    st.session_state.selected_csv_folder = None
+
 # Callback Functions
 
 def reset_uploader():
     """Callback only runs after extraction complete"""
     st.session_state.show_uploader = False
+
+def delete_csv_folder():
+    """Deletes the selected csv folder"""
+    os.remove(os.path.join(CSV_ZIPPED, st.session_state.selected_csv_folder))
+        
 
 def delete_shape_folder():
     """Deletes the selected shape folder"""
@@ -54,7 +74,7 @@ if "max_year" not in st.session_state:
     st.session_state.max_year = None
 
 if "last_page" not in st.session_state:
-    st.session_state["last_page"] = None
+    st.session_state.last_page = None
 
 if "dataframes_modified" not in st.session_state:
     st.session_state.dataframes_modified = dict()

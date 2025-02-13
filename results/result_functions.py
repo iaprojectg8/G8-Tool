@@ -20,7 +20,30 @@ def make_zone_average(dataframes:dict):
     combined_df = pd.concat(dataframes.values(), ignore_index=False)
     mean_df = combined_df.groupby(combined_df.index).mean()
     st.session_state.all_df_mean = mean_df
+    return mean_df
 
+
+def general_management_beginner(df):
+    """
+    Function to manage the general results got with the data selected in the Indicator Parametrizer
+    Args:
+        df (pd.dataframe) : Dataframe that contains the averaged data
+    """
+    set_title_1("Climate Variables")
+    key = "general_part_beginner"
+
+    # Period choice
+    long_period = (long_period_start, long_period_end) = select_period_results(key)
+
+    # Period cut
+    smaller_period_length  = st.select_slider("Choose the length of smaller period to see the evolution of your data on them:",
+                                              options=PERIOD_LENGTH,
+                                              key = f"smaller_period{key}",
+                                              value=10)
+
+    data_to_keep = period_filter(df, long_period)
+    periods = split_into_periods(smaller_period_length, long_period_start, long_period_end)
+    general_plot(data_to_keep, periods)
 
 def general_management(df):
     """
@@ -74,7 +97,7 @@ def indicator_management(df):
     # Loading data and applying first filters
     all_data = df
     data_long_period_filtered = period_filter(all_data, period=long_period)
-    st.dataframe(data_long_period_filtered, height=DATAFRAME_HEIGHT, use_container_width=True)
+    # st.dataframe(data_long_period_filtered, height=DATAFRAME_HEIGHT, use_container_width=True)
 
     # Variables intitialization
     season_start, season_end = None, None

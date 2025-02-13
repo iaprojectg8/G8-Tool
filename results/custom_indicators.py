@@ -249,8 +249,8 @@ def heat_index_indicator(df, df_all, key, periods):
 
         fig_list = list()
         # Plot the heat index categories by year
-        fig1 = plot_daily_data(df_heat_index, relative_humidity_min)
-        fig2 = plot_daily_data(df_heat_index, temperature_max)
+        fig1 = plot_daily_data(df_heat_index, relative_humidity_min, key)
+        fig2 = plot_daily_data(df_heat_index, temperature_max, key)
         fig_list.extend([fig1, fig2])
         fig1, fig2, fig3 = plot_bar_stack_count(df_heat_index, periods)
         fig_list.extend([fig1, fig2, fig3])

@@ -136,8 +136,6 @@ def filtered_data(data:pd.DataFrame, chosen_variables, period):
     return data_to_keep
 
 
-
-
 def general_plot(data: pd.DataFrame, periods):
     """
     Generates a plot for the selected variable and period, including monthly and yearly means,
@@ -153,7 +151,8 @@ def general_plot(data: pd.DataFrame, periods):
     """
     # Define columns to keep from the original dataframe
     columns_to_keep = data.columns
-    chosen_variables = [" ".join(column.split("_")).title() for column in columns_to_keep]
+    chosen_variables = [" ".join(column.split("_")).title() for column in columns_to_keep 
+                        if column not in ["lat", "lon", "Unnamed: 0", "year"]]
     
 
     # Calculate monthly and yearly mean data
@@ -165,7 +164,6 @@ def general_plot(data: pd.DataFrame, periods):
     variable_choice = st.selectbox("Choose the variable on which you want to see the plot", options=chosen_variables)
     
     # Loop through columns to find and plot data matching the selected variable
-    print(data)
     for column in data.columns:
         if "_".join(variable_choice.lower().split(" ")) in column:
             
@@ -290,7 +288,7 @@ def calculations_and_plots(df_season, df_indicators_parameters: pd.DataFrame,df_
 
                 
                 # Multiple plot to understand the calculated indicators
-                fig1 = plot_daily_data(all_year_data, variable)
+                fig1 = plot_daily_data(all_year_data, variable, key=i)
                 fig2 = plot_years_exposure(df_yearly_var, aggregated_column_name, below_thresholds, above_thresholds, score_name,unit)
                 fig3 = plot_deficit_and_excess_exposure(df_yearly_var, score_name)
                 fig4 = plot_global_exposure(df_yearly_var, score_name, i, aggregated_column_name, below_thresholds, above_thresholds)

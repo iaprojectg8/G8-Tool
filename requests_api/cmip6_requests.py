@@ -5,21 +5,35 @@ from layouts.layout import *
 from maps_related.main_functions import map_empty_request, read_shape_file
 from lib.session_variables import *
 
+from requests_api.helpers import reset_directory
 
 
-def reset_directory(dir_name):
+# -----------------------------
+# --- Widget Initialization ---
+# -----------------------------
+
+def widget_init_beginner():
     """
-    This function will reset the directory
-    Args:
-        dir_name (str): The directory to reset
+    This function will initialize the widgets for the cmip6 request
+    Returns:
+        tuple: The selected variables, the selected model, the ssp, the experiment and the years
     """
-    if not os.path.isdir(dir_name):
-        os.makedirs(dir_name)
-    else:
-        shutil.rmtree(dir_name) 
-        os.makedirs(dir_name)
+    # Variable
+    selected_variables = list(READABLE_TO_CMIP6.values())
+    
+    # Period
+    (long_period_start, long_period_end) = select_period_cmip6(key="cmip6")
+    
+    # Model
+    selected_model = "CNRM-ESM2-1"
+    # Select a scenario
+    ssp = select_ssp(long_period_start, long_period_end)
+    experiment = "r1i1p1f2"
 
-
+    # Process to get proper years
+    years = get_years_from_ssp(ssp, long_period_start, long_period_end)
+    
+    return selected_variables, selected_model, ssp, experiment, years
 
 def widget_init():
     """
@@ -28,13 +42,19 @@ def widget_init():
         tuple: The selected variables, the selected model, the ssp, the experiment and the years
     """
     # Variable
-    if st.checkbox(label="Take all variables"):
-        selected_variables = st.multiselect("Chose variable to extract", 
-                                            READABLE_TO_CMIP6.keys(), 
-                                            default=READABLE_TO_CMIP6.keys())
-    else:
-        selected_variables = st.multiselect("Chose variable to extract", 
-                                            READABLE_TO_CMIP6.keys())
+    if st.session_state.mode == "Beginner":
+        selected_variables = list(READABLE_TO_CMIP6.values())
+        print(selected_variables)
+    else : 
+        if st.checkbox(label="Take all variables"):
+            selected_variables = st.pills("Chose variable to extract", 
+                                                READABLE_TO_CMIP6.keys(), 
+                                                default=READABLE_TO_CMIP6.keys(),
+                                                selection_mode="multi")
+        else:
+            selected_variables = st.pills("Chose variable to extract", 
+                                                READABLE_TO_CMIP6.keys(),
+                                                selection_mode="multi")
         
     real_selected_variables = list(map(lambda key : READABLE_TO_CMIP6.get(key),selected_variables))
 
@@ -42,11 +62,17 @@ def widget_init():
     (long_period_start, long_period_end) = select_period_cmip6(key="cmip6")
     
     # Model
-    selected_model = st.selectbox("Chose the model to use", MODEL_NAMES_CMIP6)
+    if st.session_state.mode == "Beginner":
+        selected_model = "CNRM-ESM2-1"
+    else:
+        selected_model = st.selectbox("Chose the model to use", MODEL_NAMES_CMIP6)
 
     # Select a scenario
     ssp = select_ssp(long_period_start, long_period_end)
-    experiment = st.selectbox(label="Chose the experiment to use", options=EXPERIMENTS)
+    if st.session_state.mode == "Beginner":
+        experiment = "r1i1p1f2"
+    else:
+        experiment = st.selectbox(label="Chose the experiment to use", options=EXPERIMENTS)
 
     # Process to get proper years
     years = get_years_from_ssp(ssp, long_period_start, long_period_end)
@@ -85,9 +111,9 @@ def select_ssp(long_period_start, long_period_end):
     if long_period_end<=HISTORICAL_END_YEAR:
         ssp = ["historical"]
     elif long_period_start > HISTORICAL_END_YEAR :
-        ssp = st.multiselect(label="Chose the ssp to use", options=SSP, default=SSP[0])
+        ssp = st.pills(label="Chose the ssp to use", options=SSP, default=SSP[0], selection_mode="multi")
     else:
-        ssp = st.multiselect(label="Chose the ssp to use", options=SSP, default=SSP[0])
+        ssp = st.pills(label="Chose the ssp to use", options=SSP, default=SSP[0], selection_mode="multi")
         ssp = ["historical", *ssp]
     return ssp
 
@@ -116,7 +142,9 @@ def get_years_from_ssp(ssp, long_period_start, long_period_end):
                 years.append(list(range(HISTORICAL_END_YEAR + 1, long_period_end + 1)))
     return years
 
-
+# -------------------------------
+# --- Making the real request ---
+# -------------------------------
 
 
 def make_whole_request(bounds, nc_directory):
@@ -125,17 +153,24 @@ def make_whole_request(bounds, nc_directory):
     Args:
         bounds (tuple): The bounds of the area to extract
     """
-    selected_variables, selected_model, ssp, experiment, years = widget_init()
-    choice = ask_reset_directory(nc_directory)
-    # Add a progress bar to see the evolution of the request
+    if st.session_state.mode == "Beginner":
+        selected_variables, selected_model, ssp, experiment, years = widget_init_beginner()
+        if st.button("Make request", key="cmip6_button", use_container_width=True):
+            reset_directory(nc_directory)
+            request_loop(selected_variables, selected_model, ssp, experiment, years, bounds, nc_folder=nc_directory)
+            process_all_nc_files(nc_directory, CSV_FILE_DIR)
+            create_zip_and_save(CSV_FILE_DIR, CSV_ZIPPED)
+    else:
+        selected_variables, selected_model, ssp, experiment, years = widget_init()
+        choice = ask_reset_directory(nc_directory)
+        if st.button("Make request", key="cmip6_button", use_container_width=True):
+            # Reset the directory that will contain the data files
+            reset_directory_if_needed(choice, nc_directory)
+            request_loop(selected_variables, selected_model, ssp, experiment, years, bounds, nc_folder=nc_directory)
+        convert_nc_to_csv(NC_FILE_DIR, CSV_FILE_DIR)
 
-    if st.button("Make request", key="cmip6_button", use_container_width=True):
-        # Reset the directory that will contain the data files
-        reset_directory_if_needed(choice, nc_directory)
-        request_loop(selected_variables, selected_model, ssp, experiment, years, bounds)
 
-
-def request_loop(selected_variables, selected_model, ssp_list, experiment, years_list, bounds):
+def request_loop(selected_variables, selected_model, ssp_list, experiment, years_list, bounds, nc_folder):
     """
     This function will loop through the request to the NASA server and download the files
     Args:
@@ -153,11 +188,13 @@ def request_loop(selected_variables, selected_model, ssp_list, experiment, years
     for variable in selected_variables:
         for ssp, years in zip(ssp_list, years_list):
             for year in years:
-                make_year_request(variable, selected_model, ssp, experiment, bounds, year)
+                make_year_request(variable, selected_model, ssp, experiment, bounds, year, nc_folder)
                 progress += 1
                 progress_percentage = int((progress / total_requests) * 100)
 
                 progress_bar.progress(progress / total_requests, text=f"Request Progress: {progress_percentage}%")
+    st.success("All the requests have been made")
+    
     
 
 def reset_directory_if_needed(choice, nc_directory):
@@ -187,7 +224,7 @@ def convert_nc_to_csv(nc_file_path, csv_file_path):
         create_zip_download_button(csv_file_path, button_text="Download ZIP file")
                 
             
-def make_year_request(variable, model, ssp, experiment, bounds, year):
+def make_year_request(variable, model, ssp, experiment, bounds, year, nc_folder):
     """
     This function will make the request to the NASA server and download the files
     Args:
@@ -216,31 +253,12 @@ def make_year_request(variable, model, ssp, experiment, bounds, year):
     url = f"{base_url}{coordinates_part}"
     response = requests.get(url)
     try:
-        with open(f"{NC_FILE_DIR}/{year}_{variable}.nc", "wb") as f:
+        with open(f"{nc_folder}/{year}_{variable}.nc", "wb") as f:
             f.write(response.content)
     except Exception as e:
         print(e)
     
         
-
-
-
-# This is another part that handle the netcdf requested files
-def handle_request_files(years, variable):
-    """
-    This function will handle the netcdf files requested from the NASA server
-    Args:
-        years (list): The years to extract
-        variable (str): The variable
-    Returns:
-        pd.DataFrame: The concatenated dataframe
-    """
-    for year in years:
-        dataset = xr.open_dataset(f"{NC_FILE_DIR}/{year}.nc", engine="netcdf4",) # Adjust the engine as needed
-        df = dataset[["time","lat", "lon", f"{variable}"]].to_dataframe().reset_index()
-        entire_dataframe = pd.concat([entire_dataframe, df], ignore_index=True)
-
-    return entire_dataframe
 
 
 # --------------------------
@@ -253,6 +271,8 @@ def make_empty_request(bounds):
     Args:
         bounds (tuple): The bounds of the area to extract
     """
+
+    # Request parametrization
     min_lon, min_lat, max_lon, max_lat = bounds  
     variable = "pr"
     year = 2015
@@ -265,7 +285,7 @@ def make_empty_request(bounds):
         "east": max_lon,
         "south": min_lat
     }
-
+    
     base_url = (f"https://ds.nccs.nasa.gov/thredds/ncss/grid/AMES/NEX/GDDP-CMIP6/{model}/{ssp}/{experiment}/{variable}/"
                     f"{variable}_day_{model}_{ssp}_{experiment}_gr_{year}.nc")
     coordinates_part=(f"?var={variable}&north={params["north"]}&west={params["west"]}&east={params["east"]}&south={params["south"]}&"
@@ -283,7 +303,7 @@ def make_empty_request(bounds):
         if response.status_code == 200:
             st.success("Empty request successful")   
             df = handle_empty_request_files(year, variable)
-            df = df[["lat", "lon"]].drop_duplicates()
+
             if df["lat"].nunique() == 1 :
                 lat = df["lat"].unique()[0] 
                 if abs(min_lat - lat) < abs(max_lat - lat):
@@ -376,6 +396,8 @@ def try_request(url, year, variable):
     return df
 
 
+
+
 def handle_empty_request_files(year, variable):
     """
     This function will handle the netcdf files requested from the NASA server
@@ -385,8 +407,23 @@ def handle_empty_request_files(year, variable):
         pd.DataFrame: The concatenated dataframe
     """
     dataset = xr.open_dataset(f"{EMPTY_REQUEST_FOLDER}/{year}.nc", engine="netcdf4",) # Adjust the engine as needed
-    df = dataset[["time","lat", "lon", f"{variable}"]].to_dataframe().reset_index()
+    df = dataset[["lat", "lon"]].to_dataframe().drop_duplicates().reset_index()
+    df = check_coordinates(df)
 
+
+    return df
+
+def check_coordinates(df:pd.DataFrame):
+    """
+    This function will check the coordinates of the dataframe and correct them if necessary.
+    Args:
+        df (pd.DataFrame): The dataframe to check
+
+    Returns:
+        pd.DataFrame: The corrected dataframe
+    """
+    # i want you to iterate over the df and change all the longitude above 180 to negative values
+    df.loc[df["lon"] > 180, "lon"] = df.loc[df["lon"] > 180, "lon"] - 360
     return df
 
 
@@ -486,6 +523,29 @@ def zip_csv_files(csv_dir, zip_name):
     return f"{zip_name}.zip"
 
 
+def create_zip_and_save(csv_dir, save_folder):
+    """
+    Create a ZIP file from CSV files in a directory and save it to a specific folder.
+    """
+    # Ensure the save folder exists
+    if not os.path.exists(save_folder):
+        os.makedirs(save_folder, exist_ok=True)
+
+    zip_filename = f"{st.session_state.location}.zip"
+    # Define the ZIP file path
+    zip_file_path = os.path.join(save_folder, zip_filename)
+
+    # Create the ZIP file and save it
+    with ZipFile(zip_file_path, 'w') as zip_file:
+        for csv_file in os.listdir(csv_dir):
+            if csv_file.endswith('.csv'):
+                file_path = os.path.join(csv_dir, csv_file)
+                zip_file.write(file_path, csv_file)
+
+    print(f"ZIP file saved at: {zip_file_path}")  # Log the saved location
+
+    return zip_file_path  # Return the path of the saved ZIP file
+
 def create_zip_download_button(csv_dir, button_text="Download ZIP file"):
     """
     Create in-memory zip and Streamlit download button
@@ -536,8 +596,6 @@ def convert_variable_units(df):
     return df
 
 
-
-
 # -------------------------------------------
 # --- Main function to request CMIP6 data ---
 # -------------------------------------------
@@ -553,37 +611,49 @@ def cmip6_request(selected_shape_folder):
         st.session_state.gdf_list = []
         for folder in selected_shape_folder:
 
+            # Open the shape file and get its content
             path_to_shapefolder = os.path.join(ZIP_FOLDER, folder)
             shape_file = [file for file in os.listdir(path_to_shapefolder) if file.endswith(".shp")][0]
             shapefile_path = os.path.join(path_to_shapefolder, shape_file)
-
             gdf = read_shape_file(shapefile_path)
-            # Ask the user to define a buffer distance
-            buffer_distance = st.number_input(
-                label=f"Enter buffer distance for {folder} in degree (0.25 is about 25 kilometers):",
-                min_value=0.0, 
-                step=0.1,
-                value=0.0,
-                format="%0.3f",
-                key=folder
-            )
+
+            # Ask the user to define a buffer distance if not beginner
+            if st.session_state.mode == "Beginner":
+                buffer_distance = 0.2
+            else:
+                buffer_distance = st.number_input(
+                    label=f"Enter buffer distance for {folder} in degree (0.25 is about 25 kilometers):",
+                    min_value=0.0, 
+                    step=0.1,
+                    value=0.0,
+                    format="%0.3f",
+                    key=folder
+                )
             st.session_state.gdf_list.append(copy(gdf))
+
             # Apply the buffer if the distance is greater than 0
             if buffer_distance > 0:
                 gdf["geometry"] = gdf["geometry"].buffer(buffer_distance, resolution=0.05)
-                st.success(f"Buffer of {buffer_distance} applied to {folder}")
+                if st.session_state.mode == "Expert":
+                    st.success(f"Buffer of {buffer_distance} applied to {folder}")
             gdf_list.append(gdf)
+        
+        # Concatenates the Geodataframes together
         st.session_state.combined_gdf = pd.concat(st.session_state.gdf_list, ignore_index=True)
         combined_gdf = pd.concat(gdf_list, ignore_index=True)
         empty_request_gdf = pd.DataFrame()
+
+        # Make the empty request to show the user how it will look like in terms of resolution
         for gdf in gdf_list:
             df_unique = make_empty_request(gdf.total_bounds)
             if df_unique is not None:
                 empty_request_gdf = pd.concat([empty_request_gdf, df_unique], ignore_index=True)
+
+        # Display
         with st.expander(label="Your coordinates"):
-            st.dataframe(data=empty_request_gdf, height=DATAFRAME_HEIGHT, use_container_width=True)
+            displayed_gdf = empty_request_gdf[["lat", "lon"]]
+            st.dataframe(data=displayed_gdf, height=DATAFRAME_HEIGHT, use_container_width=True)
 
         if not empty_request_gdf.empty:
             map_empty_request(combined_gdf, empty_request_gdf)
             make_whole_request(combined_gdf.total_bounds, nc_directory=NC_FILE_DIR)
-            convert_nc_to_csv(NC_FILE_DIR, CSV_FILE_DIR)
