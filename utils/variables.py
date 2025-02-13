@@ -129,7 +129,7 @@ EXPOSURE_AGGREGATION=["Category Mean", "Most Frequent Category", "Variable Mean 
 # For everything in the map part
 # ZIP_FOLDER = "zip_files"
 
-ZIP_FOLDER = "zip_folder_test"
+ZIP_FOLDER = "zip_shapefile"
 
 MODEL_NAMES = [
         "CMCC_CM2_VHR4 (30 km)",
@@ -190,5 +190,27 @@ EMPTY_REQUEST_FOLDER = "empty_request"
 
 REQUEST_TYPE = ["Request data though CMIP6 projections","Request data through Open-Meteo"]
 
-LOGO_PATH = "logos/tool_logo.png"
-G8_LOGO_PATH = "logos/Logo_G8.png"
+
+# Logo path
+TOOL_LOGO = "logos/tool_logo.png"
+G8_LOGO = "logos/Logo_G8.png"
+TRANSPARENT_TOOL_LOGO = "logos/transparent_tool_logo.png"
+NCCS_LOGO = "logos/NCCS_logo.png"
+
+
+WELCOME_TEXT= """K'lim is an advanced Python-based tool developed internally by Groupe Huit, designed to conduct in-
+                    depth analyses of both past and future climate conditions.This tool is built upon internationally recognized
+                    datasets such as ERA5 for historical climate data and CMIP6/CORDEX for climate projections. Highly 
+                    configurable and adaptable, K'lim provides precise and detailed insights into climatic trends, making 
+                    it an essential asset in studies focused on urban and rural planning. Its core objective is to support
+                     adaptation to climate change, ensuring that planning decisions are informed by robust climate analyses."""
+
+
+
+BEGINNER_MODE = "Mode/Beginner Mode"
+EXPERT_MODE = "Mode/Expert Mode"
+PAGE_FILES = "pages"
+
+
+CSV_ZIPPED =  "csv zipped"
+CSV_EXTRACT = "csv_extract"

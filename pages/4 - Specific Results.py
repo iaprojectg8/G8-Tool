@@ -1,5 +1,5 @@
 from utils.imports import *
-from utils.variables import DATAFRAME_HEIGHT, PERIOD_LENGTH, LOGO_PATH, G8_LOGO_PATH
+from utils.variables import DATAFRAME_HEIGHT, PERIOD_LENGTH, TOOL_LOGO, G8_LOGO
 from layouts.layout import *
 from lib.session_variables import *
 from parametrization.helpers import select_season, select_data_contained_in_season, download_indicators, period_filter
@@ -7,15 +7,17 @@ from parametrization.widgets_parametrization import page_config, increase_logo
 from results.helpers import select_period_results, split_into_periods_indicators
 from spatial.rasterization import read_shape_zipped_shape_file
 from spatial.spatial_indicator import spatial_calculation, filter_all_the_dataframe
+from lib.menu import menu
 
 
 def main():
     """Basic Streamlit app with a title."""
     # Set some layout parameters for the page 
-    page_config(LOGO_PATH)
-    st.logo(G8_LOGO_PATH)
+    page_config(TOOL_LOGO)
+    st.logo(G8_LOGO)
     increase_logo()
     set_page_title("Specific Results")
+    menu()
     if len(st.session_state.dataframes_modified) == 0:
         st.error("You should upload a file on the Indicator Parametrization page")
     df_indicator_sample = copy(st.session_state.dataframes_modified[list(st.session_state.dataframes_modified.keys())[0]])
