@@ -1,27 +1,24 @@
-from utils.imports import * 
-from utils.variables import ZIP_FOLDER, REQUEST_TYPE, TOOL_LOGO, G8_LOGO, CSV_ZIPPED, CSV_EXTRACT
-from layouts.layout import *
-from lib.session_variables import *
-from requests_api.helpers import *
-from requests_api.open_meteo_request import open_meteo_request
-from requests_api.cmip6_requests import cmip6_request
-from parametrization.widgets_parametrization import page_config, increase_logo
+from src.utils.imports import * 
+from src.utils.variables import TOOL_LOGO, G8_LOGO, CSV_ZIPPED, CSV_EXTRACT
+from src.lib.session_variables import *
+from src.request.helpers import managing_existing_csv_zipped
+from src.request.widget import get_project_information
+
 from parametrization.helpers import process_dataframes_zip_beginner
 from results.result_functions import make_zone_average, general_management_beginner
-from lib.menu import menu
-
+from src.lib.layout import page_config_and_menu, set_title_1, set_page_title
 
 
 
 def main():
-    """Basic Streamlit app with a title."""
+    """
+    Beginner Results page
+    """
     # Set some layout parameters for the page 
-    
-    page_config(TOOL_LOGO)
-    st.logo(G8_LOGO, size="large", link="https://groupehuit.com/")
-    increase_logo()
+    page_name = "Beginner Results"
+    page_config_and_menu(TOOL_LOGO, G8_LOGO)
     set_page_title("General Results")
-    menu()
+  
     # Project info
     set_title_1("General Project Information")
     get_project_information()

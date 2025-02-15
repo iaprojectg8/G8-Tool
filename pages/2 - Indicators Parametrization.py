@@ -1,12 +1,12 @@
 from utils.imports import * 
-from utils.variables import MONTHS_LIST, DATAFRAME_HEIGHT, TOOL_LOGO, G8_LOGO
-from layouts.layout import *
+from utils.variables import TOOL_LOGO, G8_LOGO
+from lib.layout import *
 from lib.session_variables import *
 from parametrization.helpers import *
 from parametrization.widgets_parametrization import *
 from parametrization.create_inidicator import indicator_building
 from parametrization.update_indicator import indicator_editing
-from lib.menu import menu
+from lib.layout import page_config_and_menu, set_page_title, set_title_1, set_title_2
 
 
 
@@ -14,11 +14,9 @@ from lib.menu import menu
 def main():
     """Basic Streamlit app with a title."""
     # Set some layout parameters for the page 
-    page_config(TOOL_LOGO)
-    st.logo(G8_LOGO)
-    increase_logo()
+    page_name = "Indicators Parametrization"
+    page_config_and_menu(TOOL_LOGO, G8_LOGO)
     set_page_title("Indicators Parametrization")
-    menu()
 
     set_title_2("Choose ZIP file containing CSV files")
     uploaded_file = st.file_uploader("Upload a zip file containing CSV files", type="zip")

@@ -1,7 +1,7 @@
-from utils.imports import *
-from utils.variables import DATAFRAME_HEIGHT, FILENAME
+from src.utils.imports import *
+from src.utils.variables import DATAFRAME_HEIGHT, FILENAME
 
-from layouts.layout import *
+from src.lib.layout import *
 
 from results.general_plots import *
 from results.indicators_plot import *

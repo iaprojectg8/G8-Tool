@@ -1,8 +1,8 @@
-from utils.imports import * 
-from utils.variables import TOOL_LOGO, G8_LOGO, TRANSPARENT_TOOL_LOGO, WELCOME_TEXT
+from src.utils.imports import * 
+from src.utils.variables import TOOL_LOGO, G8_LOGO, TRANSPARENT_TOOL_LOGO, WELCOME_TEXT
 
-from lib.session_variables import *
-from lib.layout import set_page_title, page_config_and_menu
+from src.lib.session_variables import *
+from src.lib.layout import set_page_title, page_config_and_menu
 
 from src.welcome.widget import centered_logo, manage_welcome_text, mode_choice
 

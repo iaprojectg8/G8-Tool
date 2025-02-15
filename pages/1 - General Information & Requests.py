@@ -1,12 +1,10 @@
 from utils.imports import * 
 from utils.variables import ZIP_FOLDER, REQUEST_TYPE, TOOL_LOGO, G8_LOGO
-from layouts.layout import *
 from lib.session_variables import *
 from requests_api.helpers import *
 from requests_api.open_meteo_request import open_meteo_request
 from requests_api.cmip6_requests import cmip6_request
-from parametrization.widgets_parametrization import page_config, increase_logo
-from lib.menu import menu
+from lib.layout import page_config_and_menu, set_page_title, set_title_1, set_title_2
 
 
 
@@ -14,11 +12,10 @@ from lib.menu import menu
 def main():
     """Basic Streamlit app with a title."""
     # Set some layout parameters for the page 
-    page_config(TOOL_LOGO)
-    st.logo(G8_LOGO, size="large", link="https://groupehuit.com/")
-    increase_logo()
+    page_name = "General Information & Requests"
+    page_config_and_menu(TOOL_LOGO, G8_LOGO)
     set_page_title("General Information & Requests")
-    menu()
+
 
     # Project info
     set_title_1("General information about your project")

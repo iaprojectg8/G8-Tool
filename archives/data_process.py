@@ -1,5 +1,5 @@
 from utils.imports import *
-from layouts.layout import *
+from lib.layout import *
 from utils.variables import DATAFRAME_HEIGHT
 from lib.session_variables import update_chosen_variable
 

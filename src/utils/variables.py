@@ -1,3 +1,60 @@
+# -------------------------------
+# --- Welcome page management ---
+# -------------------------------
+
+TOOL_LOGO = "logos/tool_logo.png"
+G8_LOGO = "logos/Logo_G8.png"
+TRANSPARENT_TOOL_LOGO = "logos/transparent_tool_logo.png"
+
+
+
+WELCOME_TEXT= """K'lim is an advanced Python-based tool developed internally by Groupe Huit, designed to conduct in-
+                    depth analyses of both past and future climate conditions.This tool is built upon internationally recognized
+                    datasets such as ERA5 for historical climate data and CMIP6/CORDEX for climate projections. Highly 
+                    configurable and adaptable, K'lim provides precise and detailed insights into climatic trends, making 
+                    it an essential asset in studies focused on urban and rural planning. Its core objective is to support
+                     adaptation to climate change, ensuring that planning decisions are informed by robust climate analyses."""
+
+
+# ---------------------------
+# --- Zip file management ---
+# ---------------------------
+
+ZIP_FOLDER = "zip_shapefile"
+EMPTY_REQUEST_FOLDER = "empty_request"
+
+
+# -------------------------
+# --- Request variables ---
+# -------------------------
+
+SSP = ["ssp126", "ssp245", "ssp370", "ssp585"]
+MODEL_NAMES_CMIP6 = ["CNRM-ESM2-1"]
+EXPERIMENT = ["r1i1p1f2"]
+HISTORICAL_END = 2014
+
+
+READABLE_TO_CMIP6 = {
+    "relative_humidity_2m": "hurs",           # Relative humidity at 2m
+    "specific_humidity_2m": "huss",           # Specific humidity at 2m
+    "precipitation_sum": "pr",      # Precipitation average flux
+    "longwave_radiation": "rlds",             # Longwave downward radiation
+    "shortwave_radiation": "rsds",        # Shortwave downward radiation
+    "wind_speed_10m_mean": "sfcWind",         # Wind speed at 10m
+    "temperature_2m_mean": "tas",             # Air temperature at 2m
+    "temperature_2m_max": "tasmax",           # Daily maximum air temperature
+    "temperature_2m_min": "tasmin"            # Daily minimum air temperature
+}
+
+
+
+
+NCCS_LOGO = "logos/NCCS_logo.png"
+
+
+
+
+
 # For data requests
 VARIABLES_LIST = ["temperature_2m_mean", "temperature_2m_max", "temperature_2m_min", "wind_speed_10m_mean",
           "wind_speed_10m_max", "shortwave_radiation_sum", "relative_humidity_2m_mean", "relative_humidity_2m_max", 
@@ -129,7 +186,7 @@ EXPOSURE_AGGREGATION=["Category Mean", "Most Frequent Category", "Variable Mean 
 # For everything in the map part
 # ZIP_FOLDER = "zip_files"
 
-ZIP_FOLDER = "zip_shapefile"
+
 
 MODEL_NAMES = [
         "CMCC_CM2_VHR4 (30 km)",
@@ -160,50 +217,21 @@ CMIP6_TO_READABLE = {
         "tasmin": "temperature_2m_min"    # Daily minimum air temperature
     }
 
-READABLE_TO_CMIP6 = {
-    "relative_humidity_2m": "hurs",           # Relative humidity at 2m
-    "specific_humidity_2m": "huss",           # Specific humidity at 2m
-    "precipitation_sum": "pr",      # Precipitation average flux
-    "longwave_radiation": "rlds",             # Longwave downward radiation
-    "shortwave_radiation": "rsds",        # Shortwave downward radiation
-    "wind_speed_10m_mean": "sfcWind",         # Wind speed at 10m
-    "temperature_2m_mean": "tas",             # Air temperature at 2m
-    "temperature_2m_max": "tasmax",           # Daily maximum air temperature
-    "temperature_2m_min": "tasmin"            # Daily minimum air temperature
-}
 
 
 
 
-
-
-
-SSP = ["ssp126", "ssp245", "ssp370", "ssp585"]
-MODEL_NAMES_CMIP6 = ["CNRM-ESM2-1"]
-EXPERIMENTS = ["r1i1p1f2"]
-HISTORICAL_END_YEAR = 2014
 
 NC_FILE_DIR = "nc_files"
 WORKING_NC_FILE = "all_variables_nc_1960"
 CSV_FILE_DIR = "csv_files"
-EMPTY_REQUEST_FOLDER = "empty_request"
+
 
 REQUEST_TYPE = ["Request data though CMIP6 projections","Request data through Open-Meteo"]
 
 
 # Logo path
-TOOL_LOGO = "logos/tool_logo.png"
-G8_LOGO = "logos/Logo_G8.png"
-TRANSPARENT_TOOL_LOGO = "logos/transparent_tool_logo.png"
-NCCS_LOGO = "logos/NCCS_logo.png"
 
-
-WELCOME_TEXT= """K'lim is an advanced Python-based tool developed internally by Groupe Huit, designed to conduct in-
-                    depth analyses of both past and future climate conditions.This tool is built upon internationally recognized
-                    datasets such as ERA5 for historical climate data and CMIP6/CORDEX for climate projections. Highly 
-                    configurable and adaptable, K'lim provides precise and detailed insights into climatic trends, making 
-                    it an essential asset in studies focused on urban and rural planning. Its core objective is to support
-                     adaptation to climate change, ensuring that planning decisions are informed by robust climate analyses."""
 
 
 

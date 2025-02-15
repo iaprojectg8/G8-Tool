@@ -1,9 +1,12 @@
-from utils.imports import * 
-from utils.variables import ZIP_FOLDER, CSV_ZIPPED
+from src.utils.imports import * 
+from src.utils.variables import ZIP_FOLDER, CSV_ZIPPED
 
 # -------------------------------------
 # --- Welcome page & Mode Selection ---
 # -------------------------------------
+
+if "mode" not in st.session_state:
+    st.session_state.mode = "Beginner"
 
 def set_mode():
     # Callback function to save the role selection to Session State

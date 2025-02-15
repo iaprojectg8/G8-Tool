@@ -1,5 +1,5 @@
 from utils.imports import *
-from layouts.layout import *   
+from lib.layout import *   
 
 # Function to create a grid of points within a shapefile
 def generate_csv_from_shape(gdf, resolution):

@@ -1,5 +1,5 @@
-from utils.imports import *
-from utils.variables import *
+from src.utils.imports import *
+from src.utils.variables import *
 
 # ---------------------------------------------------------------
 # --- Calculation and data process function done for the plot ---

@@ -1,7 +1,7 @@
-from utils.imports import *
-from lib.session_variables import * 
-from utils.variables import *
-from lib.widget import display_thresholds
+from src.utils.imports import *
+from src.lib.session_variables import * 
+from src.utils.variables import *
+from src.lib.widget import display_thresholds
 
 
 

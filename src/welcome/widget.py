@@ -1,5 +1,5 @@
-from utils.imports import *
-from lib.session_variables import set_mode
+from src.utils.imports import *
+from src.lib.session_variables import set_mode
 
 
 def centered_logo(logo_path):

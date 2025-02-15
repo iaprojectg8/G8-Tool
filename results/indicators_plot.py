@@ -1,5 +1,5 @@
-from utils.imports import *
-from utils.variables import *
+from src.utils.imports import *
+from src.utils.variables import *
 
 from results.general_plots import add_vertical_line
 

@@ -1,5 +1,5 @@
-from utils.imports import *
-from layouts.layout import *
+from src.utils.imports import *
+from src.lib.layout import *
 from parametrization.create_inidicator import *
 from parametrization.update_indicator import *
 from parametrization.widgets_parametrization import *
