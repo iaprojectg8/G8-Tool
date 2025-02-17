@@ -1,5 +1,5 @@
 from src.utils.imports import *
-from src.utils.variables import DATAFRAME_HEIGHT, UNIT_DICT, MODEL_NAMES
+from src.utils.variables import DATAFRAME_HEIGHT
 
 from src.request.helpers import extract_files, reset_directory, create_temporary_zip, get_years_from_ssp
 
@@ -228,17 +228,20 @@ def ask_reset_directory(folder):
 # ----------------------------------------
 # --- Widget initialization Open-Meteo ---
 # ----------------------------------------
-def widget_init_open_meteo():
+def widget_init_open_meteo(open_meteo_dict : dict, model_names):
     if st.checkbox(label="Take all variables"):
             selected_variables = st.pills("Chose variable to extract", 
-                                                UNIT_DICT.keys(), 
-                                                default=UNIT_DICT.keys())
+                                                open_meteo_dict.keys(), 
+                                                default=open_meteo_dict.keys(),
+                                                selection_mode="multi")
     else:
         selected_variables = st.pills("Chose variable to extract", 
-                                            UNIT_DICT.keys(), 
-                                            default=np.random.choice(list(UNIT_DICT.keys())))
-    selected_model = st.selectbox("Chose the model to use", MODEL_NAMES)
+                                            open_meteo_dict.keys(), 
+                                            default=np.random.choice(list(open_meteo_dict.keys())),
+                                            selection_mode="multi") 
+    selected_model = st.selectbox("Chose the model to use", model_names)
     (long_period_start, long_period_end) = select_period_open_meteo(key="request")
+    return selected_variables, selected_model, long_period_start, long_period_end
 
 
 

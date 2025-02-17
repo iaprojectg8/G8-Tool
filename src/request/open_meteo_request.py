@@ -1,8 +1,8 @@
 from src.utils.imports import *
-from src.utils.variables import *
+from src.utils.variables import VARIABLES_LIST, ZIP_FOLDER, OPEN_METEO_FOLDER, DATAFRAME_HEIGHT, MODEL_NAMES, UNIT_DICT
 from src.request.map_related import main_map
 from src.request.helpers import shapefile_into_gdf
-from src.request.widget import manage_buffer, display_coordinates
+from src.request.widget import display_coordinates, widget_init_open_meteo
 from src.request.helpers import get_shapefile_path
 from src.request.cmip6_requests import process_shapefile
 
@@ -197,16 +197,7 @@ def open_meteo_request(selected_shape_folder):
     combined_gdf, _ = process_shapefile(selected_shape_folder, ZIP_FOLDER, default_buffer_distance=0.2)
     df = main_map(combined_gdf)
     display_coordinates(df, DATAFRAME_HEIGHT)
-    if st.checkbox(label="Take all variables"):
-        selected_variables = st.multiselect("Chose variable to extract", 
-                                            UNIT_DICT.keys(), 
-                                            default=UNIT_DICT.keys())
-    else:
-        selected_variables = st.multiselect("Chose variable to extract", 
-                                            UNIT_DICT.keys(), 
-                                            default=np.random.choice(list(UNIT_DICT.keys())))
-    selected_model = st.selectbox("Chose the model to use", MODEL_NAMES)
-    (long_period_start, long_period_end) = select_period(key="request")
+    selected_variables, selected_model, long_period_start, long_period_end=widget_init_open_meteo(UNIT_DICT, MODEL_NAMES)
 
     if st.button(label="Start the Request"):
         request_all_data(coordinates=df,

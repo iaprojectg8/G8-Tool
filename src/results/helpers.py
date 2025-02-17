@@ -86,7 +86,7 @@ def split_into_periods(period_length, start_year, end_year):
                         with the format (period_start, period_end).
     """
     whole_period_length = end_year - start_year + 1
-    amount_of_periods = ceil(whole_period_length / period_length)
+    amount_of_periods = math.ceil(whole_period_length / period_length)
     periods = []
 
     # Loop through each period index and calculate start and end years
@@ -203,7 +203,7 @@ def split_into_periods_indicators(period_length, start_year, end_year):
                         with the format (period_start, period_end).
     """
     whole_period_length = end_year - start_year + 1
-    amount_of_periods = ceil(whole_period_length / period_length)
+    amount_of_periods = math.ceil(whole_period_length / period_length)
     periods = []
 
     # Loop through each period index and calculate start and end years
