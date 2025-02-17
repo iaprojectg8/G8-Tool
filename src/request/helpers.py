@@ -3,9 +3,9 @@ from src.utils.variables import ZIP_FOLDER
 from src.lib.layout import *
 from src.lib.session_variables import *
 
-# --------------------------
-# --- Before the Request ---
-# --------------------------
+# ---------------------------
+# --- Zip file management ---
+# ---------------------------
 
 def reset_directory(dir_name):
     """
@@ -97,7 +97,11 @@ def managing_existing_csv_zipped(csv_folder):
             st.button("Delete selected csv folder", key="delete_csv_folder", on_click=delete_csv_folder)
     return selected_csv_folder
 
-                    
+
+# ----------------------------
+# --- Shapefile management ---
+# ----------------------------
+
 def shapefile_into_gdf(shapefile_path):
     """
     Read a shapefile and return a GeoDataFrame in EPSG:4326 projection.

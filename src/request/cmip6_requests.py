@@ -221,6 +221,7 @@ def make_year_request(variable, model, ssp, experiment, bounds, year, nc_folder)
         experiment (str): The experiment chosen by the user
         bounds (tuple): The bounds of the area to extract
         year (int): The year to extract
+        nc_folder (str): The folder to save the NetCDF files
     """
 
     base_url = (f"https://ds.nccs.nasa.gov/thredds/ncss/grid/AMES/NEX/GDDP-CMIP6/{model}/{ssp}/{experiment}/{variable}/"
@@ -308,6 +309,7 @@ def open_nc_files_in_df(nc_file_dir, years_list, ssp):
     Args:
         nc_file_dir (str): The directory containing the NetCDF files.
         years_list (list): The list of years to loop through.
+        ssp (str): The Shared Socioeconomic Pathway (SSP) to extract.
     Returns:
         pd.DataFrame: The concatenated DataFrame.
     """
@@ -447,7 +449,7 @@ def create_zip_download_button(csv_dir, button_text="Download ZIP file"):
     """
     # Create in-memory buffer
     buffer = io.BytesIO()
-    create_zip(buffer, csv_dir)    
+    create_zip(buffer, csv_dir)
     buffer.seek(0)
     
     # Create download button
