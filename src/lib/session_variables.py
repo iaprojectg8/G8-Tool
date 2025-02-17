@@ -35,6 +35,9 @@ if "selected_shape_folder" not in st.session_state:
 if "selected_csv_folder" not in st.session_state:
     st.session_state.selected_csv_folder = None
 
+if "selected_csv_loaded" not in st.session_state:
+    st.session_state.selected_csv_loaded = None
+
 # Callback Functions
 
 def reset_uploader():
@@ -43,7 +46,7 @@ def reset_uploader():
 
 def delete_csv_folder():
     """Deletes the selected csv folder"""
-    os.remove(os.path.join(CSV_ZIPPED, st.session_state.selected_csv_folder))
+    send2trash(os.path.join(CSV_ZIPPED, st.session_state.selected_csv_folder))
         
 
 def delete_shape_folder():
@@ -154,7 +157,7 @@ if "xaxis_range" not in st.session_state:
     st.session_state.xaxis_range = None
 
 if "dataframes" not in st.session_state:
-    st.session_state.dataframes = dict()
+    st.session_state.dataframes = dict()    
 
 if "raster_params" not in st.session_state:
     st.session_state.raster_params = dict()

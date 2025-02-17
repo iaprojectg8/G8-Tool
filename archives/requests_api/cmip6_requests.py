@@ -2,7 +2,7 @@ from utils.imports import *
 from utils.variables import *
 
 from lib.layout import *
-from maps_related.main_functions import map_empty_request, read_shape_file
+from archives.main_functions import map_empty_request, read_shape_file
 from lib.session_variables import *
 
 from requests_api.helpers import reset_directory

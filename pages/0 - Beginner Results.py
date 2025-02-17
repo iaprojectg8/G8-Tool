@@ -4,8 +4,8 @@ from src.lib.session_variables import *
 from src.request.helpers import managing_existing_csv_zipped
 from src.request.widget import get_project_information
 
-from parametrization.helpers import process_dataframes_zip_beginner
-from results.result_functions import make_zone_average, general_management_beginner
+from src.parametrization.helpers import process_dataframes_zip_beginner
+from src.results.result_functions import make_zone_average, general_management_beginner
 from src.lib.layout import page_config_and_menu, set_title_1, set_page_title
 
 
@@ -28,27 +28,20 @@ def main():
     selected_csv_folder = managing_existing_csv_zipped(CSV_ZIPPED)
 
     # Just a information to give to the user
-    with st.status("Preparing the data...", expanded=True):
-        st.write("Opening all the CSV files...")
-        selected_csv_folder_path = os.path.join(CSV_ZIPPED, selected_csv_folder)
-        if selected_csv_folder != st.session_state.selected_csv_folder:
-            process_dataframes_zip_beginner(selected_csv_folder_path,CSV_EXTRACT)
-            st.write("Making the data average on your AOI...")
-            make_zone_average(dataframes=st.session_state.dataframes)
-            st.session_state.long_period = st.session_state.all_df_mean.index.year.min(), st.session_state.all_df_mean.index.year.max()
-            st.write("Data is ready")
-            st.session_state.selected_csv_folder = selected_csv_folder
-        else :
-            st.write("Data has already been computed")
+    if st.button("Load data"):
+        with st.status("Preparing the data...", expanded=True):
+            st.write("Opening all the CSV files...")
+            selected_csv_folder_path = os.path.join(CSV_ZIPPED, selected_csv_folder)
+            if selected_csv_folder != st.session_state.selected_csv_loaded:
+                process_dataframes_zip_beginner(selected_csv_folder_path,CSV_EXTRACT)
+                st.session_state.selected_csv_loaded = selected_csv_folder
+                st.write("Making the data average on your AOI...")
+                make_zone_average(dataframes=st.session_state.dataframes)
+                st.session_state.long_period = st.session_state.all_df_mean.index.year.min(), st.session_state.all_df_mean.index.year.max()
+                st.write("Data is ready")
+                st.session_state.selected_csv_folder = selected_csv_folder
+
     general_management_beginner(st.session_state.all_df_mean)
-
-
-
-        
-
-        
-        
-        
 
 
 if "__main__":

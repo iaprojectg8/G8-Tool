@@ -1,9 +1,9 @@
-from utils.imports import * 
-from utils.variables import DATAFRAME_HEIGHT, TOOL_LOGO, G8_LOGO
-from lib.layout import *
-from lib.session_variables import *
-from results.result_functions import make_zone_average, general_management, indicator_management
-from lib.layout import page_config_and_menu, set_page_title, set_title_1, set_title_2
+from src.utils.imports import * 
+from src.utils.variables import DATAFRAME_HEIGHT, TOOL_LOGO, G8_LOGO
+from src.lib.layout import *
+from src.lib.session_variables import *
+from src.results.result_functions import make_zone_average, general_management, indicator_management
+from src.lib.layout import page_config_and_menu, set_page_title, set_title_1, set_title_2
 
 
 def main():

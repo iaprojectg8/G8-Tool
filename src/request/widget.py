@@ -1,5 +1,5 @@
 from src.utils.imports import *
-from src.utils.variables import DATAFRAME_HEIGHT
+from src.utils.variables import DATAFRAME_HEIGHT, UNIT_DICT, MODEL_NAMES
 
 from src.request.helpers import extract_files, reset_directory, create_temporary_zip, get_years_from_ssp
 
@@ -13,7 +13,7 @@ def get_project_location():
     """
     Get the project location from the user.
     """
-    st.session_state.location = st.text_input("Location")
+    st.session_state.location = st.text_input("Shortname (without special characters)")
 
 
 def get_project_information():
@@ -225,6 +225,43 @@ def ask_reset_directory(folder):
         choice = st.radio("Do you want to empty it", ["No","Yes"])
         return choice
     
+# ----------------------------------------
+# --- Widget initialization Open-Meteo ---
+# ----------------------------------------
+def widget_init_open_meteo():
+    if st.checkbox(label="Take all variables"):
+            selected_variables = st.pills("Chose variable to extract", 
+                                                UNIT_DICT.keys(), 
+                                                default=UNIT_DICT.keys())
+    else:
+        selected_variables = st.pills("Chose variable to extract", 
+                                            UNIT_DICT.keys(), 
+                                            default=np.random.choice(list(UNIT_DICT.keys())))
+    selected_model = st.selectbox("Chose the model to use", MODEL_NAMES)
+    (long_period_start, long_period_end) = select_period_open_meteo(key="request")
+
+
+
+def select_period_open_meteo(key):
+    """
+    Allows the user to select a data period using an interactive Streamlit slider.
+
+    Returns:
+        tuple: The start and end values of the selected period.
+    """
+    # Define the initial limits for the slider
+    period_start= 1950
+    period_end= 2050
+
+    # Display the slider that allows the user to select the bounds
+    period_start, period_end = st.slider(
+        "Select the data period:",
+        min_value=period_start, 
+        max_value=period_end,
+        value=(period_start, period_end),
+        key=key)      
+    return period_start, period_end
+
 
 # -------------------------------
 # --- Progress bar management ---
@@ -274,3 +311,8 @@ def display_coordinates(empty_request_gdf, height):
     with st.expander(label="Your coordinates"):
         displayed_gdf = empty_request_gdf[["lat", "lon"]]
         st.dataframe(data=displayed_gdf, height=height, use_container_width=True)
+
+
+
+# Si pas de ssp juste shortname
+# si ssp on met le shortname - 1950-2012 (ssp)

@@ -1,5 +1,5 @@
 from src.utils.imports import * 
-from src.utils.variables import ZIP_FOLDER, TOOL_LOGO, G8_LOGO, DATAFRAME_HEIGHT, NC_FILE_DIR
+from src.utils.variables import ZIP_FOLDER, TOOL_LOGO, G8_LOGO, DATAFRAME_HEIGHT
 
 from src.lib.layout import page_config_and_menu, set_page_title, set_title_1, set_title_2
 
@@ -15,7 +15,7 @@ def main():
     page_config_and_menu(TOOL_LOGO, G8_LOGO)
     set_page_title("Request")
     
-    set_title_1("Project Location")
+    set_title_1("Project Shortname")
     get_project_location()
 
     set_title_1("Requests")

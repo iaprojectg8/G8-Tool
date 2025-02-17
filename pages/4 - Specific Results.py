@@ -1,12 +1,12 @@
-from utils.imports import *
-from utils.variables import DATAFRAME_HEIGHT, PERIOD_LENGTH, TOOL_LOGO, G8_LOGO
-from lib.layout import *
-from lib.session_variables import *
-from parametrization.helpers import select_season, select_data_contained_in_season, download_indicators, period_filter
-from results.helpers import select_period_results, split_into_periods_indicators
-from spatial.rasterization import read_shape_zipped_shape_file
-from spatial.spatial_indicator import spatial_calculation, filter_all_the_dataframe
-from lib.layout import page_config_and_menu, set_page_title, set_title_1, set_title_2
+from src.utils.imports import *
+from src.utils.variables import DATAFRAME_HEIGHT, PERIOD_LENGTH, TOOL_LOGO, G8_LOGO
+from src.lib.layout import *
+from src.lib.session_variables import *
+from src.parametrization.helpers import select_season, select_data_contained_in_season, download_indicators, period_filter
+from src.results.helpers import select_period_results, split_into_periods_indicators
+from src.spatial.rasterization import read_shape_zipped_shape_file
+from src.spatial.spatial_indicator import spatial_calculation, filter_all_the_dataframe
+from src.lib.layout import page_config_and_menu, set_page_title, set_title_1, set_title_2
 
 
 def main():

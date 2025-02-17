@@ -1,13 +1,13 @@
-from utils.imports import *
-from results.main_calculation import calculate_scores, preparing_dataframe_for_plot, introduce_season_shift_in_calculation
-from results.helpers import aggregate_category
+from src.utils.imports import *
+from src.results.main_calculation import calculate_scores, preparing_dataframe_for_plot, introduce_season_shift_in_calculation
+from src.results.helpers import aggregate_category
 
-from parametrization.helpers import period_filter
-from parametrization.update_indicator import indicator_editing
+from src.parametrization.helpers import period_filter
+from src.parametrization.update_indicator import indicator_editing
 
-from spatial.rasterization import rasterize_data, display_raster_with_slider, raster_download_button
+from src.spatial.rasterization import rasterize_data, display_raster_with_slider, raster_download_button
 
-from results.custom_indicators import heat_index_spatial_indicator, display_raster_with_slider_heat_index
+from src.results.custom_indicators import heat_index_spatial_indicator, display_raster_with_slider_heat_index
 
 
 def extract_csv_from_zip(zip_file, extract_to):

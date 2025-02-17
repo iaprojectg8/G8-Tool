@@ -1,8 +1,10 @@
 from src.utils.imports import *
 from src.utils.variables import *
-from src.request.map_related import read_shape_file, main_map
-
-
+from src.request.map_related import main_map
+from src.request.helpers import shapefile_into_gdf
+from src.request.widget import manage_buffer, display_coordinates
+from src.request.helpers import get_shapefile_path
+from src.request.cmip6_requests import process_shapefile
 
 
 # This open the available coordinates of open meteo that we will take
@@ -84,26 +86,6 @@ def get_data_from_open_meteo(url, params):
     responses = openmeteo.weather_api(url, params=params)
     response = responses[0]
     return response
-
-def select_period(key):
-    """
-    Allows the user to select a data period using an interactive Streamlit slider.
-
-    Returns:
-        tuple: The start and end values of the selected period.
-    """
-    # Define the initial limits for the slider
-    period_start= st.session_state.min_year
-    period_end= st.session_state.max_year
-
-    # Display the slider that allows the user to select the bounds
-    period_start, period_end = st.slider(
-        "Select the data period:",
-        min_value=period_start, 
-        max_value=period_end,
-        value=(period_start, period_end),
-        key=key)      
-    return period_start, period_end
 
 def fill_daily_dict(daily, lat, lon):
     """
@@ -212,51 +194,25 @@ def open_meteo_request(selected_shape_folder):
     Args:
         selected_shape_folder (list): List of selected shape files.
     """
-    if selected_shape_folder:
-        gdf_list = []
-        for file in selected_shape_folder:
-            path_to_shapefile = os.path.join(ZIP_FOLDER, file)
-            shape_file = [file for file in os.listdir(path_to_shapefile) if file.endswith(".shp")][0]
-            shapefile_path = os.path.join(path_to_shapefile, shape_file)
+    combined_gdf, _ = process_shapefile(selected_shape_folder, ZIP_FOLDER, default_buffer_distance=0.2)
+    df = main_map(combined_gdf)
+    display_coordinates(df, DATAFRAME_HEIGHT)
+    if st.checkbox(label="Take all variables"):
+        selected_variables = st.multiselect("Chose variable to extract", 
+                                            UNIT_DICT.keys(), 
+                                            default=UNIT_DICT.keys())
+    else:
+        selected_variables = st.multiselect("Chose variable to extract", 
+                                            UNIT_DICT.keys(), 
+                                            default=np.random.choice(list(UNIT_DICT.keys())))
+    selected_model = st.selectbox("Chose the model to use", MODEL_NAMES)
+    (long_period_start, long_period_end) = select_period(key="request")
 
-            gdf :gpd.GeoDataFrame = read_shape_file(shapefile_path)
-            # Ask the user to define a buffer distance
-            buffer_distance = st.number_input(
-                label=f"Enter buffer distance (in the same units as {file} coordinates):",
-                min_value=0.0, 
-                step=0.1,
-                value=0.0,
-                format="%0.3f",
-                key=file
-            )
-            
-            # Apply the buffer if the distance is greater than 0
-            if buffer_distance > 0:
-                gdf["geometry"] = gdf["geometry"].buffer(buffer_distance, resolution=0.05)
-                st.success(f"Buffer of {buffer_distance} applied to {file}")
-
-            gdf_list.append(gdf)
-        combined_gdf = pd.concat(gdf_list, ignore_index=True)
-        df = main_map(combined_gdf)
-        print(len(df))
-        with st.expander(label="Your coordinates"):
-            st.dataframe(data=df, height=DATAFRAME_HEIGHT, use_container_width=True)
-        if st.checkbox(label="Take all variables"):
-            selected_variables = st.multiselect("Chose variable to extract", 
-                                                UNIT_DICT.keys(), 
-                                                default=UNIT_DICT.keys())
-        else:
-            selected_variables = st.multiselect("Chose variable to extract", 
-                                                UNIT_DICT.keys(), 
-                                                default=np.random.choice(list(UNIT_DICT.keys())))
-        selected_model = st.selectbox("Chose the model to use", MODEL_NAMES)
-        (long_period_start, long_period_end) = select_period(key="request")
-
-        if st.button(label="Start the Request"):
-            request_all_data(coordinates=df,
-                                dataset_folder=OPEN_METEO_FOLDER,
-                                filename_base="moroni_extraction",
-                                model=selected_model,
-                                start_year=long_period_start,
-                                end_year=long_period_end,
-                                variable_list=selected_variables)
+    if st.button(label="Start the Request"):
+        request_all_data(coordinates=df,
+                            dataset_folder=OPEN_METEO_FOLDER,
+                            filename_base="moroni_extraction",
+                            model=selected_model,
+                            start_year=long_period_start,
+                            end_year=long_period_end,
+                            variable_list=selected_variables)

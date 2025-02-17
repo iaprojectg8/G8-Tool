@@ -1,8 +1,8 @@
 from src.utils.imports import *
 from src.lib.layout import *
-from parametrization.create_inidicator import *
-from parametrization.update_indicator import *
-from parametrization.widgets_parametrization import *
+from src.parametrization.create_inidicator import *
+from src.parametrization.update_indicator import *
+from src.parametrization.widgets_parametrization import *
 
 # ---------------------------------------------------
 # --- Functions for the indicator parametrization ---
@@ -105,9 +105,6 @@ def initialize_indicators_tool_management(df_uploaded):
     st.session_state.df_indicators = copy(df_uploaded)
     st.session_state.df_checkbox = df_checkbox
     
-
-
-
 
 # -------------------------------------------
 # --- Functions for the uploaded CSV file ---

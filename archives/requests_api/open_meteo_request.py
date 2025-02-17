@@ -1,6 +1,6 @@
 from utils.imports import *
 from utils.variables import *
-from maps_related.main_functions import read_shape_file, main_map
+from archives.main_functions import read_shape_file, main_map
 
 
 

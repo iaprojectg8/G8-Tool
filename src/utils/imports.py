@@ -80,3 +80,4 @@ import requests_cache
 from retry_requests import retry
 import xarray as xr
 from zipfile import ZipFile
+from send2trash import send2trash

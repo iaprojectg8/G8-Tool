@@ -16,13 +16,16 @@ WELCOME_TEXT= """K'lim is an advanced Python-based tool developed internally by 
                      adaptation to climate change, ensuring that planning decisions are informed by robust climate analyses."""
 
 
-# ---------------------------
-# --- Zip file management ---
-# ---------------------------
+# -----------------------
+# --- File management ---
+# -----------------------
 
 ZIP_FOLDER = "zip_shapefile"
 EMPTY_REQUEST_FOLDER = "empty_request"
-
+NC_FILE_DIR = "nc_files"
+CSV_FILE_DIR = "csv_files"
+CSV_ZIPPED =  "csv zipped"
+CSV_EXTRACT = "csv_extract"
 
 # -------------------------
 # --- Request variables ---
@@ -222,9 +225,7 @@ CMIP6_TO_READABLE = {
 
 
 
-NC_FILE_DIR = "nc_files"
-WORKING_NC_FILE = "all_variables_nc_1960"
-CSV_FILE_DIR = "csv_files"
+
 
 
 REQUEST_TYPE = ["Request data though CMIP6 projections","Request data through Open-Meteo"]
@@ -240,5 +241,3 @@ EXPERT_MODE = "Mode/Expert Mode"
 PAGE_FILES = "pages"
 
 
-CSV_ZIPPED =  "csv zipped"
-CSV_EXTRACT = "csv_extract"

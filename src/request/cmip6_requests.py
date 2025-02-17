@@ -174,6 +174,7 @@ def make_whole_request(bounds):
 
         if st.button("Make request", key="cmip6_button", use_container_width=True):
             reset_directory(NC_FILE_DIR)
+            st.warning("Don't touch anything, the request is being made")
             request_loop(selected_variables, selected_model, ssp, experiment, years, bounds, nc_folder=NC_FILE_DIR) 
             nc_files_processing(NC_FILE_DIR, CSV_FILE_DIR, CSV_ZIPPED, ssp)
             
@@ -186,7 +187,9 @@ def make_whole_request(bounds):
             # Reset the directory that will contain the data files
             reset_directory_if_needed(choice, NC_FILE_DIR)
             request_loop(selected_variables, selected_model, ssp, experiment, years, bounds, nc_folder=NC_FILE_DIR)
-        convert_nc_to_csv(NC_FILE_DIR, CSV_FILE_DIR)
+        if st.button("Convert everything you downloaded into CSV zip", use_container_width=True):    
+
+            nc_files_processing(NC_FILE_DIR, CSV_FILE_DIR, CSV_ZIPPED, ssp)
 
 
 def request_loop(selected_variables, selected_model, ssp_list, experiment, years_list, bounds, nc_folder):
@@ -269,39 +272,17 @@ def nc_files_processing(nc_file_dir, csv_file_dir, csv_zipped_dir, ssp_list):
     
     # Preparing the CSV directory
     ssp_list = [ssp for ssp in ssp_list if ssp != "historical"]
+
     for ssp in ssp_list:
         reset_directory(csv_file_dir)
         whole_df = open_nc_files_in_df(nc_file_dir, years_list, ssp)
-        whole_df_converted = convert_variable_units(whole_df)
-        restructure_data_and_save_into_csv(whole_df_converted, csv_file_dir)
-        create_zip_and_save(csv_file_dir, csv_zipped_dir, ssp)
+        if not whole_df.empty:
+            whole_df_converted = convert_variable_units(whole_df)
+            restructure_data_and_save_into_csv(whole_df_converted, csv_file_dir)
+            create_zip_and_save(csv_file_dir, csv_zipped_dir, ssp, years_list)
     st.success("Everything has been gone through, go to the result page to see the data")
+        
     
-    
-
-# def open_nc_files_in_df(nc_file_dir, ssp):
-#     """
-#     Loop through the NetCDF files and concatenate them into a single DataFrame.
-#     Args:
-#         nc_file_dir (str): The directory containing the NetCDF files.
-#         ssp (str): The Shared Socioeconomic Pathway (SSP) to extract.
-#     Returns:
-#         pd.DataFrame: The concatenated DataFrame.
-#     """
-#     # Progress bar initialization
-#     whole_df = pd.DataFrame()
-#     nc_file_list = [file for file in os.listdir(nc_file_dir) if "historical" in file or ssp in file]
-#     progress_bar_params=initialize_progress_bar(nc_file_list, text=f"Concatenating Requested Files ({ssp}): 0%")    
-#     for nc_file in os.listdir(nc_file_dir):
-#         if nc_file.endswith(".nc") :
-#             nc_file_path = os.path.join(nc_file_dir, nc_file)
-
-#             # Process the NetCDF file to a DataFrame
-#             df = process_nc_file_to_dataframe(nc_file_path)
-#             whole_df = pd.concat([whole_df, df], ignore_index=False, axis=0)
-#             progress_bar_params = update_progress_bar(*progress_bar_params, text=f"Concatenating Requested Files ({ssp})")
-            
-#     return whole_df
 
 def open_nc_files_in_df(nc_file_dir, years_list, ssp):
     """
@@ -316,6 +297,7 @@ def open_nc_files_in_df(nc_file_dir, years_list, ssp):
     # Progress bar initialization
     whole_df = pd.DataFrame()
     progress_bar_params=initialize_progress_bar(years_list, text=f"Concatenating Requested Files ({ssp}): 0%") 
+   
     for year in years_list:
         whole_year_df = pd.DataFrame()
         for nc_file in os.listdir(nc_file_dir):
@@ -401,24 +383,14 @@ def restructure_data_and_save_into_csv(whole_df:pd.DataFrame, csv_file_dir):
         progress_params = update_progress_bar(*progress_params, text="Coordinates Separation:")
 
 
-def convert_nc_to_csv(nc_file_path, csv_file_path):
-    """
-    This function will convert the netcdf files into csv files
-    Args:
-        nc_file_path (str): The path to the netcdf files
-        csv_file_path (str): The path to the csv files
-    """
-    if st.button("Convert everything you downloaded into CSV zip", use_container_width=True):    
 
-        nc_files_processing(nc_file_path, csv_file_path)
-        create_zip_download_button(csv_file_path, button_text="Download ZIP file")
        
 
 # ---------------------
 # --- Zip CSV files ---
 # ---------------------
 
-def create_zip_and_save(csv_dir, zipped_csv_dir, ssp):
+def create_zip_and_save(csv_dir, zipped_csv_dir, ssp:str, year_list):
     """
     Create a ZIP file from CSV files in a directory and save it to a specific folder.
     Args:
@@ -432,7 +404,11 @@ def create_zip_and_save(csv_dir, zipped_csv_dir, ssp):
         os.makedirs(zipped_csv_dir, exist_ok=True)
 
     # Create the zip csv file with the project location given at the beginning
-    zip_filename = f"{st.session_state.location}_{ssp}.zip"
+
+    min_year = year_list[0]
+    max_year = year_list[-1]
+    print(year_list)
+    zip_filename = f"{st.session_state.location} {min_year}-{max_year} ({ssp.capitalize()}).zip"
     zip_file_path = os.path.join(zipped_csv_dir, zip_filename)
 
     create_zip(zip_file_path, csv_dir)

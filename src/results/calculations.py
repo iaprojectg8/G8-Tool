@@ -1,6 +1,6 @@
 from src.utils.imports import *
 from src.utils.variables import *
-from parametrization.helpers import period_filter
+from src.parametrization.helpers import period_filter
 
 
 # --------------------------

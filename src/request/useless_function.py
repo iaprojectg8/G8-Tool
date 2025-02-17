@@ -195,3 +195,30 @@ def extract_csv_from_zip(zip_file, extract_to):
     """
     with zipfile.ZipFile(zip_file, 'r') as zip_ref:
         zip_ref.extractall(extract_to)
+
+
+        
+        
+# def open_nc_files_in_df(nc_file_dir, ssp):
+#     """
+#     Loop through the NetCDF files and concatenate them into a single DataFrame.
+#     Args:
+#         nc_file_dir (str): The directory containing the NetCDF files.
+#         ssp (str): The Shared Socioeconomic Pathway (SSP) to extract.
+#     Returns:
+#         pd.DataFrame: The concatenated DataFrame.
+#     """
+#     # Progress bar initialization
+#     whole_df = pd.DataFrame()
+#     nc_file_list = [file for file in os.listdir(nc_file_dir) if "historical" in file or ssp in file]
+#     progress_bar_params=initialize_progress_bar(nc_file_list, text=f"Concatenating Requested Files ({ssp}): 0%")    
+#     for nc_file in os.listdir(nc_file_dir):
+#         if nc_file.endswith(".nc") :
+#             nc_file_path = os.path.join(nc_file_dir, nc_file)
+
+#             # Process the NetCDF file to a DataFrame
+#             df = process_nc_file_to_dataframe(nc_file_path)
+#             whole_df = pd.concat([whole_df, df], ignore_index=False, axis=0)
+#             progress_bar_params = update_progress_bar(*progress_bar_params, text=f"Concatenating Requested Files ({ssp})")
+            
+#     return whole_df

@@ -1,8 +1,8 @@
 from src.utils.imports import *
 from src.utils.variables import *
 from src.lib.layout import *
-from results.indicators_plot import plot_daily_data, wrap_indicator_into_pdf
-from results.general_plots import add_vertical_line, add_periods_to_df
+from src.results.indicators_plot import plot_daily_data, wrap_indicator_into_pdf
+from src.results.general_plots import add_vertical_line, add_periods_to_df
 
 
 # ----------------------------
