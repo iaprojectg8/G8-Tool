@@ -90,13 +90,26 @@ def managing_existing_csv_zipped(csv_folder):
         unsafe_allow_html=True
     )
     st.session_state.selected_csv_folder = st.radio("Select CSV folder", existing_csv_folder, key="radio_csv_folder",horizontal=True, )
-            
+    ssp = get_ssp_from_zip(st.session_state.selected_csv_folder)
     _, tab2, _ = st.columns(3)
     with tab2:
         if st.session_state.selected_csv_folder :
             st.button("Delete selected csv folder", key="delete_csv_folder", on_click=delete_csv_folder)
-    return st.session_state.selected_csv_folder
+    return st.session_state.selected_csv_folder, ssp
 
+def get_ssp_from_zip(filename):
+    """
+    Get the SSP from the zip file
+    Args:
+        filename (str): The filename
+    Returns:
+        str: The SSP
+    """
+    
+    match = re.search(r'\((.*?)\)', filename)
+    if match:
+        ssp = match.group(1).upper()
+        return ssp
 
 # ----------------------------
 # --- Shapefile management ---

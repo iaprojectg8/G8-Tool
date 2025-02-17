@@ -136,7 +136,7 @@ def filtered_data(data:pd.DataFrame, chosen_variables, period):
     return data_to_keep
 
 
-def general_plot(data: pd.DataFrame, periods):
+def general_plot(data: pd.DataFrame, periods, ssp):
     """
     Generates a plot for the selected variable and period, including monthly and yearly means,
     trends, and the option to download the plots as a PDF.
@@ -145,6 +145,7 @@ def general_plot(data: pd.DataFrame, periods):
         data (pd.DataFrame): The input data frame containing the data to plot.
         periods (list): List of tuples representing the periods to analyze (start year, end year).
         chosen_variable (list): List of available variable options for the user to choose from.
+        ssp (str): The Shared Socioeconomic Pathway (SSP) scenario got in the filename
 
     Returns:
         None: The function generates plots and provides a download button for the PDF.
@@ -168,9 +169,9 @@ def general_plot(data: pd.DataFrame, periods):
         if "_".join(variable_choice.lower().split(" ")) in column:
             
             # Generate the monthly and yearly plots for the selected column
-            fig1 = plot_monthly_mean(column, monthly_mean, monthly_data)
-            fig2 = plot_yearly_curve_and_period_trends(yearly_mean,monthly_mean, column, periods)
-            fig3 = plot_monthly_period_variation(monthly_mean,monthly_data, column)
+            fig1 = plot_monthly_mean(column, monthly_mean, monthly_data, ssp )
+            fig2 = plot_yearly_curve_and_period_trends(yearly_mean,monthly_mean, column, periods, ssp)
+            fig3 = plot_monthly_period_variation(monthly_mean,monthly_data, column, ssp)
 
             
             # Generate the PDF with the two figures

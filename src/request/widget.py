@@ -13,7 +13,7 @@ def get_project_location():
     """
     Get the project location from the user.
     """
-    st.session_state.location = st.text_input("Shortname (without special characters)")
+    st.session_state.shortname = st.text_input("Shortname (without special characters)")
 
 
 def get_project_information():

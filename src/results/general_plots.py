@@ -183,7 +183,7 @@ def plot_current_year(fig:go.Figure, monthly_mean, column, unit, year=datetime.n
         showlegend=True  # Show this in the legend
     ))
 
-def layout_monthly_plot(fig:go.Figure, column_name,  unit):
+def layout_monthly_plot(fig:go.Figure, column_name,  unit, ssp):
     """
     Updates the layout of the Plotly figure for the monthly plot.
 
@@ -194,7 +194,7 @@ def layout_monthly_plot(fig:go.Figure, column_name,  unit):
     mean  = "Mean "
     fig.update_layout(
         width=1500, height=500,
-        title=dict(text=f'Monthly {mean if column_name != "Precipitation Sum" else ''}{column_name} through years',
+        title=dict(text=f'Monthly {mean if column_name != "Precipitation Sum" else ''}{column_name} through years {f'({ssp})' if ssp is not None else ""}',
                 x=0.5,
                 xanchor="center",
                 font_size=25),
@@ -207,7 +207,7 @@ def layout_monthly_plot(fig:go.Figure, column_name,  unit):
         font=dict(size=17, weight=800),
     )
 
-def plot_monthly_mean(column, monthly_mean, monthly_data):
+def plot_monthly_mean(column, monthly_mean, monthly_data, ssp):
     """
     Creates and displays a monthly mean plot for a specified column.
 
@@ -215,6 +215,7 @@ def plot_monthly_mean(column, monthly_mean, monthly_data):
         column (str): The column name for which the monthly mean plot is created.
         monthly_mean (pd.DataFrame): DataFrame containing the monthly mean values.
         monthly_data (pd.DataFrame): DataFrame containing the original monthly data for plotting.
+        ssp (str): The Shared Socioeconomic Pathway selected by the user.
 
     Returns:
         go.Figure: The Plotly figure with the monthly mean plot.
@@ -229,7 +230,7 @@ def plot_monthly_mean(column, monthly_mean, monthly_data):
     # Make the monthly plot
     monthly_scatter(fig, monthly_mean, column, unit)
     plot_current_year(fig, monthly_mean, column, unit)
-    layout_monthly_plot(fig, column_name, unit)
+    layout_monthly_plot(fig, column_name, unit, ssp)
     
     # Display the plot in Streamlit
     st.plotly_chart(fig)
@@ -313,7 +314,7 @@ def plot_yearly_curve(fig:go.Figure, yearly_mean, column, column_name):
         line=dict(color="dodgerblue"),
     ))
 
-def yearly_layout(fig:go.Figure, column_name, unit):
+def yearly_layout(fig:go.Figure, column_name, unit, ssp):
     """
     Updates the layout of the Plotly figure for the yearly curve plot.
 
@@ -325,7 +326,7 @@ def yearly_layout(fig:go.Figure, column_name, unit):
     mean = "Mean "
     fig.update_layout(
         width=1500, height=500,
-        title=dict(text=f'Yearly {mean if column_name != "Precipitation Sum" else ''}{column_name} and Trends from Different Periods',
+        title=dict(text=f'Yearly {mean if column_name != "Precipitation Sum" else ''}{column_name} and Trends from Different Periods {f'({ssp})' if ssp is not None else ""}',
                     x=0.5,
                     xanchor="center",
                     font_size=25),
@@ -376,7 +377,7 @@ def plot_all_trend_lines(fig:go.Figure, yearly_mean, monthly_mean, periods, colu
             ),
             ))
 
-def plot_yearly_curve_and_period_trends(yearly_mean, monthly_mean, column, periods):
+def plot_yearly_curve_and_period_trends(yearly_mean, monthly_mean, column, periods, ssp):
     """
     Plots the yearly curve along with trend lines for different periods.
 
@@ -385,6 +386,7 @@ def plot_yearly_curve_and_period_trends(yearly_mean, monthly_mean, column, perio
         monthly_mean (pd.DataFrame) : Dataframe containing period-specific means.
         column (str): The column name for which the yearly curve and trends are plotted.
         periods (list of tuples): List of periods (start, end) for which trends are calculated.
+        ssp (str): The Shared Socioeconomic Pathway selected by the user.
 
     Returns:
         go.Figure: The Plotly figure containing the yearly curve and trend lines.
@@ -400,7 +402,7 @@ def plot_yearly_curve_and_period_trends(yearly_mean, monthly_mean, column, perio
     plot_all_trend_lines(fig, yearly_mean,monthly_mean, periods, column, column_name, unit)
 
     # Update layout with titles and labels
-    yearly_layout(fig,column_name, unit)
+    yearly_layout(fig,column_name, unit, ssp)
     st.plotly_chart(fig)
 
     return fig
@@ -502,7 +504,7 @@ def monthly_variation_plot(fig:go.Figure, monthly_mean, color_scale, column_name
         ),
     ))
 
-def monthly_variation_layout(fig:go.Figure, graph_part, column_name):
+def monthly_variation_layout(fig:go.Figure, graph_part, column_name, ssp):
     """
     Updates the layout of the Plotly figure to customize its appearance.
 
@@ -513,7 +515,7 @@ def monthly_variation_layout(fig:go.Figure, graph_part, column_name):
     """
     fig.update_layout(
         width=1500*graph_part, height=1000*graph_part,
-        title=dict(text=f"Monthly {column_name} Variation over Periods ",
+        title=dict(text=f"Monthly {column_name} Variation over Periods {f'({ssp})' if ssp is not None else ""}",
                     x=0.5,
                     xanchor="center",
                     font_size=25),
@@ -539,7 +541,7 @@ def monthly_variation_layout(fig:go.Figure, graph_part, column_name):
         font=dict(size=17, weight=800),
         )
 
-def plot_monthly_period_variation(monthly_mean: pd.DataFrame, monthly_data: pd.DataFrame, column: str) -> go.Figure:
+def plot_monthly_period_variation(monthly_mean: pd.DataFrame, monthly_data: pd.DataFrame, column: str, ssp) -> go.Figure:
     """
     Main function to calculate and plot the monthly variation for a given column.
 
@@ -547,6 +549,7 @@ def plot_monthly_period_variation(monthly_mean: pd.DataFrame, monthly_data: pd.D
         monthly_mean (pd.DataFrame): DataFrame containing period-specific data.
         monthly_data (pd.DataFrame): DataFrame containing overall monthly data.
         column (str): The column to analyze.
+        ssp (str): The Shared Socioeconomic Pathway selected by the user.
 
     Returns:
         go.Figure: The Plotly figure displaying the heatmap.
@@ -572,7 +575,7 @@ def plot_monthly_period_variation(monthly_mean: pd.DataFrame, monthly_data: pd.D
 
     # Plot the heatmap and update layout
     monthly_variation_plot(fig, monthly_mean, color_scale, column_name, unit)
-    monthly_variation_layout(fig, graph_part, column_name)
+    monthly_variation_layout(fig, graph_part, column_name, ssp)
 
     # Display the figure on the right
     with col2:

@@ -25,7 +25,7 @@ def main():
 
     # Display existing files in the ZIP_FOLDER with checkboxes
     set_title_1("General Results")
-    selected_csv_folder = managing_existing_csv_zipped(CSV_ZIPPED)
+    selected_csv_folder, ssp = managing_existing_csv_zipped(CSV_ZIPPED)
 
     # Just a information to give to the user
     if st.button("Load data"):
@@ -41,7 +41,7 @@ def main():
                 st.write("Data is ready")
                 st.session_state.selected_csv_folder = selected_csv_folder
 
-    general_management_beginner(st.session_state.all_df_mean)
+    general_management_beginner(st.session_state.all_df_mean, ssp)
 
 
 if "__main__":

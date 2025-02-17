@@ -25,7 +25,6 @@ def process_shapefile(selected_shape_folder, zip_folder, default_buffer_distance
         list: The list of GeoDataFrames.
     """
     gdf_list = []
-    st.session_state.gdf_list = []
     for folder in selected_shape_folder:
 
         # Open the shape file and get its content
@@ -408,7 +407,7 @@ def create_zip_and_save(csv_dir, zipped_csv_dir, ssp:str, year_list):
     min_year = year_list[0]
     max_year = year_list[-1]
     print(year_list)
-    zip_filename = f"{st.session_state.location} {min_year}-{max_year} ({ssp.capitalize()}).zip"
+    zip_filename = f"{st.session_state.shortname} {min_year}-{max_year} ({ssp.capitalize()}).zip"
     zip_file_path = os.path.join(zipped_csv_dir, zip_filename)
 
     create_zip(zip_file_path, csv_dir)

@@ -19,6 +19,7 @@ import streamlit as st
 import xarray as xr
 from zipfile import ZipFile
 from send2trash import send2trash
+import re
 
 # Date and time
 from datetime import datetime, date
