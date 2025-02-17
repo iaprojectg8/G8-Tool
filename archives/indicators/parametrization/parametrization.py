@@ -1,7 +1,7 @@
 from utils.imports import *
 from lib.session_variables import * 
 from utils.variables import *
-from layouts.layout import *
+from lib.layout import *
 from indicators.parametrization.create_inidicator import *
 from indicators.parametrization.update_indicator import *
 

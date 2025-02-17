@@ -1,6 +1,6 @@
 from utils.imports import *
 from utils.variables import *
-from layouts.layout import *
+from lib.layout import *
 
 
 def classify_heat_index(heat_index):

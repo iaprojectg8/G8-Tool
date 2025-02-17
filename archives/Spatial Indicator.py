@@ -1,6 +1,6 @@
 from utils.imports import * 
 from utils.variables import ZIP_FOLDER, UNIT_DICT, MODEL_NAMES, DATAFRAME_HEIGHT
-from maps_related.main_functions import *
+from archives.main_functions import *
 from lib.session_variables import *
 from spatial.spatial_indicator import *
 

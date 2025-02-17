@@ -1,6 +1,58 @@
-from utils.imports import *
-from utils.variables import * 
-from lib.layout import * 
+from src.utils.imports import *
+from src.utils.variables import *
+from src.parametrization.helpers import period_filter
+
+
+# --------------------------
+# --- Preparing for plot ---
+# --------------------------
+
+def preparing_dataframe_for_plot(df_yearly_var, periods, score_name):
+    """
+    Prepare the DataFrame for plotting by adding additional columns such as year, period, color, and category.
+
+    Args:
+        df_yearly_var (pandas.DataFrame): DataFrame containing yearly data to be prepared for plotting.
+        periods (list): List of periods to be added to the DataFrame.
+        score_name (str): The name of the score to be used for categorization and color mapping.
+
+    Returns:
+        pandas.DataFrame: The modified DataFrame with additional columns for plotting.
+    """
+    df_yearly_var["year"] = df_yearly_var.index.year
+    df_yearly_var = add_periods_to_df(df_yearly_var, periods)
+    df_yearly_var["period"] = df_yearly_var["period"].apply(lambda x: f"{x[0]}-{x[1]}")
+    df_yearly_var["color"] = df_yearly_var[f"yearly_indicator_{score_name}"].apply(lambda category:CATEGORY_TO_COLOR_MAP[category])
+    df_yearly_var["category"] = df_yearly_var["color"].apply(lambda color: RISK_MAP[color])
+    return df_yearly_var
+
+
+# -----------------------------------------------
+# --- Main part where everything is assembled ---
+# -----------------------------------------------
+
+
+def get_only_required_variable(dataframes_dict, variable):
+    for (df_key, df) in dataframes_dict.items() :
+            if isinstance(variable, list):  # Check if variable is a list
+                selected_columns = variable + ["lat", "lon"]  # Create a new list
+            else:
+                selected_columns = [variable, "lat", "lon"]  # Combine into a list
+            
+            df = df.loc[:, selected_columns]  # Use the new variable for column selection
+            dataframes_dict[df_key] = df
+    return dataframes_dict
+
+
+def filter_all_the_dataframe(dataframes:dict, long_period):
+    for key_df, df in dataframes.items():
+        # do the filters that have been done on the first dataframe of the dictionary
+        data_long_period_filtered = period_filter(df, period=long_period)
+        dataframes[key_df] = data_long_period_filtered
+    st.write("The filtering is done")
+    print(dataframes)
+    return dataframes
+
 
 def reset_cumsum(group):
     """
@@ -172,4 +224,20 @@ def indicator_score(df: pd.DataFrame, variable, score, yearly_trehsholds_min: li
     
     df[f"yearly_indicator_{score}"] =(df[variable].apply(lambda x:categorize_both(x,below_thresholds, above_thresholds) )).astype(int)
 
+    return df
+
+
+def add_periods_to_df(df:pd.DataFrame, periods):
+    """
+    Assigns a period to each row in the DataFrame based on the 'year' column.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame containing a 'year' column.
+        periods (list of tuples): A list of periods, where each period is a tuple (start_year, end_year).
+
+    Returns:
+        pd.DataFrame: The DataFrame with an additional 'period' column indicating the assigned period.
+    """
+    # Assign the first matching period to each 'year' using the next() function that iterates over periods
+    df["period"] = df["year"].apply(lambda x: next((period for period in periods if period[0] <= x <= period[1]), None))
     return df

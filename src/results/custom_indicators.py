@@ -1,8 +1,8 @@
-from utils.imports import *
-from utils.variables import *
-from lib.layout import *
-from indicators.plot import plot_daily_data, wrap_indicator_into_pdf
-from lib.plot import add_vertical_line, add_periods_to_df
+from src.utils.imports import *
+from src.utils.variables import *
+from src.lib.layout import *
+from src.results.indicators_plot import plot_daily_data, wrap_indicator_into_pdf
+from src.results.general_plots import add_vertical_line, add_periods_to_df
 
 
 # ----------------------------
@@ -205,6 +205,66 @@ def from_celsius_to_fahrenheit(celsius):
     fahrenheit = celsius * 9/5 + 32
     return fahrenheit
 
+
+def heat_index_indicator(df, df_all, key, periods):
+    """
+    Processes the seasonal data to calculate and categorize the heat index, then plots the results.
+
+    Parameters:
+    df_season (DataFrame): The DataFrame containing the seasonal data.
+
+    Returns:
+    None
+    """
+
+    set_title_1("Variable filter")
+
+    if "relative_humidity_2m_min" in df_all.columns:
+        relative_humidity_min = "relative_humidity_2m_min"
+        temperature_max = "temperature_2m_max"
+    elif "relative_humidity_2m" in df_all.columns:  
+        relative_humidity_min = "relative_humidity_2m" 
+        temperature_max = "temperature_2m_mean"
+
+    heat_index = "heat_index"
+    if relative_humidity_min not in df or temperature_max not in df:
+        if relative_humidity_min not in df:
+            st.error(f"{relative_humidity_min} was not provided in the indicator variable. You should add it and update")
+        if temperature_max not in df:
+            st.error(f"{temperature_max} was not provided in the indicator variable. You should add it and update")
+    else:
+        df_heat_index = df[[temperature_max, relative_humidity_min]]
+
+        # Calculate the heat index 
+        df_heat_index[temperature_max] = df_heat_index[temperature_max].apply(from_celsius_to_fahrenheit)
+        df_heat_index = heat_index_calculation(df_heat_index, relative_humidity_min, temperature_max)
+        df_heat_index[[heat_index, temperature_max]] = df_heat_index[[heat_index, temperature_max]].apply(from_fahrenheit_to_celsius)
+        
+        
+        # Display the dataframe 
+        st.dataframe(df_heat_index, height=DATAFRAME_HEIGHT, use_container_width=True)
+
+        # Categorize the heat index
+        categorize_heat_index(df_heat_index)
+
+        fig_list = list()
+        # Plot the heat index categories by year
+        fig1 = plot_daily_data(df_heat_index, relative_humidity_min, key)
+        fig2 = plot_daily_data(df_heat_index, temperature_max, key)
+        fig_list.extend([fig1, fig2])
+        fig1, fig2, fig3 = plot_bar_stack_count(df_heat_index, periods)
+        fig_list.extend([fig1, fig2, fig3])
+        pdf = wrap_indicator_into_pdf(fig_list=fig_list)
+        # Provide a button to download the generated PDF
+        st.download_button(
+            label="Download PDF",
+            data=pdf,
+            file_name="Heat Index.pdf",
+            mime="application/pdf",
+            key= key
+        )
+
+
 def heat_index_spatial_indicator(df, periods):
     """
     Calculate the spatial heat index for given periods based on temperature and relative humidity
@@ -324,64 +384,3 @@ def display_raster_with_slider_heat_index(score_name, periods):
 
     # Display the map in Streamlit
     st.plotly_chart(fig, use_container_width=True)
-
-def heat_index_indicator(df, df_all, key, periods):
-    """
-    Processes the seasonal data to calculate and categorize the heat index, then plots the results.
-
-    Parameters:
-    df_season (DataFrame): The DataFrame containing the seasonal data.
-
-    Returns:
-    None
-    """
-
-    set_title_1("Variable filter")
-
-    # Get the right variable
-    print(df_all.columns)
-    if "relative_humidity_2m_min" in df_all.columns:
-        relative_humidity_min = "relative_humidity_2m_min"
-        temperature_max = "temperature_2m_max"
-    elif "relative_humidity_2m" in df_all.columns:  
-        relative_humidity_min = "relative_humidity_2m" 
-        temperature_max = "temperature_2m_mean"
-
-    heat_index = "heat_index"
-    if relative_humidity_min not in df or temperature_max not in df:
-        if relative_humidity_min not in df:
-            st.error(f"{relative_humidity_min} was not provided in the indicator variable. You should add it and update")
-        if temperature_max not in df:
-            st.error(f"{temperature_max} was not provided in the indicator variable. You should add it and update")
-    else:
-        df_heat_index = df[[temperature_max, relative_humidity_min]]
-
-        # Calculate the heat index 
-        df_heat_index[temperature_max] = df_heat_index[temperature_max].apply(from_celsius_to_fahrenheit)
-        df_heat_index = heat_index_calculation(df_heat_index, relative_humidity_min, temperature_max)
-        df_heat_index[[heat_index, temperature_max]] = df_heat_index[[heat_index, temperature_max]].apply(from_fahrenheit_to_celsius)
-        
-        
-        # Display the dataframe 
-        st.dataframe(df_heat_index, height=DATAFRAME_HEIGHT, use_container_width=True)
-
-        # Categorize the heat index
-        categorize_heat_index(df_heat_index)
-
-        fig_list = list()
-        # Plot the heat index categories by year
-        fig1 = plot_daily_data(df_heat_index, relative_humidity_min)
-        fig2 = plot_daily_data(df_heat_index, temperature_max)
-        fig_list.extend([fig1, fig2])
-        fig1, fig2, fig3 = plot_bar_stack_count(df_heat_index, periods)
-        fig_list.extend([fig1, fig2, fig3])
-        pdf = wrap_indicator_into_pdf(fig_list=fig_list)
-        # Provide a button to download the generated PDF
-        st.download_button(
-            label="Download PDF",
-            data=pdf,
-            file_name="whatever.pdf",
-            mime="application/pdf",
-            key= key
-        )
-

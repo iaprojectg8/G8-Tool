@@ -1,25 +1,24 @@
-from utils.imports import * 
-from utils.variables import DATAFRAME_HEIGHT, LOGO_PATH, G8_LOGO_PATH
-from layouts.layout import *
-from lib.session_variables import *
-from results.result_functions import make_zone_average, general_management, indicator_management
-from parametrization.widgets_parametrization import page_config, increase_logo
+from src.utils.imports import * 
+from src.utils.variables import DATAFRAME_HEIGHT, TOOL_LOGO, G8_LOGO
+from src.lib.layout import *
+from src.lib.session_variables import *
+from src.results.result_functions import make_zone_average, general_management, indicator_management
+from src.lib.layout import page_config_and_menu, set_page_title, set_title_1, set_title_2
 
 
 def main():
     """Basic Streamlit app with a title."""
     # Set some layout parameters for the page 
-    st.session_state.last_page = "General Results"
-    page_config(LOGO_PATH)
-    st.logo(G8_LOGO_PATH)
-    increase_logo()
+    page_name = "General Results"
+    page_config_and_menu(TOOL_LOGO, G8_LOGO)
     set_page_title("General Results")
+
+
     if len(st.session_state.dataframes_modified) == 0:
         st.error("You should upload a file on the Indicator Parametrization page")
         
     else:
-        st.dataframe(st.session_state.dataframes_modified[list(st.session_state.dataframes_modified.keys())[0]], height=DATAFRAME_HEIGHT, use_container_width=True)
-
+        
         set_title_2("Overall average indicator")
         make_zone_average(dataframes=st.session_state.dataframes_modified)
         if st.session_state.all_df_mean is not None :
