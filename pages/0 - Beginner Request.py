@@ -13,7 +13,7 @@ def main():
     """Basic Streamlit app with a title."""
     # Set some layout parameters for the page 
     page_name = "Beginner Request"
-    initialize_session_state_variable
+    initialize_session_state_variable()
     page_config_and_menu(TOOL_LOGO, G8_LOGO)
     set_page_title("Request")
     
