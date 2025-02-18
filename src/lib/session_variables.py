@@ -1,79 +1,185 @@
 from src.utils.imports import * 
 from src.utils.variables import ZIP_FOLDER, CSV_ZIPPED
 
-# -------------------------------------
-# --- Welcome page & Mode Selection ---
-# -------------------------------------
 
-if "mode" not in st.session_state:
-    st.session_state.mode = "Beginner"
+def initialize_session_state_variable():
+    if st.session_state == {}:
+        # -------------------------------------
+        # --- Welcome page & Mode Selection ---
+        # -------------------------------------
 
-if "last_page" not in st.session_state:
-    st.session_state.last_page = None
+        if "mode" not in st.session_state:
+            st.session_state.mode = "Beginner"
 
-def set_mode():
-    # Callback function to save the role selection to Session State
-        st.session_state.mode = st.session_state._mode
+        if "last_page" not in st.session_state:
+            st.session_state.last_page = None
 
-
-# -------------------------------------
-# --- Request & General Information --- 
-# -------------------------------------
-
-if "shortname" not in st.session_state:
-    st.session_state.shortname = None
-
-if "project_info" not in st.session_state:
-    st.session_state.project_info = dict()
-
-if "gdf_list" not in st.session_state:
-    st.session_state.gdf_list = []
-
-if "combined_gdf" not in st.session_state:
-    st.session_state.combined_gdf = pd.DataFrame()
-
-# -----------------------
-# --- General Results ---
-# -----------------------
-
-# Folder
-if "selected_csv_folder" not in st.session_state:
-    st.session_state.selected_csv_folder = None
-
-if "selected_csv_loaded" not in st.session_state:
-    st.session_state.selected_csv_loaded = None
+        def set_mode():
+            # Callback function to save the role selection to Session State
+                st.session_state.mode = st.session_state._mode
 
 
-# Dataframes
-if "dataframes" not in st.session_state:
-    st.session_state.dataframes = dict()  
+        # -------------------------------------
+        # --- Request & General Information --- 
+        # -------------------------------------
 
-if "all_df_mean" not in st.session_state:
-    st.session_state.all_df_mean = None
+        if "shortname" not in st.session_state:
+            st.session_state.shortname = None
 
-# Dates
-if "min_year" not in st.session_state:
-    st.session_state.min_year = None
+        if "project_info" not in st.session_state:
+            st.session_state.project_info = dict()
 
-if "max_year" not in st.session_state:
-    st.session_state.max_year = None
+        if "gdf_list" not in st.session_state:
+            st.session_state.gdf_list = []
 
-if "long_period" not in st.session_state:
-    st.session_state.long_period = None
+        if "combined_gdf" not in st.session_state:
+            st.session_state.combined_gdf = pd.DataFrame()
+
+        # -----------------------
+        # --- General Results ---
+        # -----------------------
+
+        # Folder
+        if "selected_csv_folder" not in st.session_state:
+            st.session_state.selected_csv_folder = None
+
+        if "selected_csv_loaded" not in st.session_state:
+            st.session_state.selected_csv_loaded = None
+
+
+        # Dataframes
+        if "dataframes" not in st.session_state:
+            st.session_state.dataframes = dict()  
+
+        if "all_df_mean" not in st.session_state:
+            st.session_state.all_df_mean = None
+
+        # Dates
+        if "min_year" not in st.session_state:
+            st.session_state.min_year = None
+
+        if "max_year" not in st.session_state:
+            st.session_state.max_year = None
+
+        if "long_period" not in st.session_state:
+            st.session_state.long_period = None
 
 
 
 
-# --------------------------------------------------------------------
-# Everything after there is not used at all in the beginner part
-# --------------------------------------------------------------------
+        # --------------------------------------------------------------------
+        # Everything after there is not used at all in the beginner part
+        # --------------------------------------------------------------------
 
-if "uploader_shape_checked" not in st.session_state:
-    st.session_state.uploader_shape_checked = False
+        if "uploader_shape_checked" not in st.session_state:
+            st.session_state.uploader_shape_checked = False
 
-if "selected_shape_folder" not in st.session_state:
-    st.session_state.selected_shape_folder = []
+        if "selected_shape_folder" not in st.session_state:
+            st.session_state.selected_shape_folder = []
 
+
+
+
+
+
+        # ----------------------------------
+        # --- Indicators Parametrization ---
+        # ----------------------------------
+
+        # Variables initialization
+
+        if "already_uploaded_file" not in st.session_state:
+            st.session_state.already_uploaded_file = None
+
+        if "building_indicator_df" not in st.session_state:
+            st.session_state.building_indicator_df = pd.DataFrame()
+
+        if "variable_chosen" not in st.session_state:
+            st.session_state.variable_chosen = None
+
+
+
+
+
+        if "dataframes_modified" not in st.session_state:
+            st.session_state.dataframes_modified = dict()
+
+        if "season_checkbox" not in st.session_state:
+            st.session_state.season_checkbox = False
+
+        if "indicator" not in st.session_state:
+            st.session_state.indicator = {
+                "Name": "",
+                "Variable": None,
+                "Indicator Type": None,
+                "Builtin Indicator": None, 
+                "Daily Threshold Min": None,
+                "Daily Threshold Max": None,
+                "Windows Length": 2,
+                "Windows Aggregation" : None,
+                "Yearly Threshold Min": None,
+                "Yearly Threshold Max": None,
+                "Yearly Threshold Min Step" : 0,
+                "Yearly Threshold Min List": [],
+                "Yearly Threshold Max Step" : 0,
+                "Yearly Threshold Max List" : [],
+                "Yearly Aggregation": None,
+                "Season Start Shift": None,
+                "Season End Shift": None
+            }
+
+        if 'df_indicators' not in st.session_state:
+            st.session_state.df_indicators = pd.DataFrame(columns=st.session_state.indicator.keys())
+
+        if "checkbox_defaults" not in st.session_state:
+            st.session_state.checkbox_defaults = {
+                "min_daily_checkbox": False,
+                "max_daily_checkbox": False,
+                "min_yearly_checkbox": False,
+                "max_yearly_checkbox": False,
+                "shift_start_checkbox": False,
+                "shift_end_checkbox": False,
+                "threshold_list_checkbox" : False,
+                "threshold_list_checkbox_min" : False,
+                "threshold_list_checkbox_max" : False
+            }
+
+        if "df_checkbox" not in st.session_state:
+            st.session_state.df_checkbox = pd.DataFrame(columns=st.session_state.checkbox_defaults.keys())
+            
+
+        if "season_start" not in st.session_state:
+            st.session_state.season_start = 6
+
+        if "season_end" not in st.session_state:
+            st.session_state.season_end = 10
+
+        if "uploaded_df" not in st.session_state:
+            st.session_state.uploaded_df = None
+
+        if "resolution" not in st.session_state:
+            st.session_state.resolution = 0.2
+
+        if "points_df" not in st.session_state:
+            st.session_state.points_df = None
+
+        if "lat_lon" not in st.session_state:
+            st.session_state.lat_lon = (None, None)
+
+        if "xaxis_range" not in st.session_state:
+            st.session_state.xaxis_range = None
+
+        
+
+        if "raster_params" not in st.session_state:
+            st.session_state.raster_params = dict()
+
+
+
+        if "reset_folder" not in st.session_state:
+            st.session_state.reset_folder = None
+
+    
 
 
 # Callback Functions
@@ -92,104 +198,6 @@ def delete_shape_folder():
     for folder in st.session_state.selected_shape_folder:
         shutil.rmtree(os.path.join(ZIP_FOLDER, folder))
         st.session_state.selected_shape_folder.remove(folder)
-
-
-# ----------------------------------
-# --- Indicators Parametrization ---
-# ----------------------------------
-
-# Variables initialization
-
-if "already_uploaded_file" not in st.session_state:
-    st.session_state.already_uploaded_file = None
-
-if "building_indicator_df" not in st.session_state:
-    st.session_state.building_indicator_df = pd.DataFrame()
-
-if "variable_chosen" not in st.session_state:
-    st.session_state.variable_chosen = None
-
-
-
-
-
-if "dataframes_modified" not in st.session_state:
-    st.session_state.dataframes_modified = dict()
-
-if "season_checkbox" not in st.session_state:
-    st.session_state.season_checkbox = False
-
-if "indicator" not in st.session_state:
-    st.session_state.indicator = {
-        "Name": "",
-        "Variable": None,
-        "Indicator Type": None,
-        "Builtin Indicator": None, 
-        "Daily Threshold Min": None,
-        "Daily Threshold Max": None,
-        "Windows Length": 2,
-        "Windows Aggregation" : None,
-        "Yearly Threshold Min": None,
-        "Yearly Threshold Max": None,
-        "Yearly Threshold Min Step" : 0,
-        "Yearly Threshold Min List": [],
-        "Yearly Threshold Max Step" : 0,
-        "Yearly Threshold Max List" : [],
-        "Yearly Aggregation": None,
-        "Season Start Shift": None,
-        "Season End Shift": None
-    }
-
-if 'df_indicators' not in st.session_state:
-    st.session_state.df_indicators = pd.DataFrame(columns=st.session_state.indicator.keys())
-
-if "checkbox_defaults" not in st.session_state:
-    st.session_state.checkbox_defaults = {
-        "min_daily_checkbox": False,
-        "max_daily_checkbox": False,
-        "min_yearly_checkbox": False,
-        "max_yearly_checkbox": False,
-        "shift_start_checkbox": False,
-        "shift_end_checkbox": False,
-        "threshold_list_checkbox" : False,
-        "threshold_list_checkbox_min" : False,
-        "threshold_list_checkbox_max" : False
-    }
-
-if "df_checkbox" not in st.session_state:
-    st.session_state.df_checkbox = pd.DataFrame(columns=st.session_state.checkbox_defaults.keys())
-    
-
-if "season_start" not in st.session_state:
-    st.session_state.season_start = 6
-
-if "season_end" not in st.session_state:
-    st.session_state.season_end = 10
-
-if "uploaded_df" not in st.session_state:
-    st.session_state.uploaded_df = None
-
-if "resolution" not in st.session_state:
-    st.session_state.resolution = 0.2
-
-if "points_df" not in st.session_state:
-    st.session_state.points_df = None
-
-if "lat_lon" not in st.session_state:
-    st.session_state.lat_lon = (None, None)
-
-if "xaxis_range" not in st.session_state:
-    st.session_state.xaxis_range = None
-
-  
-
-if "raster_params" not in st.session_state:
-    st.session_state.raster_params = dict()
-
-
-
-if "reset_folder" not in st.session_state:
-    st.session_state.reset_folder = None
 
 def delete_indicator(index):
     """
@@ -224,7 +232,7 @@ def modify_custom_list(updated_indicator, label):
     """
     updated_indicator[f"{label} List"][0] = updated_indicator[label]
 
-     
+    
 
 
 def update_chosen_variable(values):

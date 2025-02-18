@@ -1,5 +1,6 @@
 from src.utils.imports import * 
 from src.utils.variables import ZIP_FOLDER, TOOL_LOGO, G8_LOGO, DATAFRAME_HEIGHT
+from src.lib.session_variables import initialize_session_state_variable
 
 from src.lib.layout import page_config_and_menu, set_page_title, set_title_1, set_title_2
 
@@ -12,6 +13,7 @@ def main():
     """Basic Streamlit app with a title."""
     # Set some layout parameters for the page 
     page_name = "Beginner Request"
+    initialize_session_state_variable
     page_config_and_menu(TOOL_LOGO, G8_LOGO)
     set_page_title("Request")
     
