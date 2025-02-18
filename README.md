@@ -3,7 +3,7 @@
 <div >
     <img src="logos\tool_logo.png" alt="Logo" width="100">
     by 
-    <img src="logos\Logo_G8.png" alt="Logo" width="100" style="background-color:grey;">
+    <img src="logos\Logo_G8.png" alt="Logo" width="100" style="background-color:white;">
 </div>
 
 It contains everything that could be used by collaborators regarding data analysis
