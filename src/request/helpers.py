@@ -69,7 +69,8 @@ def managing_existing_csv_zipped(csv_folder):
     Returns:
         str: The selected csv folder
     """
-
+    if not os.path.isdir(csv_folder):
+        os.makedirs(csv_folder)
     existing_csv_folder = [csv_folder for csv_folder in os.listdir(csv_folder) if csv_folder.endswith(".zip")]
     
     # Checkboxes to select the csv folder
