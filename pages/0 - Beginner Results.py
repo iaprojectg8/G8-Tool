@@ -28,20 +28,23 @@ def main():
     selected_csv_folder, ssp = managing_existing_csv_zipped(CSV_ZIPPED)
 
     # Just a information to give to the user
-    if st.button("Load data"):
-        with st.status("Preparing the data...", expanded=True):
-            st.write("Opening all the CSV files...")
-            selected_csv_folder_path = os.path.join(CSV_ZIPPED, selected_csv_folder)
-            if selected_csv_folder != st.session_state.selected_csv_loaded:
-                process_dataframes_zip_beginner(selected_csv_folder_path,CSV_EXTRACT)
-                st.session_state.selected_csv_loaded = selected_csv_folder
-                st.write("Making the data average on your AOI...")
-                make_zone_average(dataframes=st.session_state.dataframes)
-                st.session_state.long_period = st.session_state.all_df_mean.index.year.min(), st.session_state.all_df_mean.index.year.max()
-                st.write("Data is ready")
-                st.session_state.selected_csv_folder = selected_csv_folder
+    if selected_csv_folder is not None:
+        if st.button("Load data"):
+            with st.status("Preparing the data...", expanded=True):
+                st.write("Opening all the CSV files...")
+                selected_csv_folder_path = os.path.join(CSV_ZIPPED, selected_csv_folder)
+                if selected_csv_folder != st.session_state.selected_csv_loaded:
+                    process_dataframes_zip_beginner(selected_csv_folder_path,CSV_EXTRACT)
+                    st.session_state.selected_csv_loaded = selected_csv_folder
+                    st.write("Making the data average on your AOI...")
+                    make_zone_average(dataframes=st.session_state.dataframes)
+                    st.session_state.long_period = st.session_state.all_df_mean.index.year.min(), st.session_state.all_df_mean.index.year.max()
+                    st.write("Data is ready")
+                    st.session_state.selected_csv_folder = selected_csv_folder
 
-    general_management_beginner(st.session_state.all_df_mean, ssp)
+        general_management_beginner(st.session_state.all_df_mean, ssp)
+    else:
+        st.warning("You don't have anything in your requested folder, it means you need to make a request to have data")
 
 
 if "__main__":

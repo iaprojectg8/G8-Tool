@@ -19,6 +19,7 @@ def reset_directory(dir_name):
         shutil.rmtree(dir_name) 
         os.makedirs(dir_name)
 
+
 def create_temporary_zip(zip_folder, uploaded_file):
     """
     Create a temporary ZIP file to store the uploaded ZIP file
@@ -68,10 +69,10 @@ def managing_existing_csv_zipped(csv_folder):
     Returns:
         str: The selected csv folder
     """
+
     existing_csv_folder = [csv_folder for csv_folder in os.listdir(csv_folder) if csv_folder.endswith(".zip")]
     
     # Checkboxes to select the csv folder
-
     st.markdown(
         """
         <style>
@@ -89,12 +90,14 @@ def managing_existing_csv_zipped(csv_folder):
         """,
         unsafe_allow_html=True
     )
-    st.session_state.selected_csv_folder = st.radio("Select CSV folder", existing_csv_folder, key="radio_csv_folder",horizontal=True, )
-    ssp = get_ssp_from_zip(st.session_state.selected_csv_folder)
-    _, tab2, _ = st.columns(3)
-    with tab2:
-        if st.session_state.selected_csv_folder :
-            st.button("Delete selected csv folder", key="delete_csv_folder", on_click=delete_csv_folder)
+    ssp = None
+    if existing_csv_folder !=[]:
+        st.session_state.selected_csv_folder = st.radio("Select CSV folder", existing_csv_folder, key="radio_csv_folder",horizontal=True, )
+        ssp = get_ssp_from_zip(st.session_state.selected_csv_folder)
+        _, tab2, _ = st.columns(3)
+        with tab2:
+            if st.session_state.selected_csv_folder :
+                st.button("Delete selected csv folder", key="delete_csv_folder", on_click=delete_csv_folder)
     return st.session_state.selected_csv_folder, ssp
 
 def get_ssp_from_zip(filename):

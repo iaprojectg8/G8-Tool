@@ -56,7 +56,7 @@ def mode_choice():
                          horizontal=True, 
                          label_visibility="collapsed",
                          key="_mode",
-                         disabled=False
+                         disabled=True
                          )
 
     # Update session state if mode changes
