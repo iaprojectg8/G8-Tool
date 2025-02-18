@@ -131,7 +131,6 @@ def shapefile_into_gdf(shapefile_path):
     gdf = gdf.to_crs("EPSG:4326")
     return gdf
 def get_shapefile_path(shapefolder_path):
-
     """
     Get the path to the shapefile.
     Args:
