@@ -25,6 +25,7 @@ def process_shapefile(selected_shape_folder, zip_folder, default_buffer_distance
         list: The list of GeoDataFrames.
     """
     gdf_list = []
+    st.session_state.gdf_list = []
     for folder in selected_shape_folder:
 
         # Open the shape file and get its content
@@ -36,6 +37,7 @@ def process_shapefile(selected_shape_folder, zip_folder, default_buffer_distance
 
         gdf = manage_buffer(folder,gdf, default_buffer_distance)
         gdf_list.append(gdf)
+    print(st.session_state.gdf_list)
     st.session_state.combined_gdf = pd.concat(st.session_state.gdf_list, ignore_index=True)
     combined_gdf = pd.concat(gdf_list, ignore_index=True)
 

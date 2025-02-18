@@ -23,7 +23,6 @@ def main():
     
     # Shapefile uploader
     selected_shape_folder = shapefile_uploader(ZIP_FOLDER)
-
     if selected_shape_folder is not None:
 
         combined_gdf, gdf_list = process_shapefile(selected_shape_folder, ZIP_FOLDER, default_buffer_distance=0.2)
