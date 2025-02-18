@@ -1,4 +1,9 @@
-# G8-Tool
+# K'lim
+
+<img src="logos\tool_logo.png" alt="Logo" width="100">
+by 
+<img src="logos\Logo_G8.png" alt="Logo" width="100">
+
 It contains everything that could be used by collaborators regarding data analysis
 
 
@@ -6,8 +11,7 @@ It contains everything that could be used by collaborators regarding data analys
 - Chose climate variables
 - Select a period of interest
 - Select an interval cut
-- Show variable mean month plot
-- Show variables mean year evolution plot
+- Show clmiate evolution graphs
 
 ## Install
 You should install miniconda to not have any problem with the installation as it will contain everything you need and well separate from anything else that could interfer. Interence between packages is the most annoying problem when making installation.
@@ -32,5 +36,5 @@ pip install -r requirements.txt
 
 ## Launch the app
 ```
-streamlit run General.py
+streamlit run Welcome.py
 ```
