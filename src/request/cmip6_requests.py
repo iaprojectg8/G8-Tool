@@ -409,7 +409,7 @@ def create_zip_and_save(csv_dir, zipped_csv_dir, ssp:str, year_list):
     min_year = year_list[0]
     max_year = year_list[-1]
     print(year_list)
-    zip_filename = f"{st.session_state.shortname} {min_year}-{max_year} ({ssp.capitalize()}).zip"
+    zip_filename = f"{st.session_state.shortname} {min_year}-{max_year} ({ssp.upper()}).zip"
     zip_file_path = os.path.join(zipped_csv_dir, zip_filename)
 
     create_zip(zip_file_path, csv_dir)
