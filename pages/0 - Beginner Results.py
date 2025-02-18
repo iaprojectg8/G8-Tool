@@ -41,8 +41,8 @@ def main():
                     st.session_state.long_period = st.session_state.all_df_mean.index.year.min(), st.session_state.all_df_mean.index.year.max()
                     st.write("Data is ready")
                     st.session_state.selected_csv_folder = selected_csv_folder
-
-        general_management_beginner(st.session_state.all_df_mean, ssp)
+        if len(st.session_state.dataframes) != 0:
+            general_management_beginner(st.session_state.all_df_mean, ssp)
     else:
         st.warning("You don't have anything in your requested folder, it means you need to make a request to have data")
 
