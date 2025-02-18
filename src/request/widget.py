@@ -78,16 +78,17 @@ def manage_buffer(folder, gdf, default_buffer_distance):
     Returns:
         gpd.GeoDataFrame: The GeoDataFrame with the buffer applied.
     """
+
     if st.session_state.mode == "Beginner":
         buffer_distance = default_buffer_distance
     else:
         buffer_distance = st.number_input(label=f"Enter buffer distance for {folder} in degree (0.25 is about 25 kilometers):",
-                                        min_value=0.0, 
+                                        min_value=0.001, 
                                         step=0.1,
                                         value=default_buffer_distance,
                                         format="%0.3f",
                                         key=folder)
-     # Apply the buffer if the distance is greater than 0
+    # Apply the buffer if the distance is greater than 0
     if buffer_distance > 0:
         gdf["geometry"] = gdf["geometry"].buffer(buffer_distance, resolution=0.05)
         if st.session_state.mode == "Expert":
