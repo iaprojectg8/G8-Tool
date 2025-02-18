@@ -69,12 +69,12 @@ def shapefile_uploader(zip_folder):
 # --- Request Widgets ---
 # -----------------------
 
-def manage_buffer(folder, gdf, default_buffer_distance):
+def manage_buffer(gdf, default_buffer_distance):
     """
     Manage the buffer distance for the shapefile, and apply it if distance is greater than 0.
     Args:
-        folder (str): The folder name of the shapefile
         gdf (gpd.GeoDataFrame): The GeoDataFrame of the shapefile   
+        default_buffer_distance (float): The default buffer distance
     Returns:
         gpd.GeoDataFrame: The GeoDataFrame with the buffer applied.
     """
@@ -82,17 +82,17 @@ def manage_buffer(folder, gdf, default_buffer_distance):
     if st.session_state.mode == "Beginner":
         buffer_distance = default_buffer_distance
     else:
-        buffer_distance = st.number_input(label=f"Enter buffer distance for {folder} in degree (0.25 is about 25 kilometers):",
+        buffer_distance = st.number_input(label=f"Enter buffer distance in degree for the shape (0.25 is about 25 kilometers):",
                                         min_value=0.001, 
                                         step=0.1,
                                         value=default_buffer_distance,
                                         format="%0.3f",
-                                        key=folder)
+                                        key="buffer")
     # Apply the buffer if the distance is greater than 0
     if buffer_distance > 0:
         gdf["geometry"] = gdf["geometry"].buffer(buffer_distance, resolution=0.05)
         if st.session_state.mode == "Expert":
-            st.success(f"Buffer of {buffer_distance} applied to {folder}")
+            st.success(f"Buffer of {buffer_distance} applied on the shape")
     return gdf
 
 

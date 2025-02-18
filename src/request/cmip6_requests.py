@@ -26,18 +26,22 @@ def process_shapefile(selected_shape_folder, zip_folder, default_buffer_distance
     """
     gdf_list = []
     st.session_state.gdf_list = []
-    for folder in selected_shape_folder:
+    # Here is to check if the zip has been done directly on file or on a folder
+    if len(selected_shape_folder) > 1 and os.path.isfile(os.path.join(zip_folder, selected_shape_folder[0])):
+        shapefolder_path = zip_folder
+    else:
+        shapefolder_path = os.path.join(zip_folder,selected_shape_folder[0])
+        
+    # Open the shape file and get its content
+    shapefile_path = get_shapefile_path(shapefolder_path)
+    gdf = shapefile_into_gdf(shapefile_path)
 
-        # Open the shape file and get its content
-        shapefile_path = get_shapefile_path(zip_folder, folder)
-        gdf = shapefile_into_gdf(shapefile_path)
+    # Put the gdf into a session variable to keep the shape not buffered
+    st.session_state.gdf_list.append(copy(gdf))
 
-        # Put the gdf into a session variable to keep the shape not buffered
-        st.session_state.gdf_list.append(copy(gdf))
-
-        gdf = manage_buffer(folder,gdf, default_buffer_distance)
-        gdf_list.append(gdf)
-    print(st.session_state.gdf_list)
+    gdf = manage_buffer(gdf, default_buffer_distance)
+    gdf_list.append(gdf)
+    
     st.session_state.combined_gdf = pd.concat(st.session_state.gdf_list, ignore_index=True)
     combined_gdf = pd.concat(gdf_list, ignore_index=True)
 

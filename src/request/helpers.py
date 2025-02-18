@@ -130,19 +130,17 @@ def shapefile_into_gdf(shapefile_path):
     gdf = gpd.read_file(shapefile_path)
     gdf = gdf.to_crs("EPSG:4326")
     return gdf
+def get_shapefile_path(shapefolder_path):
 
-def get_shapefile_path(parent_folder, folder):
     """
     Get the path to the shapefile.
     Args:
-        folder (str): The folder name.
-        parent_folder (str): The parent folder.
+        shapefolder_path (str): The path to the shapefolder.
     Returns:
         str: The path to the shapefile
     """
-    path_to_shapefolder = os.path.join(parent_folder, folder)
-    shape_file = [file for file in os.listdir(path_to_shapefolder) if file.endswith(".shp")][0]
-    shapefile_path = os.path.join(path_to_shapefolder, shape_file)
+    shape_file = [file for file in os.listdir(shapefolder_path) if file.endswith(".shp")][0]
+    shapefile_path = os.path.join(shapefolder_path, shape_file)
     return shapefile_path
 
 # ------------------------------------------
