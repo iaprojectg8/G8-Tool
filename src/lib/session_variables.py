@@ -14,10 +14,6 @@ def initialize_session_state_variable():
         if "last_page" not in st.session_state:
             st.session_state.last_page = None
 
-        def set_mode():
-            # Callback function to save the role selection to Session State
-                st.session_state.mode = st.session_state._mode
-
 
         # -------------------------------------
         # --- Request & General Information --- 
@@ -183,6 +179,10 @@ def initialize_session_state_variable():
 
 
 # Callback Functions
+
+def set_mode():
+    # Callback function to save the role selection to Session State
+        st.session_state.mode = st.session_state._mode
 
 def reset_uploader():
     """Callback only runs after extraction complete"""
