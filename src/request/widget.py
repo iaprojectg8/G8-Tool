@@ -100,14 +100,14 @@ def manage_buffer(gdf, default_buffer_distance):
 # --- Widget Initialization Request ---
 # -------------------------------------
 
-def widget_init_beginner(cmip6_variable: dict, historical_end, ssp_list):
+def widget_init_beginner(cmip6_variables: dict, historical_end, ssp_list):
     """
     This function will initialize the widgets for the cmip6 request
     Returns:
         tuple: The selected variables, the selected model, the ssp, the experiment and the years
     """
     # Variable
-    selected_variables = list(cmip6_variable.values())
+    selected_variables = select_variables_to_request(cmip6_variables)
     
     # Period
     (long_period_start, long_period_end) = select_period_cmip6(key="cmip6")
@@ -132,20 +132,8 @@ def widget_init(cmip6_variables: dict, model_name, ssp_list, historical_end, exp
         tuple: The selected variables, the selected model, the ssp, the experiment and the years
     """
     # Variable
-    if st.session_state.mode == "Beginner":
-        selected_variables = list(cmip6_variables.values())
-        print(selected_variables)
-    else : 
-        if st.checkbox(label="Take all variables"):
-            selected_variables = st.pills("Chose variable to extract", 
-                                                cmip6_variables.keys(), 
-                                                default=cmip6_variables.keys(),
-                                                selection_mode="multi")
-        else:
-            selected_variables = st.pills("Chose variable to extract", 
-                                                cmip6_variables.keys(),
-                                                selection_mode="multi")
-        
+    selected_variables = select_variables_to_request(cmip6_variables)
+    
     real_selected_variables = list(map(lambda key : cmip6_variables.get(key),selected_variables))
 
     # Period
@@ -168,6 +156,23 @@ def widget_init(cmip6_variables: dict, model_name, ssp_list, historical_end, exp
     years = get_years_from_ssp(ssp, historical_end, long_period_start, long_period_end)
     
     return real_selected_variables, selected_model, ssp, experiment, years
+
+
+def select_variables_to_request(cmip6_variables):
+    """
+    This function will allow the user to select the variables to extract
+    Args:
+        cmip6_variables (dict): The dict of variables
+    Returns:    
+        list: The selected variables
+    """
+    all_variable_checkbox = st.checkbox(label="Take all variables")
+    selected_variables = st.pills("Chose variable to extract", 
+                                        cmip6_variables.keys(), 
+                                        default=cmip6_variables.keys() if all_variable_checkbox else None,
+                                        selection_mode="multi")
+    
+    return selected_variables
 
 
 def select_period_cmip6(key):
