@@ -37,6 +37,7 @@ def main():
 
             # Put on a map the requested coordinates
             map_empty_request(combined_gdf, empty_request_gdf)
+            print("start requesting")
             make_whole_request(combined_gdf.total_bounds)
 
 
