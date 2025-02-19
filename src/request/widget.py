@@ -134,7 +134,7 @@ def widget_init(cmip6_variables: dict, model_name, ssp_list, historical_end, exp
     """
     # Variable
     selected_variables = select_variables_to_request(cmip6_variables)
-    
+    real_selected_variables = list(map(lambda key : cmip6_variables.get(key),selected_variables))
 
     
 
