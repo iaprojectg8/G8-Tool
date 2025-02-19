@@ -216,6 +216,7 @@ def request_loop(selected_variables, selected_model, ssp_list, experiment, years
         for ssp, years in zip(ssp_list, years_list):
             for year in years:
                 make_year_request(variable, selected_model, ssp, experiment, bounds, year, nc_folder)
+                print(f"Request for {variable} {ssp} {year} has been made")
                 progress_params = update_progress_bar(*progress_params, text="Request Progress:")
     st.success("All the requests have been made")
 
