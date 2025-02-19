@@ -108,6 +108,7 @@ def widget_init_beginner(cmip6_variables: dict, historical_end, ssp_list):
     """
     # Variable
     selected_variables = select_variables_to_request(cmip6_variables)
+    real_selected_variables = list(map(lambda key : cmip6_variables.get(key),selected_variables))
     
     # Period
     (long_period_start, long_period_end) = select_period_cmip6(key="cmip6")
@@ -121,7 +122,7 @@ def widget_init_beginner(cmip6_variables: dict, historical_end, ssp_list):
     # Process to get proper years
     years = get_years_from_ssp(ssp, historical_end, long_period_start, long_period_end)
     
-    return selected_variables, selected_model, ssp, experiment, years
+    return real_selected_variables, selected_model, ssp, experiment, years
 
 
 def widget_init(cmip6_variables: dict, model_name, ssp_list, historical_end, experiment):
@@ -134,7 +135,8 @@ def widget_init(cmip6_variables: dict, model_name, ssp_list, historical_end, exp
     # Variable
     selected_variables = select_variables_to_request(cmip6_variables)
     
-    real_selected_variables = list(map(lambda key : cmip6_variables.get(key),selected_variables))
+
+    
 
     # Period
     (long_period_start, long_period_end) = select_period_cmip6(key="cmip6")
