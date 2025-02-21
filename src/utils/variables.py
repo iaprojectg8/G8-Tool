@@ -3,6 +3,7 @@
 # -------------------------------
 
 TOOL_LOGO = "logos/tool_logo.png"
+TOOL_LOGO_ZOOMED = "logos/tool_logo_zoomed.png"
 G8_LOGO = "logos/Logo_G8.png"
 TRANSPARENT_TOOL_LOGO = "logos/transparent_tool_logo.png"
 
@@ -15,7 +16,7 @@ WELCOME_TEXT= """K'lim is an advanced Python-based tool developed internally by 
                     it an essential asset in studies focused on urban and rural planning. Its core objective is to support
                      adaptation to climate change, ensuring that planning decisions are informed by robust climate analyses."""
 
-
+MODE = ["Beginner", "Expert"]
 # -----------------------
 # --- File management ---
 # -----------------------

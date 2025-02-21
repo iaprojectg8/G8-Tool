@@ -1,5 +1,5 @@
 from src.utils.imports import * 
-from src.utils.variables import TOOL_LOGO, G8_LOGO, CSV_ZIPPED, CSV_EXTRACT
+from src.utils.variables import TRANSPARENT_TOOL_LOGO, G8_LOGO, CSV_ZIPPED, CSV_EXTRACT
 from src.lib.session_variables import *
 from src.request.helpers import managing_existing_csv_zipped
 from src.request.widget import get_project_information
@@ -15,9 +15,9 @@ def main():
     Beginner Results page
     """
     # Set some layout parameters for the page 
-    page_name = "Beginner Results"
+    page_name = "General Results"
     initialize_session_state_variable()
-    page_config_and_menu(TOOL_LOGO, G8_LOGO)
+    page_config_and_menu(TRANSPARENT_TOOL_LOGO, G8_LOGO, page_name)
     set_page_title("General Results")
   
     # Project info

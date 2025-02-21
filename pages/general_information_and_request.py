@@ -12,7 +12,7 @@ def main():
     """Basic Streamlit app with a title."""
     # Set some layout parameters for the page 
     page_name = "Expert Request"
-    page_config_and_menu(TOOL_LOGO, G8_LOGO)
+    page_config_and_menu(TOOL_LOGO, G8_LOGO, page_name)
     set_page_title("Request")
     
     set_title_1("Project Location")

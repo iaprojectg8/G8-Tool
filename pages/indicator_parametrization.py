@@ -14,7 +14,7 @@ def main():
     """Basic Streamlit app with a title."""
     # Set some layout parameters for the page 
     page_name = "Indicators Parametrization"
-    page_config_and_menu(TOOL_LOGO, G8_LOGO)
+    page_config_and_menu(TOOL_LOGO, G8_LOGO, page_name)
     set_page_title("Indicators Parametrization")
 
     set_title_2("Choose ZIP file containing CSV files")

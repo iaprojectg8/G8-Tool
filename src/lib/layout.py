@@ -61,7 +61,7 @@ def increase_logo():
                 """,unsafe_allow_html=True)
     
     
-def page_config_and_menu(tab_logo, sidebar_logo):
+def page_config_and_menu(tab_logo, sidebar_logo, page_title):
     """
     Set page configuraton, menu, and logo
     Args:
@@ -70,7 +70,7 @@ def page_config_and_menu(tab_logo, sidebar_logo):
     """
     with open(tab_logo, "rb") as file:
         svg_content = file.read()
-    st.set_page_config(page_icon=svg_content, layout="wide")
+    st.set_page_config(page_title=page_title, page_icon=svg_content, layout="wide")
 
     menu()
     
