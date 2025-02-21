@@ -322,8 +322,3 @@ def display_coordinates(empty_request_gdf, height):
     with st.expander(label="Your coordinates"):
         displayed_gdf = empty_request_gdf[["lat", "lon"]]
         st.dataframe(data=displayed_gdf, height=height, use_container_width=True)
-
-
-
-# Si pas de ssp juste shortname
-# si ssp on met le shortname - 1950-2012 (ssp)

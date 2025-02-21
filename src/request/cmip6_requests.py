@@ -249,13 +249,46 @@ def make_year_request(variable, model, ssp, experiment, bounds, year, nc_folder)
                       f"horizStride=1&time_start={year}-01-01T12:00:00Z&time_end={year}-12-31T11:00:00Z&&&accept=netcdf3&addLatLon=true")
     
     url = f"{base_url}{coordinates_part}"
-    response = requests.get(url)
+    response = make_request_until_success(url)
     try:
         
         with open(f"{nc_folder}/{year}_{variable}_{ssp}.nc", "wb") as f:
             f.write(response.content)
     except Exception as e:
         print(e)
+
+    
+def make_request_until_success(url, delay=300):
+    """
+    Make a GET request until a successful response is received.
+
+    Parameters:
+    - url: The URL to request.
+    - delay: Delay between retries in seconds.
+
+    Returns:
+    - Response object if successful.
+    - None if an exception occurs.
+    """
+   
+    while True:
+        try:
+            response = requests.get(url, timeout=40)
+
+            if response.status_code == 200:
+                return response
+            elif response.status_code in [500, 502, 503, 504]:  # Server errors
+                print("Server error. Retrying...")
+            elif response.status_code in [400, 401, 403, 404]:  # Client errors
+                print(f"Client error ({response.status_code}). Check the URL or credentials.")
+                break  # No point in retrying
+            else:
+                print(f"Unexpected status code {response.status_code}. Retrying...")
+
+        except requests.exceptions.RequestException as e:
+            print(f"Request failed due to exception: {e}. Retrying...")
+
+        time.sleep(delay)
 
 
 # ------------------------------------------------
