@@ -9,7 +9,7 @@ from src.utils.variables import MODE
 # Mock the different widget used in the functions
 @patch("streamlit.image") 
 @patch("streamlit.columns") 
-def test_centered_logo(mock_st_columns, mock_st_image):
+def test_centered_logo(mock_st_columns:MagicMock, mock_st_image:MagicMock):
     # Arrange
     mock_column = MagicMock()  
     mock_st_columns.return_value = [None, mock_column, None] 
@@ -41,11 +41,11 @@ def test_stream_data():
 @patch("streamlit.write_stream")
 @patch("streamlit.markdown")
 @patch("streamlit.columns", return_value=[MagicMock(), MagicMock(), MagicMock()])
-def test_manage_welcome_text(mock_st_columns,
-                             mock_st_markdown, 
-                             mock_st_write_stream,
-                             mock_st_write, 
-                             mock_session_state):
+def test_manage_welcome_text(mock_st_columns: MagicMock,
+                             mock_st_markdown: MagicMock, 
+                             mock_st_write_stream: MagicMock,
+                             mock_st_write:MagicMock, 
+                             mock_session_state:MagicMock):
     """Test welcome text rendering with session state."""
     mock_session_state.last_page = "About"
     manage_welcome_text("Welcome!", "Home")
