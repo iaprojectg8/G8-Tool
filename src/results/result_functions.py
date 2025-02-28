@@ -46,7 +46,7 @@ def general_management_beginner(df, ssp):
     periods = split_into_periods(smaller_period_length, long_period_start, long_period_end)
     general_plot(data_to_keep, periods, ssp)
 
-def general_management(df):
+def general_management(df, ssp):
     """
     Function to manage the general results got with the data selected in the Indicator Parametrizer
     Args:
@@ -76,7 +76,8 @@ def general_management(df):
 
         
         # Plot part with monthly means and regression through all time
-        general_plot(data_to_keep, periods)
+
+        general_plot(data_to_keep, periods, ssp)
 
 
 def indicator_management(df):

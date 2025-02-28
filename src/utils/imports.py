@@ -38,7 +38,7 @@ from reportlab.lib.utils import ImageReader
 
 
 # Map part
-from pyproj import CRS
+from pyproj import CRS, Transformer
 from shapely.geometry import Polygon, mapping, Point
 from shapely.geometry import Point
 import folium

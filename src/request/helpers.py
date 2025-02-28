@@ -146,6 +146,26 @@ def get_shapefile_path(shapefolder_path):
 # --- Used in the request initialization ---
 # ------------------------------------------
 
+def get_utm_epsg(lat, lon):
+    """
+    Returns the EPSG code for the UTM zone based on the given latitude and longitude.
+
+    Args:
+    lat (float): Latitude of the point.
+    lon (float): Longitude of the point.
+
+    Returns:
+    epsg_code (int): EPSG code for the UTM zone.
+    """
+    zone_number = math.floor((lon + 180) / 6) + 1
+
+    if lat >= 0:
+        epsg_code = f"326{zone_number:02d}"  # Northern Hemisphere
+    else:
+        epsg_code = f"327{zone_number:02d}"  # Southern Hemisphere
+    
+    return int(epsg_code)
+
 def get_years_from_ssp(ssp, historical_end, long_period_start, long_period_end):
     """
     This function will get the years from the ssp

@@ -59,7 +59,7 @@ def period_management():
     return data_long_period_filtered
 
 
-def period_filter(data, period):
+def period_filter(data:pd.DataFrame, period):
     """
     Filters the input data to include only rows within the specified period.
 
@@ -71,6 +71,7 @@ def period_filter(data, period):
         DataFrame: A filtered DataFrame containing only rows within the specified period.
     """
     # Select rows where the year in the index is between the start and end years of the period
+    # data = data.set_index(pd.to_datetime(data.index))
     data_in_right_period = data[(data.index.year >= period[0]) & (data.index.year <= period[-1])]
     
     return data_in_right_period
@@ -172,6 +173,7 @@ def put_date_as_index(dataframe_dict:dict):
         df['date'] = pd.to_datetime(df['date'])  # Ensure the 'date' column is in datetime format
         df.set_index('date', inplace=True)  # Set the 'date' column as the index
         dataframe_dict[key] = df
+        print(df.index)
     return dataframe_dict
 
 

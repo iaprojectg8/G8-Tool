@@ -60,6 +60,9 @@ def initialize_session_state_variable():
         if "long_period" not in st.session_state:
             st.session_state.long_period = None
 
+        if "ssp" not in st.session_state:
+            st.session_state.ssp = None
+
 
 
 

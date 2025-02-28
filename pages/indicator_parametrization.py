@@ -18,17 +18,24 @@ def main():
     set_page_title("Indicators Parametrization")
 
     set_title_2("Choose ZIP file containing CSV files")
-    selected_csv_folder = managing_existing_csv_zipped(CSV_ZIPPED)
+    selected_csv_folder, ssp = managing_existing_csv_zipped(CSV_ZIPPED)
+
+    st.session_state.ssp = ssp
     
     # Just a information to give to the user
     if selected_csv_folder is not None:
         if st.button("Load data"):
             with st.status("Preparing the data...", expanded=True):
                 st.write("Opening all the CSV files...")
+                print(CSV_ZIPPED, selected_csv_folder)
                 selected_csv_folder_path = os.path.join(CSV_ZIPPED, selected_csv_folder)
                 if selected_csv_folder != st.session_state.selected_csv_loaded:
-                    process_dataframes_zip_beginner(selected_csv_folder_path,CSV_EXTRACT)
-                    st.session_state.selected_csv_loaded = selected_csv_folder
+                    if st.session_state.mode == "Beginner":
+                        process_dataframes_zip_beginner(selected_csv_folder_path,CSV_EXTRACT)
+                        st.session_state.selected_csv_loaded = selected_csv_folder
+                    elif st.session_state.mode == "Expert":
+                        process_dataframes_zip(selected_csv_folder_path,CSV_EXTRACT)
+                        st.session_state.selected_csv_loaded = selected_csv_folder
                 
         # Period
         if len(st.session_state.dataframes)!=0:

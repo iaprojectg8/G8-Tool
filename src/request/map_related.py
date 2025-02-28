@@ -31,10 +31,13 @@ def map_empty_request(combined_gdf, empty_gdf:gpd.GeoDataFrame):
         combined_gdf (gpd.GeoDataFrame): The GeoDataFrame to display.
         empty_gdf (gpd.GeoDataFrame): The GeoDataFrame with empty points.
     """
-    center = [combined_gdf.geometry.centroid.y.mean(), combined_gdf.geometry.centroid.x.mean()]
+    projected_gdf = combined_gdf.to_crs(epsg=32737)
+    center = [projected_gdf.geometry.centroid.x.mean(),projected_gdf.geometry.centroid.y.mean()]
+    transformer = Transformer.from_crs("EPSG:32737", "EPSG:4326", always_xy=True)
+    center = transformer.transform(*center)
     bounds = combined_gdf.total_bounds
     zoom_start = calculate_zoom_level(bounds)
-    m = folium.Map(location=center, zoom_start=zoom_start, control_scale=True)
+    m = folium.Map(location=center[::-1], zoom_start=zoom_start, control_scale=True)
 
     # Add generated points to the map
     print("Adding requested points to map")
@@ -97,6 +100,7 @@ def main_map(combined_gdf):
     Returns:
         pd.DataFrame: The generated points DataFrame.
     """
+    
     center = [combined_gdf.geometry.centroid.y.mean(), combined_gdf.geometry.centroid.x.mean()]
     bounds = combined_gdf.total_bounds
     zoom_start = calculate_zoom_level(bounds)

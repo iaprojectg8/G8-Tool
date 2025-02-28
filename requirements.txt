@@ -24,3 +24,5 @@ tqdm
 xarray
 netcdf4
 kaleido
+openpyxl
+xlsxwriter

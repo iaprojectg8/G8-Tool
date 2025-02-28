@@ -1,7 +1,7 @@
 from src.utils.imports import *
 from src.utils.variables import DATAFRAME_HEIGHT
 
-from src.request.helpers import extract_files, reset_directory, create_temporary_zip, get_years_from_ssp
+from src.request.helpers import extract_files, reset_directory, create_temporary_zip, get_years_from_ssp, get_utm_epsg
 
 from src.lib.layout import set_title_3
 
@@ -69,7 +69,7 @@ def shapefile_uploader(zip_folder):
 # --- Request Widgets ---
 # -----------------------
 
-def manage_buffer(gdf, default_buffer_distance):
+def manage_buffer(gdf: gpd.GeoDataFrame, default_buffer_distance):
     """
     Manage the buffer distance for the shapefile, and apply it if distance is greater than 0.
     Args:
@@ -90,7 +90,11 @@ def manage_buffer(gdf, default_buffer_distance):
                                         key="buffer")
     # Apply the buffer if the distance is greater than 0
     if buffer_distance > 0:
-        gdf["geometry"] = gdf["geometry"].buffer(buffer_distance, resolution=0.05)
+        print(gdf.geometry.centroid)
+        gdf = gdf.to_crs(epsg=32737)
+        gdf_geometry : gpd.GeoSeries = gdf["geometry"]
+        gdf["geometry"] = gdf_geometry.buffer(distance=25000, resolution=0.05)
+        gdf = gdf.to_crs(epsg=4326)
         if st.session_state.mode == "Expert":
             st.success(f"Buffer of {buffer_distance} applied on the shape")
     return gdf

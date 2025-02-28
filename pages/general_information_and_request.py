@@ -29,7 +29,7 @@ def main():
         if request_type == REQUEST_TYPE[0]:
             
         
-            combined_gdf, gdf_list = process_shapefile(selected_shape_folder, ZIP_FOLDER, default_buffer_distance=0.2)
+            combined_gdf, gdf_list = process_shapefile(selected_shape_folder, ZIP_FOLDER, default_buffer_distance=25)
             empty_request_gdf = make_empty_request_for_each_gdf(gdf_list)
 
             # Display

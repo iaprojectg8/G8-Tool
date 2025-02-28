@@ -57,7 +57,7 @@ def mode_choice(mode_list: list):
                          index=mode_list.index(st.session_state.mode),
                          label_visibility="collapsed",
                          key="_mode",
-                         disabled=True
+                         disabled=False
                         )
 
     # Update session state if mode changes
