@@ -220,6 +220,8 @@ def select_ssp(long_period_start, long_period_end, historical_end, ssp_list):
 
 
 def ask_reset_directory(folder):
+    if not os.path.exists(folder):
+        os.makedirs(folder)
     existing_files = os.listdir(folder)
     if existing_files != []:
         set_title_3("Before to make your request, you should know that your request folder is not empty, and here are the files in it")
