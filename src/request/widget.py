@@ -92,7 +92,7 @@ def manage_buffer(gdf: gpd.GeoDataFrame, default_buffer_distance):
         print(gdf.geometry.centroid)
         gdf = gdf.to_crs(epsg=32737)
         gdf_geometry : gpd.GeoSeries = gdf["geometry"]
-        gdf["geometry"] = gdf_geometry.buffer(distance=default_buffer_distance, resolution=0.05)
+        gdf["geometry"] = gdf_geometry.buffer(distance=buffer_distance, resolution=0.05)
         gdf = gdf.to_crs(epsg=4326)
         if st.session_state.mode == "Expert":
             st.success(f"Buffer of {buffer_distance} applied on the shape")
