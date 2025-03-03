@@ -1,5 +1,5 @@
 from src.utils.imports import *
-from src.lib.layout import *   
+from src.lib.layout import set_title_2
 
 # -------------------------
 # --- CMIP6 Request Map ---
@@ -31,7 +31,7 @@ def map_empty_request(combined_gdf, empty_gdf:gpd.GeoDataFrame):
         combined_gdf (gpd.GeoDataFrame): The GeoDataFrame to display.
         empty_gdf (gpd.GeoDataFrame): The GeoDataFrame with empty points.
     """
-    projected_gdf = combined_gdf.to_crs(epsg=32737)
+    projected_gdf = combined_gdf.to_crs(epsg=st.session_state.crs)
     center = [projected_gdf.geometry.centroid.x.mean(),projected_gdf.geometry.centroid.y.mean()]
     transformer = Transformer.from_crs("EPSG:32737", "EPSG:4326", always_xy=True)
     center = transformer.transform(*center)

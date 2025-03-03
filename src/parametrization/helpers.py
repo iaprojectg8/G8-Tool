@@ -1,14 +1,18 @@
 from src.utils.imports import *
-from src.lib.layout import *
-from src.parametrization.create_inidicator import *
-from src.parametrization.update_indicator import *
-from src.parametrization.widgets_parametrization import *
+from src.utils.variables import DATAFRAME_HEIGHT, MONTHS_LIST
+from src.parametrization.widgets import select_period, select_season, select_data_contained_in_season
 
 # ---------------------------------------------------
 # --- Functions for the indicator parametrization ---
 # ---------------------------------------------------
 
-def process_dataframes_zip_beginner(filepath, extract_dir):
+def process_dataframes_zip(filepath, extract_dir):
+    """
+    Processes the uploaded zip file containing CSV files.
+    Args:
+        filepath (str): The path to the uploaded zip file.
+        extract_dir (str): The directory to extract the files to.
+    """
     if os.path.exists(extract_dir):
         shutil.rmtree(extract_dir)
     
@@ -18,29 +22,9 @@ def process_dataframes_zip_beginner(filepath, extract_dir):
     extract_csv_from_zip(filepath, extract_dir)
     st.session_state.dataframes = read_csv_files_from_directory(extract_dir)
     st.session_state.dataframes = put_date_as_index(dataframe_dict=st.session_state.dataframes)
+    if st.session_state.mode == "Expert":
+        st.session_state.building_indicator_df = st.session_state.dataframes[rd.choice(list(st.session_state.dataframes.keys()))]
 
-def process_dataframes_zip(uploaded_file, extract_to):
-    """
-    Processes the uploaded zip file containing CSV files.
-    Args:
-        uploaded_file (BytesIO): The uploaded zip file.
-        extract_to (str): The directory to extract the files to.
-    """
-            
-    if os.path.exists(extract_to):
-        shutil.rmtree(extract_to)
-    
-    # Create the directory
-    os.makedirs(extract_to, exist_ok=True)
-    
-    extract_csv_from_zip(uploaded_file, extract_to)
-    st.session_state.already_uploaded_file = uploaded_file
-
-    # This is a dataframe dictionary
-    st.session_state.dataframes = read_csv_files_from_directory(extract_to)
-    st.session_state.dataframes = put_date_as_index(dataframe_dict=st.session_state.dataframes)
-    st.session_state.building_indicator_df = st.session_state.dataframes[rd.choice(list(st.session_state.dataframes.keys()))]
-    
 
 def period_management():
     """
@@ -70,8 +54,6 @@ def period_filter(data:pd.DataFrame, period):
     Returns:
         DataFrame: A filtered DataFrame containing only rows within the specified period.
     """
-    # Select rows where the year in the index is between the start and end years of the period
-    # data = data.set_index(pd.to_datetime(data.index))
     data_in_right_period = data[(data.index.year >= period[0]) & (data.index.year <= period[-1])]
     
     return data_in_right_period
@@ -173,7 +155,6 @@ def put_date_as_index(dataframe_dict:dict):
         df['date'] = pd.to_datetime(df['date'])  # Ensure the 'date' column is in datetime format
         df.set_index('date', inplace=True)  # Set the 'date' column as the index
         dataframe_dict[key] = df
-        print(df.index)
     return dataframe_dict
 
 

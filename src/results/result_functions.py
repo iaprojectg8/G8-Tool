@@ -51,6 +51,7 @@ def general_management(df, ssp):
     Function to manage the general results got with the data selected in the Indicator Parametrizer
     Args:
         df (pd.dataframe) : Dataframe that contains the averaged data
+        ssp (str) : The Shared Socioeconomic Pathway selected by the user
     """
     set_title_1("Climate Variables")
     key = "general_part"

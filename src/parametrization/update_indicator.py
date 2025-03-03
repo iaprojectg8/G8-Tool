@@ -1,6 +1,6 @@
 from src.utils.imports import *
-from src.lib.session_variables import * 
-from src.utils.variables import *
+from src.lib.session_variables import update_indicator, delete_indicator
+from src.utils.variables import INDICATOR_TYPES, NUM_THRESHOLDS, AGG_FUNC, INDICATOR_AGG, BUILTIN_INDICATORS
 from src.lib.widget import display_thresholds
 
 # ----------------------------

@@ -2,14 +2,19 @@ from src.utils.imports import *
 from src.utils.variables import ZIP_FOLDER, CSV_ZIPPED
 
 
-def initialize_session_state_variable():
+def initialize_session_state_variable(mode="Beginner"):
+    """
+    Initializes the session state variables.
+    Args:
+        mode (str): The mode to initialize the session state with.
+    """
     if st.session_state == {}:
         # -------------------------------------
         # --- Welcome page & Mode Selection ---
         # -------------------------------------
 
         if "mode" not in st.session_state:
-            st.session_state.mode = "Beginner"
+            st.session_state.mode = mode
 
         if "last_page" not in st.session_state:
             st.session_state.last_page = None
@@ -42,7 +47,6 @@ def initialize_session_state_variable():
         if "selected_csv_loaded" not in st.session_state:
             st.session_state.selected_csv_loaded = None
 
-
         # Dataframes
         if "dataframes" not in st.session_state:
             st.session_state.dataframes = dict()  
@@ -66,46 +70,37 @@ def initialize_session_state_variable():
         if "crs" not in st.session_state:
             st.session_state.crs = None
 
+        
+        # ------------------
+        # --- Indicators ---
+        # ------------------
 
-        # --------------------------------------------------------------------
-        # Everything after there is not used at all in the beginner part
-        # --------------------------------------------------------------------
+        # Season related
+        if "season_checkbox" not in st.session_state:
+            st.session_state.season_checkbox = False
 
-        if "uploader_shape_checked" not in st.session_state:
-            st.session_state.uploader_shape_checked = False
+        if "season_start" not in st.session_state:
+            st.session_state.season_start = 6
 
-        if "selected_shape_folder" not in st.session_state:
-            st.session_state.selected_shape_folder = []
+        if "season_end" not in st.session_state:
+            st.session_state.season_end = 10
 
-
-
-
-
-
-        # ----------------------------------
-        # --- Indicators Parametrization ---
-        # ----------------------------------
-
-        # Variables initialization
-
-        if "already_uploaded_file" not in st.session_state:
-            st.session_state.already_uploaded_file = None
-
+        # Indicator related
         if "building_indicator_df" not in st.session_state:
             st.session_state.building_indicator_df = pd.DataFrame()
 
-        if "variable_chosen" not in st.session_state:
-            st.session_state.variable_chosen = None
-
-
-
-
-
-        if "dataframes_modified" not in st.session_state:
+        if "dataframes_modified" not in st.session_state:  
+            # This is in order to store less data in case we chose a long period smaller than the whole dataframes period
             st.session_state.dataframes_modified = dict()
 
-        if "season_checkbox" not in st.session_state:
-            st.session_state.season_checkbox = False
+        if "uploaded_df_indicators" not in st.session_state:
+            st.session_state.uploaded_df_indicators = None
+
+        if 'df_indicators' not in st.session_state:
+            st.session_state.df_indicators = pd.DataFrame(columns=st.session_state.indicator.keys())
+
+        if "df_checkbox" not in st.session_state:
+            st.session_state.df_checkbox = pd.DataFrame(columns=st.session_state.checkbox_defaults.keys())
 
         if "indicator" not in st.session_state:
             st.session_state.indicator = {
@@ -128,9 +123,6 @@ def initialize_session_state_variable():
                 "Season End Shift": None
             }
 
-        if 'df_indicators' not in st.session_state:
-            st.session_state.df_indicators = pd.DataFrame(columns=st.session_state.indicator.keys())
-
         if "checkbox_defaults" not in st.session_state:
             st.session_state.checkbox_defaults = {
                 "min_daily_checkbox": False,
@@ -144,18 +136,42 @@ def initialize_session_state_variable():
                 "threshold_list_checkbox_max" : False
             }
 
-        if "df_checkbox" not in st.session_state:
-            st.session_state.df_checkbox = pd.DataFrame(columns=st.session_state.checkbox_defaults.keys())
-            
+        
+        # --------------------------------------------------------------------
+        # Everything after there is not used at all in the beginner part
+        # --------------------------------------------------------------------
 
-        if "season_start" not in st.session_state:
-            st.session_state.season_start = 6
+        if "uploader_shape_checked" not in st.session_state:
+            st.session_state.uploader_shape_checked = False
 
-        if "season_end" not in st.session_state:
-            st.session_state.season_end = 10
+        if "selected_shape_folder" not in st.session_state:
+            st.session_state.selected_shape_folder = []
 
-        if "uploaded_df" not in st.session_state:
-            st.session_state.uploaded_df = None
+
+
+
+
+
+        # ----------------------------------
+        # --- Indicators Parametrization ---
+        # ----------------------------------
+
+        # Variables initialization
+
+        
+
+        if "variable_chosen" not in st.session_state:
+            st.session_state.variable_chosen = None
+
+
+
+
+
+        
+
+        
+
+        
 
         if "resolution" not in st.session_state:
             st.session_state.resolution = 0.2

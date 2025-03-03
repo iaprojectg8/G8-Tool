@@ -9,6 +9,8 @@ def select_period(key):
     """
     Allows the user to select a data period using an interactive Streamlit slider.
 
+    Args:
+        key (str): The key to use for the slider widget.
     Returns:
         tuple: The start and end values of the selected period.
     """
@@ -99,7 +101,7 @@ def select_data_contained_in_season(data, season_start, season_end):
     """
     return data[(data.index.month >= season_start) & (data.index.month <= season_end)].copy()
 
-def upload_csv_file():
+def upload_excel_file():
     """
     Allows the user to upload a CSV file and returns the content as a pandas DataFrame.
     
@@ -112,7 +114,6 @@ def upload_csv_file():
             data = pd.read_excel(uploaded_file)
             for index, row in data.iterrows():
                 for col in data.columns:
-                    # print(row[col])
                     if isinstance(row[col], str) and row[col][0] == "[":
                         data.at[index, col] = ast.literal_eval(row[col])
                 
@@ -123,8 +124,8 @@ def upload_csv_file():
             st.error(f"Error reading the file: {e}")
             return None
     else:
-        st.info("Please upload a CSV file.")
-        st.session_state.uploaded_df = None
+        st.info("Please upload an Excel file.")
+        st.session_state.uploaded_df_indicators = None
         return None
     
 

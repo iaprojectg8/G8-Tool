@@ -1,12 +1,12 @@
 from src.utils.imports import *
 from src.utils.variables import (EMPTY_REQUEST_FOLDER, READABLE_TO_CMIP6, CSV_FILE_DIR, MODEL_NAMES_CMIP6, 
-                                 SSP, HISTORICAL_END, EXPERIMENT, NC_FILE_DIR, CMIP6_TO_READABLE, DATAFRAME_HEIGHT)
+                                 SSP, HISTORICAL_END, EXPERIMENT, NC_FILE_DIR, CMIP6_TO_READABLE)
 
 from src.lib.session_variables import *
 
 from src.request.helpers import (reset_directory, reset_directory_if_needed, shapefile_into_gdf, get_shapefile_path,
                                 normalize_longitudes, df_to_csv,create_zip)
-from src.request.widget import (manage_buffer, ask_reset_directory, widget_init, widget_init_beginner,
+from src.request.widgets import (manage_buffer, ask_reset_directory, widget_init, widget_init_beginner,
                                 initialize_progress_bar, update_progress_bar)
 
 # -----------------------------
@@ -204,10 +204,11 @@ def request_loop(selected_variables, selected_model, ssp_list, experiment, years
     Args:
         selected_variables (list): The variables chosen by the user
         selected_model (str): The model chosen by the user
-        ssp (list): The ssp chosen by the user
+        ssp_list (list): The ssp chosen by the user
         experiment (str): The experiment chosen by the user
-        years (list): The years to extract
+        years_list (list): The years to extract
         bounds (tuple): The bounds of the area to extract
+        nc_folder (str): The folder to save the NetCDF files
     """
     total_requests = len(selected_variables) * len(sum(years_list, []))
     progress_params = initialize_progress_bar(total_requests,text="Request Progress: 0%")
@@ -373,7 +374,7 @@ def process_nc_file_to_dataframe(nc_file_path):
     df.sort_index(inplace=True)
     return df
 
-def convert_variable_units(df):
+def convert_variable_units(df:pd.DataFrame):
     """
     Convert certain variables to the correct units.
     - Temperature is converted from Kelvin to Celsius.
@@ -400,6 +401,8 @@ def convert_variable_units(df):
     # Convert the radiation from W m^-2 to MJ m^-2 day^-1
     # df["rsds"] = df["rsds"] * 0.0864
     # df["rlds"] = df["rlds"] * 0.0864
+    # Round the values to 3 decimal places
+    df[["rsds", "rlds", "sfcWind", "tas", "tasmin", "tasmax"]] = df[["rsds", "rlds", "sfcWind", "tas", "tasmin", "tasmax"]].round(3)
 
     return df
 

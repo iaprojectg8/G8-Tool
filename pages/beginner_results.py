@@ -2,9 +2,9 @@ from src.utils.imports import *
 from src.utils.variables import TRANSPARENT_TOOL_LOGO, G8_LOGO, CSV_ZIPPED, CSV_EXTRACT
 from src.lib.session_variables import *
 from src.request.helpers import managing_existing_csv_zipped
-from src.request.widget import get_project_information
+from request.widgets import get_project_information
 
-from src.parametrization.helpers import process_dataframes_zip_beginner
+from src.parametrization.helpers import process_dataframes_zip
 from src.results.result_functions import make_zone_average, general_management_beginner
 from src.lib.layout import page_config_and_menu, set_title_1, set_page_title
 
@@ -35,7 +35,7 @@ def main():
                 st.write("Opening all the CSV files...")
                 selected_csv_folder_path = os.path.join(CSV_ZIPPED, selected_csv_folder)
                 if selected_csv_folder != st.session_state.selected_csv_loaded:
-                    process_dataframes_zip_beginner(selected_csv_folder_path,CSV_EXTRACT)
+                    process_dataframes_zip(selected_csv_folder_path,CSV_EXTRACT)
                     st.session_state.selected_csv_loaded = selected_csv_folder
                     st.write("Making the data average on your AOI...")
                     make_zone_average(dataframes=st.session_state.dataframes)

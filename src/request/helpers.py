@@ -1,7 +1,5 @@
 from src.utils.imports import *
-
-from src.lib.layout import set_title_3
-from src.lib.session_variables import *
+from src.lib.session_variables import delete_csv_folder
 
 # ---------------------------
 # --- Zip file management ---

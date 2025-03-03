@@ -96,7 +96,6 @@ def manage_buffer(gdf: gpd.GeoDataFrame, default_buffer_distance):
         st.session_state.crs = utm_epsg
         gdf = gdf.to_crs(epsg=utm_epsg)
         gdf_geometry : gpd.GeoSeries = gdf["geometry"]
-        gdf_geometry.to_csv("test.csv")
         gdf["geometry"] = gdf_geometry.buffer(distance=buffer_distance, resolution=0.05)
         gdf = gdf.to_crs(epsg=4326)
         if st.session_state.mode == "Expert":

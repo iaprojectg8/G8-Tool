@@ -1,9 +1,8 @@
 from src.utils.imports import *
 from src.utils.variables import VARIABLES_LIST, ZIP_FOLDER, OPEN_METEO_FOLDER, DATAFRAME_HEIGHT, MODEL_NAMES, UNIT_DICT
+
 from src.request.map_related import main_map
-from src.request.helpers import shapefile_into_gdf
-from src.request.widget import display_coordinates, widget_init_open_meteo
-from src.request.helpers import get_shapefile_path
+from src.request.widgets import display_coordinates, widget_init_open_meteo
 from src.request.cmip6_requests import process_shapefile
 
 
