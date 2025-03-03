@@ -54,6 +54,8 @@ def reset_directory_if_needed(choice, nc_directory):
         choice (str): The choice of the user
         nc_directory (str): The directory to reset
     """
+    if not os.path.isdir(nc_directory):
+        os.makedirs(nc_directory)
     if choice == "Yes":
         reset_directory(nc_directory)
         st.success("Your files have been deleted")
