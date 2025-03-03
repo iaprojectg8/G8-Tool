@@ -83,17 +83,16 @@ def manage_buffer(gdf: gpd.GeoDataFrame, default_buffer_distance):
         buffer_distance = default_buffer_distance
     else:
         buffer_distance = st.number_input(label=f"Enter buffer distance in degree for the shape (0.25 is about 25 kilometers):",
-                                        min_value=0.001, 
-                                        step=0.1,
+                                        min_value=0, 
+                                        step=1000,
                                         value=default_buffer_distance,
-                                        format="%0.3f",
                                         key="buffer")
     # Apply the buffer if the distance is greater than 0
     if buffer_distance > 0:
         print(gdf.geometry.centroid)
         gdf = gdf.to_crs(epsg=32737)
         gdf_geometry : gpd.GeoSeries = gdf["geometry"]
-        gdf["geometry"] = gdf_geometry.buffer(distance=25000, resolution=0.05)
+        gdf["geometry"] = gdf_geometry.buffer(distance=default_buffer_distance, resolution=0.05)
         gdf = gdf.to_crs(epsg=4326)
         if st.session_state.mode == "Expert":
             st.success(f"Buffer of {buffer_distance} applied on the shape")
