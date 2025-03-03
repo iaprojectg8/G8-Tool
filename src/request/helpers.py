@@ -82,9 +82,10 @@ def managing_existing_csv_zipped(csv_folder):
             display: flex;
             flex-wrap: wrap;
             gap: 5px;  /* Adjust gap between items */
+           
         }
         .stRadio > div > label {
-            flex: 1 1 calc(33.333% - 20px);  /* Three items per row with some gap */
+            flex: 0 1 calc(33.333% - 20px);  /* Three items per row with some gap */
             box-sizing: border-box;
 
         }

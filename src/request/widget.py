@@ -89,9 +89,14 @@ def manage_buffer(gdf: gpd.GeoDataFrame, default_buffer_distance):
                                         key="buffer")
     # Apply the buffer if the distance is greater than 0
     if buffer_distance > 0:
-        print(gdf.geometry.centroid)
-        gdf = gdf.to_crs(epsg=32737)
+        # This trigger a warning but i don't know how to make this better
+        centroid  = gdf.geometry.centroid
+        utm_epsg = get_utm_epsg(centroid.y[0], centroid.x[0])
+        print(utm_epsg)
+        st.session_state.crs = utm_epsg
+        gdf = gdf.to_crs(epsg=utm_epsg)
         gdf_geometry : gpd.GeoSeries = gdf["geometry"]
+        gdf_geometry.to_csv("test.csv")
         gdf["geometry"] = gdf_geometry.buffer(distance=buffer_distance, resolution=0.05)
         gdf = gdf.to_crs(epsg=4326)
         if st.session_state.mode == "Expert":

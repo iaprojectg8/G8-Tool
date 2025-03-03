@@ -63,7 +63,8 @@ def initialize_session_state_variable():
         if "ssp" not in st.session_state:
             st.session_state.ssp = None
 
-
+        if "crs" not in st.session_state:
+            st.session_state.crs = None
 
 
         # --------------------------------------------------------------------

@@ -367,6 +367,7 @@ def process_nc_file_to_dataframe(nc_file_path):
 
     # Change the name of the time columns to date to correspond to the future processing
     df.rename(columns={"time": "date"}, inplace=True)
+    df = normalize_longitudes(df)
     df.set_index(["date", "lat", "lon"], inplace=True)
     # Sort the data we have to get the right order in terms of date
     df.sort_index(inplace=True)
