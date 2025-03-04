@@ -33,7 +33,7 @@ def map_empty_request(combined_gdf, empty_gdf:gpd.GeoDataFrame):
     """
     projected_gdf = combined_gdf.to_crs(epsg=st.session_state.crs)
     center = [projected_gdf.geometry.centroid.x.mean(),projected_gdf.geometry.centroid.y.mean()]
-    transformer = Transformer.from_crs("EPSG:32737", "EPSG:4326", always_xy=True)
+    transformer = Transformer.from_crs(f"EPSG:{st.session_state.crs}", "EPSG:4326", always_xy=True)
     center = transformer.transform(*center)
     bounds = combined_gdf.total_bounds
     zoom_start = calculate_zoom_level(bounds)

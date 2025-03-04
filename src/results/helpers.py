@@ -8,7 +8,7 @@ from src.results.indicators_plot import *
 from src.results.main_calculation import introduce_season_shift_in_calculation, calculate_scores, preparing_dataframe_for_plot
 from src.results.custom_indicators import heat_index_indicator
 
-from src.parametrization.helpers import indicator_editing
+from src.parametrization.update_indicator import indicator_editing
 # ---------------------------------------
 # --- Function for General management ---
 # ---------------------------------------

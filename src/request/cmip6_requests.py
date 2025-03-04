@@ -26,8 +26,8 @@ def process_shapefile(selected_shape_folder, zip_folder, default_buffer_distance
     """
     gdf_list = []
     st.session_state.gdf_list = []
+    
     # Here is to check if the zip has been done directly on file or on a folder
-    print(selected_shape_folder)
     if len(selected_shape_folder) > 1 and os.path.isfile(os.path.join(zip_folder, selected_shape_folder[0])):
         shapefolder_path = zip_folder
     else:
@@ -63,7 +63,9 @@ def make_empty_request_for_each_gdf(gdf_list):
         pd.DataFrame: The concatenated dataframe
     """
     empty_request_gdf = pd.DataFrame()
+
     for gdf in gdf_list:
+        print(gdf)
         df_unique = make_empty_request(gdf.total_bounds)
         if df_unique is not None:
             empty_request_gdf = pd.concat([empty_request_gdf, df_unique], ignore_index=True)
@@ -402,7 +404,9 @@ def convert_variable_units(df:pd.DataFrame):
     # df["rsds"] = df["rsds"] * 0.0864
     # df["rlds"] = df["rlds"] * 0.0864
     # Round the values to 3 decimal places
-    df[["rsds", "rlds", "sfcWind", "tas", "tasmin", "tasmax"]] = df[["rsds", "rlds", "sfcWind", "tas", "tasmin", "tasmax"]].round(3)
+    columns_to_round = [var for var in ["rsds", "rlds", "sfcWind", "tas", "tasmin", "tasmax"] if var in df.columns]
+    print(columns_to_round)
+    df[columns_to_round] = df[columns_to_round].round(3)
 
     return df
 

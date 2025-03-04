@@ -40,7 +40,7 @@ from reportlab.lib.utils import ImageReader
 # Map part
 from pyproj import CRS, Transformer
 from shapely.geometry import Polygon, mapping, Point
-from shapely.geometry import Point
+from shapely import wkt
 import folium
 from folium.plugins import MeasureControl
 from folium import raster_layers

@@ -5,8 +5,8 @@ from src.lib.layout import page_config_and_menu, set_page_title, set_title_2
 from src.lib.session_variables import initialize_session_state_variable
 
 from src.parametrization.helpers import (process_dataframes_zip, period_management, season_management, apply_change_to_dataframes,
-                                          initialize_indicators_tool_management, delete_all_indicators)
-from src.parametrization.widgets import upload_excel_file, download_indicators
+                                          initialize_indicators_tool_management,)
+from src.parametrization.widgets import upload_excel_file, download_indicators, delete_all_indicators
 from src.parametrization.create_inidicator import indicator_building
 from src.parametrization.update_indicator import indicator_editing
 

@@ -5,7 +5,8 @@ from src.lib.layout import *
 
 from src.results.helpers import *
 
-from src.parametrization.helpers import select_season, select_data_contained_in_season, download_indicators, period_filter
+from src.parametrization.helpers import select_season, select_data_contained_in_season, period_filter
+from src.parametrization.widgets import download_indicators
 
 
 def make_zone_average(dataframes:dict):

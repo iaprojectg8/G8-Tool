@@ -1,17 +1,23 @@
 from src.utils.imports import *
 from src.utils.variables import DATAFRAME_HEIGHT, PERIOD_LENGTH, TRANSPARENT_TOOL_LOGO, G8_LOGO
-from src.lib.layout import *
-from src.lib.session_variables import *
-from src.parametrization.helpers import select_season, select_data_contained_in_season, download_indicators, period_filter
+
+from src.lib.session_variables import initialize_session_state_variable
+from src.lib.layout import page_config_and_menu, set_page_title, set_title_2
+
+from src.parametrization.helpers import select_season, select_data_contained_in_season, period_filter
+from src.parametrization.widgets import download_indicators
+
 from src.results.helpers import select_period_results, split_into_periods_indicators
+
 from src.spatial.rasterization import read_shape_zipped_shape_file
 from src.spatial.spatial_indicator import spatial_calculation, filter_all_the_dataframe
-from src.lib.layout import page_config_and_menu, set_page_title, set_title_1, set_title_2
+
 
 
 def main():
     """Basic Streamlit app with a title."""
     # Set some layout parameters for the page 
+    initialize_session_state_variable(mode="Expert")
     page_name = "Specific Results"
     page_config_and_menu(TRANSPARENT_TOOL_LOGO, G8_LOGO, page_name)
     set_page_title("Specific Results")

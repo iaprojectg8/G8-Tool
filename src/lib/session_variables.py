@@ -96,12 +96,7 @@ def initialize_session_state_variable(mode="Beginner"):
         if "uploaded_df_indicators" not in st.session_state:
             st.session_state.uploaded_df_indicators = None
 
-        if 'df_indicators' not in st.session_state:
-            st.session_state.df_indicators = pd.DataFrame(columns=st.session_state.indicator.keys())
-
-        if "df_checkbox" not in st.session_state:
-            st.session_state.df_checkbox = pd.DataFrame(columns=st.session_state.checkbox_defaults.keys())
-
+        
         if "indicator" not in st.session_state:
             st.session_state.indicator = {
                 "Name": "",
@@ -135,6 +130,14 @@ def initialize_session_state_variable(mode="Beginner"):
                 "threshold_list_checkbox_min" : False,
                 "threshold_list_checkbox_max" : False
             }
+
+        # Those two initialization need to be done after the indicator and checkbox_defaults initialization
+        if 'df_indicators' not in st.session_state:
+            st.session_state.df_indicators = pd.DataFrame(columns=st.session_state.indicator.keys())
+
+        if "df_checkbox" not in st.session_state:
+            st.session_state.df_checkbox = pd.DataFrame(columns=st.session_state.checkbox_defaults.keys())
+
 
         
         # --------------------------------------------------------------------

@@ -1,14 +1,16 @@
 from src.utils.imports import * 
-from src.utils.variables import DATAFRAME_HEIGHT, TRANSPARENT_TOOL_LOGO, G8_LOGO
-from src.lib.layout import *
-from src.lib.session_variables import *
+from src.utils.variables import TRANSPARENT_TOOL_LOGO, G8_LOGO
+
+from src.lib.layout import page_config_and_menu, set_page_title, set_title_1
+from src.lib.session_variables import initialize_session_state_variable
+
 from src.results.result_functions import make_zone_average, general_management, indicator_management
-from src.lib.layout import page_config_and_menu, set_page_title, set_title_1, set_title_2
-from request.widgets import get_project_information
+from src.request.widgets import get_project_information
 
 def main():
     """Basic Streamlit app with a title."""
     # Set some layout parameters for the page 
+    initialize_session_state_variable(mode="Expert")
     page_name = "Expert General Results"
     page_config_and_menu(TRANSPARENT_TOOL_LOGO, G8_LOGO, page_name)
     set_page_title("General Results")
