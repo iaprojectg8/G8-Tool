@@ -33,13 +33,13 @@ def main():
         
             combined_gdf, gdf_list = process_shapefile(selected_shape_folder, ZIP_FOLDER, default_buffer_distance=25000)
             empty_request_gdf = make_empty_request_for_each_gdf(gdf_list)
-
             # Display
             display_coordinates(empty_request_gdf, height=DATAFRAME_HEIGHT)
 
             if not empty_request_gdf.empty:
 
                 # Put on a map the requested coordinates
+                print(combined_gdf)
                 map_empty_request(combined_gdf, empty_request_gdf)
                 make_whole_request(combined_gdf.total_bounds)
         else:
