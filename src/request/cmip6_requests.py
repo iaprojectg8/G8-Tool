@@ -36,16 +36,16 @@ def process_shapefile(selected_shape_folder, zip_folder, default_buffer_distance
     # Open the shape file and get its content
     shapefile_path = get_shapefile_path(shapefolder_path)
     gdf = shapefile_into_gdf(shapefile_path)
+    gdf = gdf.select_dtypes(exclude=["datetime"])
 
     # Put the gdf into a session variable to keep the shape not buffered
     st.session_state.gdf_list.append(copy(gdf))
-
     gdf = manage_buffer(gdf, default_buffer_distance)
+
     gdf_list.append(gdf)
-    
     st.session_state.combined_gdf = pd.concat(st.session_state.gdf_list, ignore_index=True)
     combined_gdf = pd.concat(gdf_list, ignore_index=True)
-
+    
     return combined_gdf, gdf_list
 
 
@@ -65,7 +65,6 @@ def make_empty_request_for_each_gdf(gdf_list):
     empty_request_gdf = pd.DataFrame()
 
     for gdf in gdf_list:
-        print(gdf)
         df_unique = make_empty_request(gdf.total_bounds)
         if df_unique is not None:
             empty_request_gdf = pd.concat([empty_request_gdf, df_unique], ignore_index=True)
