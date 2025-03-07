@@ -68,7 +68,7 @@ def season_management(df_chosen: pd.DataFrame):
         int: The start month of the season
         int: The end month of the season
     """
-    season_start, season_end = None, None
+    season_start, season_end = st.session_state.season_start, st.session_state.season_end
     if st.checkbox("Need a season or a period study", value=st.session_state.season_checkbox):
         season_start, season_end = select_season(months_list=MONTHS_LIST)
         df_season = select_data_contained_in_season(df_chosen, season_start, season_end)
@@ -192,7 +192,7 @@ def fill_df_checkbox(df: pd.DataFrame):
 # ---------------------------------------------------
 # --- Function to update the dataframe dictionary ---
 # ---------------------------------------------------
-def apply_change_to_dataframes():
+def apply_change_to_dataframes(season_start, season_end):
     """
     Applies the changes to the dataframes.
     Args:
@@ -201,4 +201,5 @@ def apply_change_to_dataframes():
     st.session_state.dataframes_modified = copy(st.session_state.dataframes)
     for key, df in st.session_state.dataframes_modified.items():
         df = period_filter(df, st.session_state.long_period)
+        df = select_data_contained_in_season(df, season_start, season_end)
         st.session_state.dataframes_modified[key] = df 

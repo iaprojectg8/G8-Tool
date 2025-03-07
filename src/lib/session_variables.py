@@ -80,10 +80,10 @@ def initialize_session_state_variable(mode="Beginner"):
             st.session_state.season_checkbox = False
 
         if "season_start" not in st.session_state:
-            st.session_state.season_start = 6
+            st.session_state.season_start = 1
 
         if "season_end" not in st.session_state:
-            st.session_state.season_end = 10
+            st.session_state.season_end = 12
 
         # Indicator related
         if "building_indicator_df" not in st.session_state:

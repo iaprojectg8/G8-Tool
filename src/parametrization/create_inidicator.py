@@ -112,7 +112,7 @@ def create_yearly_thresholds(label : str, checkbox_key, list_checkbox_key, thres
 
         # Display the list of thresholds in a table format
         if st.session_state.indicator[label] is not None:
-            display_thresholds(st.session_state.indicator, label)
+            display_thresholds(st.session_state.indicator, label, key="create")
     else:
         st.session_state.indicator[label] = None
 
@@ -286,7 +286,6 @@ def indicator_building(df_chosen:pd.DataFrame, season_start, season_end):
     """
         
     indicator_type = general_information(df_chosen)
-
 
     if indicator_type in ["Outlier Days", "Consecutive Outlier Days"]:
         create_daily_threshold_input()

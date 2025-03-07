@@ -47,7 +47,7 @@ def main():
                 # Season choice 
                 set_title_2("Season Choice")
                 df_season, season_start, season_end = season_management(df_period_filtered)
-                apply_change_to_dataframes()
+                apply_change_to_dataframes(season_start, season_end)
                 
                 # Indicators parametrization
                 set_title_2("Parametrize Indicators")
@@ -65,8 +65,9 @@ def main():
                 
 
                 if not st.session_state.df_indicators.empty:
-
-                    st.dataframe(st.session_state.df_indicators, use_container_width=True)
+                    dataframe_to_display = st.session_state.df_indicators.copy()
+                    dataframe_to_display["Variable"] =str(dataframe_to_display["Variable"])
+                    st.dataframe(dataframe_to_display, use_container_width=True)
                     _, col1,_, col2, _ = st.columns(5)
                     with col1:
                         download_indicators(st.session_state.df_indicators, filename="indicators.csv")
