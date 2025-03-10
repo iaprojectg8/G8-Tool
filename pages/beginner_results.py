@@ -2,7 +2,7 @@ from src.utils.imports import *
 from src.utils.variables import TRANSPARENT_TOOL_LOGO, G8_LOGO, CSV_ZIPPED, CSV_EXTRACT
 from src.lib.session_variables import *
 from src.request.helpers import managing_existing_csv_zipped
-from request.widgets import get_project_information
+from src.request.widgets import get_project_information
 
 from src.parametrization.helpers import process_dataframes_zip
 from src.results.result_functions import make_zone_average, general_management_beginner
