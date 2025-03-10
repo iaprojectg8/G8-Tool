@@ -22,8 +22,7 @@ def process_dataframes_zip(filepath, extract_dir):
     extract_csv_from_zip(filepath, extract_dir)
     st.session_state.dataframes = read_csv_files_from_directory(extract_dir)
     st.session_state.dataframes = put_date_as_index(dataframe_dict=st.session_state.dataframes)
-    if st.session_state.mode == "Expert":
-        st.session_state.building_indicator_df = st.session_state.dataframes[rd.choice(list(st.session_state.dataframes.keys()))]
+    
 
 
 def period_management():
@@ -36,6 +35,8 @@ def period_management():
     st.session_state.long_period = select_period(key = "indicator_part")
 
     # Loading data and applying first filters
+    if st.session_state.mode == "Expert":
+        st.session_state.building_indicator_df = st.session_state.dataframes[rd.choice(list(st.session_state.dataframes.keys()))]
     all_data = st.session_state.building_indicator_df
     data_long_period_filtered = period_filter(all_data, period=st.session_state.long_period)
     st.dataframe(data_long_period_filtered, height=DATAFRAME_HEIGHT, use_container_width=True)
@@ -198,8 +199,12 @@ def apply_change_to_dataframes(season_start, season_end):
     Args:
         dataframes (dict): The dictionary of dataframes.
     """
+    
     st.session_state.dataframes_modified = copy(st.session_state.dataframes)
+    start_time = time.time()
+           
     for key, df in st.session_state.dataframes_modified.items():
         df = period_filter(df, st.session_state.long_period)
         df = select_data_contained_in_season(df, season_start, season_end)
         st.session_state.dataframes_modified[key] = df 
+    print("Time to filter the period: ", time.time()-start_time) 

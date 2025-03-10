@@ -40,12 +40,15 @@ def main():
         # Period
         if len(st.session_state.dataframes)!=0:
             set_title_2("Period")
+            
             df_period_filtered = period_management()
+            
             
             if not df_period_filtered.empty:
                 
                 # Season choice 
                 set_title_2("Season Choice")
+        
                 df_season, season_start, season_end = season_management(df_period_filtered)
                 apply_change_to_dataframes(season_start, season_end)
                 
@@ -66,7 +69,8 @@ def main():
 
                 if not st.session_state.df_indicators.empty:
                     dataframe_to_display = st.session_state.df_indicators.copy()
-                    dataframe_to_display["Variable"] =str(dataframe_to_display["Variable"])
+                    dataframe_to_display["Variable"] = dataframe_to_display["Variable"].astype(str)
+                    # dataframe_to_display["Variable"] =str(dataframe_to_display["Variable"])
                     st.dataframe(dataframe_to_display, use_container_width=True)
                     _, col1,_, col2, _ = st.columns(5)
                     with col1:

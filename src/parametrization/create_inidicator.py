@@ -206,11 +206,16 @@ def create_buttons():
             
             # Add new row
             if "lat" or  "lon" in st.session_state.indicator:
+                print(st.session_state.indicator)
                 print("lat and lon were in the st.session_state.indicator as guessed")
+                print(st.session_state.indicator["Variable"])
                 if st.session_state.indicator["Variable"] is list:
+                    print("in the case Variable is list")
                     st.session_state.indicator["Variable"] = [variable for variable in st.session_state.indicator["Variable"] if variable not in ["lat", "lon"]]
+            print(st.session_state.indicator)
             st.session_state.df_indicators = st.session_state.df_indicators._append(st.session_state.indicator, ignore_index=True)
             st.session_state.df_checkbox = st.session_state.df_checkbox._append(st.session_state.checkbox_defaults, ignore_index=True)
+            print(st.session_state.df_indicators)        
         else:
             st.warning("This indicator already exists in your indicators list")
     st.button(label="Reset Indicator", on_click=reset_indicator)
@@ -284,7 +289,7 @@ def indicator_building(df_chosen:pd.DataFrame, season_start, season_end):
         season_start (int): Starting month of the season.
         season_end (int): Ending month of the season.
     """
-        
+    print(st.session_state.indicator)
     indicator_type = general_information(df_chosen)
 
     if indicator_type in ["Outlier Days", "Consecutive Outlier Days"]:
