@@ -20,7 +20,7 @@ def stream_data(welcome_text):
     """
     for char in welcome_text:
         yield char 
-        time.sleep(0.004)
+        time.sleep(0.007)
 
 def manage_welcome_text(welcome_text, page_name):
     """
@@ -45,19 +45,20 @@ def manage_welcome_text(welcome_text, page_name):
             st.write(welcome_text)
 
 
-def mode_choice():
+def mode_choice(mode_list: list):
     """
     Display a radio button for mode choice and update session state, including a style to center the radio button.
     """
     _, col, _ = st.columns([1, 1, 1])
     with col:
-        mode = st.radio("Choose a mode:", ["Beginner", "Expert"],
+        mode = st.radio("Choose a mode:", mode_list,
                         on_change=set_mode,
                          horizontal=True, 
+                         index=mode_list.index(st.session_state.mode),
                          label_visibility="collapsed",
                          key="_mode",
-                         disabled=True
-                         )
+                         disabled=False
+                        )
 
     # Update session state if mode changes
     if st.session_state.mode != mode:

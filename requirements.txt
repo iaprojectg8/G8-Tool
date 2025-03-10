@@ -23,3 +23,6 @@ streamlit_folium
 tqdm
 xarray
 netcdf4
+kaleido
+openpyxl
+xlsxwriter

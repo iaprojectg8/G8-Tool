@@ -30,7 +30,7 @@ def add_month_name_to_df(df:pd.DataFrame):
     Returns:
         pd.DataFrame: The DataFrame with an additional 'month_name' column.
     """
-    df["month_name"] = df["month"].apply(lambda x:MONTHS_LIST[int(x-1)])
+    df["month_name"] = df["month"].apply(lambda x:MONTHS_LIST[int(x-1)] if pd.notna(x) else None)
     return df
 
 def calculate_mothly_mean_through_year(data:pd.DataFrame, periods):
@@ -66,8 +66,8 @@ def calculate_mothly_mean_through_year(data:pd.DataFrame, periods):
 
 
     # These two lines are exlusively to improve the plot layout
-    monthly_mean["period_index"] = monthly_mean["period"].apply(lambda p: periods.index(p))
-    monthly_mean["customdata"] = monthly_mean["period"].apply(lambda x: "-".join([str(list(x)[0]),str(list(x)[1])]))
+    monthly_mean["period_index"] = monthly_mean["period"].apply(lambda p: periods.index(p) if pd.notna(p) else None)
+    monthly_mean["customdata"] = monthly_mean["period"].apply(lambda x: "-".join([str(list(x)[0]),str(list(x)[1])]) if pd.notna(x) else None)
 
     return monthly_data, monthly_mean
 

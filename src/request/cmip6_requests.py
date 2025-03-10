@@ -1,12 +1,12 @@
 from src.utils.imports import *
 from src.utils.variables import (EMPTY_REQUEST_FOLDER, READABLE_TO_CMIP6, CSV_FILE_DIR, MODEL_NAMES_CMIP6, 
-                                 SSP, HISTORICAL_END, EXPERIMENT, NC_FILE_DIR, CMIP6_TO_READABLE, DATAFRAME_HEIGHT)
+                                 SSP, HISTORICAL_END, EXPERIMENT, NC_FILE_DIR, CMIP6_TO_READABLE)
 
 from src.lib.session_variables import *
 
 from src.request.helpers import (reset_directory, reset_directory_if_needed, shapefile_into_gdf, get_shapefile_path,
                                 normalize_longitudes, df_to_csv,create_zip)
-from src.request.widget import (manage_buffer, ask_reset_directory, widget_init, widget_init_beginner,
+from src.request.widgets import (manage_buffer, ask_reset_directory, widget_init, widget_init_beginner,
                                 initialize_progress_bar, update_progress_bar)
 
 # -----------------------------
@@ -26,21 +26,26 @@ def process_shapefile(selected_shape_folder, zip_folder, default_buffer_distance
     """
     gdf_list = []
     st.session_state.gdf_list = []
-    for folder in selected_shape_folder:
+    
+    # Here is to check if the zip has been done directly on file or on a folder
+    if len(selected_shape_folder) > 1 and os.path.isfile(os.path.join(zip_folder, selected_shape_folder[0])):
+        shapefolder_path = zip_folder
+    else:
+        shapefolder_path = os.path.join(zip_folder,selected_shape_folder[0])
 
-        # Open the shape file and get its content
-        shapefile_path = get_shapefile_path(zip_folder, folder)
-        gdf = shapefile_into_gdf(shapefile_path)
+    # Open the shape file and get its content
+    shapefile_path = get_shapefile_path(shapefolder_path)
+    gdf = shapefile_into_gdf(shapefile_path)
+    gdf = gdf.select_dtypes(exclude=["datetime"])
 
-        # Put the gdf into a session variable to keep the shape not buffered
-        st.session_state.gdf_list.append(copy(gdf))
+    # Put the gdf into a session variable to keep the shape not buffered
+    st.session_state.gdf_list.append(copy(gdf))
+    gdf = manage_buffer(gdf, default_buffer_distance)
 
-        gdf = manage_buffer(folder,gdf, default_buffer_distance)
-        gdf_list.append(gdf)
-    print(st.session_state.gdf_list)
+    gdf_list.append(gdf)
     st.session_state.combined_gdf = pd.concat(st.session_state.gdf_list, ignore_index=True)
     combined_gdf = pd.concat(gdf_list, ignore_index=True)
-
+    
     return combined_gdf, gdf_list
 
 
@@ -58,6 +63,7 @@ def make_empty_request_for_each_gdf(gdf_list):
         pd.DataFrame: The concatenated dataframe
     """
     empty_request_gdf = pd.DataFrame()
+
     for gdf in gdf_list:
         df_unique = make_empty_request(gdf.total_bounds)
         if df_unique is not None:
@@ -199,10 +205,11 @@ def request_loop(selected_variables, selected_model, ssp_list, experiment, years
     Args:
         selected_variables (list): The variables chosen by the user
         selected_model (str): The model chosen by the user
-        ssp (list): The ssp chosen by the user
+        ssp_list (list): The ssp chosen by the user
         experiment (str): The experiment chosen by the user
-        years (list): The years to extract
+        years_list (list): The years to extract
         bounds (tuple): The bounds of the area to extract
+        nc_folder (str): The folder to save the NetCDF files
     """
     total_requests = len(selected_variables) * len(sum(years_list, []))
     progress_params = initialize_progress_bar(total_requests,text="Request Progress: 0%")
@@ -211,6 +218,7 @@ def request_loop(selected_variables, selected_model, ssp_list, experiment, years
         for ssp, years in zip(ssp_list, years_list):
             for year in years:
                 make_year_request(variable, selected_model, ssp, experiment, bounds, year, nc_folder)
+                print(f"Request for {variable} {ssp} {year} has been made")
                 progress_params = update_progress_bar(*progress_params, text="Request Progress:")
     st.success("All the requests have been made")
 
@@ -243,13 +251,46 @@ def make_year_request(variable, model, ssp, experiment, bounds, year, nc_folder)
                       f"horizStride=1&time_start={year}-01-01T12:00:00Z&time_end={year}-12-31T11:00:00Z&&&accept=netcdf3&addLatLon=true")
     
     url = f"{base_url}{coordinates_part}"
-    response = requests.get(url)
+    response = make_request_until_success(url)
     try:
         
         with open(f"{nc_folder}/{year}_{variable}_{ssp}.nc", "wb") as f:
             f.write(response.content)
     except Exception as e:
         print(e)
+
+    
+def make_request_until_success(url, delay=300):
+    """
+    Make a GET request until a successful response is received.
+
+    Parameters:
+    - url: The URL to request.
+    - delay: Delay between retries in seconds.
+
+    Returns:
+    - Response object if successful.
+    - None if an exception occurs.
+    """
+   
+    while True:
+        try:
+            response = requests.get(url, timeout=40)
+
+            if response.status_code == 200:
+                return response
+            elif response.status_code in [500, 502, 503, 504]:  # Server errors
+                print("Server error. Retrying...")
+            elif response.status_code in [400, 401, 403, 404]:  # Client errors
+                print(f"Client error ({response.status_code}). Check the URL or credentials.")
+                break  # No point in retrying
+            else:
+                print(f"Unexpected status code {response.status_code}. Retrying...")
+
+        except requests.exceptions.RequestException as e:
+            print(f"Request failed due to exception: {e}. Retrying...")
+
+        time.sleep(delay)
 
 
 # ------------------------------------------------
@@ -328,12 +369,13 @@ def process_nc_file_to_dataframe(nc_file_path):
 
     # Change the name of the time columns to date to correspond to the future processing
     df.rename(columns={"time": "date"}, inplace=True)
+    df = normalize_longitudes(df)
     df.set_index(["date", "lat", "lon"], inplace=True)
     # Sort the data we have to get the right order in terms of date
     df.sort_index(inplace=True)
     return df
 
-def convert_variable_units(df):
+def convert_variable_units(df:pd.DataFrame):
     """
     Convert certain variables to the correct units.
     - Temperature is converted from Kelvin to Celsius.
@@ -360,6 +402,10 @@ def convert_variable_units(df):
     # Convert the radiation from W m^-2 to MJ m^-2 day^-1
     # df["rsds"] = df["rsds"] * 0.0864
     # df["rlds"] = df["rlds"] * 0.0864
+    # Round the values to 3 decimal places
+    columns_to_round = [var for var in ["rsds", "rlds", "sfcWind", "tas", "tasmin", "tasmax"] if var in df.columns]
+    print(columns_to_round)
+    df[columns_to_round] = df[columns_to_round].round(3)
 
     return df
 
@@ -409,7 +455,7 @@ def create_zip_and_save(csv_dir, zipped_csv_dir, ssp:str, year_list):
     min_year = year_list[0]
     max_year = year_list[-1]
     print(year_list)
-    zip_filename = f"{st.session_state.shortname} {min_year}-{max_year} ({ssp.capitalize()}).zip"
+    zip_filename = f"{st.session_state.shortname} {min_year}-{max_year} ({ssp.upper()}).zip"
     zip_file_path = os.path.join(zipped_csv_dir, zip_filename)
 
     create_zip(zip_file_path, csv_dir)

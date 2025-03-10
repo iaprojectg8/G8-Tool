@@ -1,14 +1,18 @@
 from src.utils.imports import *
-from src.lib.layout import *
-from src.parametrization.create_inidicator import *
-from src.parametrization.update_indicator import *
-from src.parametrization.widgets_parametrization import *
+from src.utils.variables import DATAFRAME_HEIGHT, MONTHS_LIST
+from src.parametrization.widgets import select_period, select_season, select_data_contained_in_season
 
 # ---------------------------------------------------
 # --- Functions for the indicator parametrization ---
 # ---------------------------------------------------
 
-def process_dataframes_zip_beginner(filepath, extract_dir):
+def process_dataframes_zip(filepath, extract_dir):
+    """
+    Processes the uploaded zip file containing CSV files.
+    Args:
+        filepath (str): The path to the uploaded zip file.
+        extract_dir (str): The directory to extract the files to.
+    """
     if os.path.exists(extract_dir):
         shutil.rmtree(extract_dir)
     
@@ -18,29 +22,9 @@ def process_dataframes_zip_beginner(filepath, extract_dir):
     extract_csv_from_zip(filepath, extract_dir)
     st.session_state.dataframes = read_csv_files_from_directory(extract_dir)
     st.session_state.dataframes = put_date_as_index(dataframe_dict=st.session_state.dataframes)
+    if st.session_state.mode == "Expert":
+        st.session_state.building_indicator_df = st.session_state.dataframes[rd.choice(list(st.session_state.dataframes.keys()))]
 
-def process_dataframes_zip(uploaded_file, extract_to):
-    """
-    Processes the uploaded zip file containing CSV files.
-    Args:
-        uploaded_file (BytesIO): The uploaded zip file.
-        extract_to (str): The directory to extract the files to.
-    """
-            
-    if os.path.exists(extract_to):
-        shutil.rmtree(extract_to)
-    
-    # Create the directory
-    os.makedirs(extract_to, exist_ok=True)
-    
-    extract_csv_from_zip(uploaded_file, extract_to)
-    st.session_state.already_uploaded_file = uploaded_file
-
-    # This is a dataframe dictionary
-    st.session_state.dataframes = read_csv_files_from_directory(extract_to)
-    st.session_state.dataframes = put_date_as_index(dataframe_dict=st.session_state.dataframes)
-    st.session_state.building_indicator_df = st.session_state.dataframes[rd.choice(list(st.session_state.dataframes.keys()))]
-    
 
 def period_management():
     """
@@ -59,7 +43,7 @@ def period_management():
     return data_long_period_filtered
 
 
-def period_filter(data, period):
+def period_filter(data:pd.DataFrame, period):
     """
     Filters the input data to include only rows within the specified period.
 
@@ -70,7 +54,6 @@ def period_filter(data, period):
     Returns:
         DataFrame: A filtered DataFrame containing only rows within the specified period.
     """
-    # Select rows where the year in the index is between the start and end years of the period
     data_in_right_period = data[(data.index.year >= period[0]) & (data.index.year <= period[-1])]
     
     return data_in_right_period
@@ -85,7 +68,7 @@ def season_management(df_chosen: pd.DataFrame):
         int: The start month of the season
         int: The end month of the season
     """
-    season_start, season_end = None, None
+    season_start, season_end = st.session_state.season_start, st.session_state.season_end
     if st.checkbox("Need a season or a period study", value=st.session_state.season_checkbox):
         season_start, season_end = select_season(months_list=MONTHS_LIST)
         df_season = select_data_contained_in_season(df_chosen, season_start, season_end)
@@ -209,7 +192,7 @@ def fill_df_checkbox(df: pd.DataFrame):
 # ---------------------------------------------------
 # --- Function to update the dataframe dictionary ---
 # ---------------------------------------------------
-def apply_change_to_dataframes():
+def apply_change_to_dataframes(season_start, season_end):
     """
     Applies the changes to the dataframes.
     Args:
@@ -218,4 +201,5 @@ def apply_change_to_dataframes():
     st.session_state.dataframes_modified = copy(st.session_state.dataframes)
     for key, df in st.session_state.dataframes_modified.items():
         df = period_filter(df, st.session_state.long_period)
+        df = select_data_contained_in_season(df, season_start, season_end)
         st.session_state.dataframes_modified[key] = df 

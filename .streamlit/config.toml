@@ -1,7 +1,11 @@
 [server]
 maxUploadSize = 10000 
 maxMessageSize = 1500
-port=8502
+port=8501
+runOnSave = false
+
+[global]
+developmentMode = false
 
 [theme]
 primaryColor="#d33682"

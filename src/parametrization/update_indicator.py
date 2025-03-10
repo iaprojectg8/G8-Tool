@@ -1,6 +1,6 @@
 from src.utils.imports import *
-from src.lib.session_variables import * 
-from src.utils.variables import *
+from src.lib.session_variables import update_indicator, delete_indicator
+from src.utils.variables import INDICATOR_TYPES, NUM_THRESHOLDS, AGG_FUNC, INDICATOR_AGG, BUILTIN_INDICATORS
 from src.lib.widget import display_thresholds
 
 # ----------------------------
@@ -176,7 +176,7 @@ def update_yearly_thresholds(updated_indicator,label, updated_checkbox, checkbox
                                                                     else updated_indicator[label] - step * k
                                                                     for k in range(NUM_THRESHOLDS)]
         if updated_indicator is not None:
-            display_thresholds(updated_indicator, label)
+            display_thresholds(updated_indicator, label, key="update")
 
     else:
         updated_indicator[label] = None

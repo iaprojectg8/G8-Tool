@@ -8,7 +8,7 @@ from src.results.indicators_plot import *
 from src.results.main_calculation import introduce_season_shift_in_calculation, calculate_scores, preparing_dataframe_for_plot
 from src.results.custom_indicators import heat_index_indicator
 
-from src.parametrization.helpers import indicator_editing
+from src.parametrization.update_indicator import indicator_editing
 # ---------------------------------------
 # --- Function for General management ---
 # ---------------------------------------
@@ -17,6 +17,8 @@ def variable_choice(df:pd.DataFrame):
     """
     Provides a user interface for selecting climate variables using checkboxes.
 
+    Args:
+        df (pd.DataFrame): The input DataFrame containing the climate variables
     Returns:
         variables_choice (list): A list of selected variables chosen by the user.
     """
@@ -144,7 +146,6 @@ def general_plot(data: pd.DataFrame, periods, ssp):
     Args:
         data (pd.DataFrame): The input data frame containing the data to plot.
         periods (list): List of tuples representing the periods to analyze (start year, end year).
-        chosen_variable (list): List of available variable options for the user to choose from.
         ssp (str): The Shared Socioeconomic Pathway (SSP) scenario got in the filename
 
     Returns:
@@ -169,7 +170,7 @@ def general_plot(data: pd.DataFrame, periods, ssp):
         if "_".join(variable_choice.lower().split(" ")) in column:
             
             # Generate the monthly and yearly plots for the selected column
-            fig1 = plot_monthly_mean(column, monthly_mean, monthly_data, ssp )
+            fig1 = plot_monthly_mean(column, monthly_mean, monthly_data, ssp)
             fig2 = plot_yearly_curve_and_period_trends(yearly_mean,monthly_mean, column, periods, ssp)
             fig3 = plot_monthly_period_variation(monthly_mean,monthly_data, column, ssp)
 

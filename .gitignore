@@ -13,4 +13,6 @@ csv_files/
 csv zipped/
 csv_extract
 zip_shapefile/
+test.*
+empty_request
 Klim.code-workspace

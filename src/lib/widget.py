@@ -61,7 +61,7 @@ def fill_df_checkbox(df: pd.DataFrame):
     return df_checkbox
 
 
-def display_thresholds(updated_indicator, label):
+def display_thresholds(updated_indicator, label, key):
     """
     Displays the thresholds with the corresponding colors.
 
@@ -115,7 +115,7 @@ def display_thresholds(updated_indicator, label):
         showlegend=False
     )
 
-    st.plotly_chart(fig)
+    st.plotly_chart(fig, key=f"{updated_indicator["Name"]} + {key}")
     
 
 def download_indicators(df: pd.DataFrame, filename="indicators.xlsx"):

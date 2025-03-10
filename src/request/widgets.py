@@ -1,7 +1,7 @@
 from src.utils.imports import *
 from src.utils.variables import DATAFRAME_HEIGHT
 
-from src.request.helpers import extract_files, reset_directory, create_temporary_zip, get_years_from_ssp
+from src.request.helpers import extract_files, reset_directory, create_temporary_zip, get_years_from_ssp, get_utm_epsg
 
 from src.lib.layout import set_title_3
 
@@ -69,12 +69,12 @@ def shapefile_uploader(zip_folder):
 # --- Request Widgets ---
 # -----------------------
 
-def manage_buffer(folder, gdf, default_buffer_distance):
+def manage_buffer(gdf: gpd.GeoDataFrame, default_buffer_distance):
     """
     Manage the buffer distance for the shapefile, and apply it if distance is greater than 0.
     Args:
-        folder (str): The folder name of the shapefile
         gdf (gpd.GeoDataFrame): The GeoDataFrame of the shapefile   
+        default_buffer_distance (float): The default buffer distance
     Returns:
         gpd.GeoDataFrame: The GeoDataFrame with the buffer applied.
     """
@@ -82,17 +82,24 @@ def manage_buffer(folder, gdf, default_buffer_distance):
     if st.session_state.mode == "Beginner":
         buffer_distance = default_buffer_distance
     else:
-        buffer_distance = st.number_input(label=f"Enter buffer distance for {folder} in degree (0.25 is about 25 kilometers):",
-                                        min_value=0.001, 
-                                        step=0.1,
+        buffer_distance = st.number_input(label=f"Enter buffer distance in degree for the shape (0.25 is about 25 kilometers):",
+                                        min_value=0, 
+                                        step=1000,
                                         value=default_buffer_distance,
-                                        format="%0.3f",
-                                        key=folder)
+                                        key="buffer")
     # Apply the buffer if the distance is greater than 0
     if buffer_distance > 0:
-        gdf["geometry"] = gdf["geometry"].buffer(buffer_distance, resolution=0.05)
+        # This trigger a warning but i don't know how to make this better
+        centroid  = gdf.geometry.centroid
+        utm_epsg = get_utm_epsg(centroid.y[0], centroid.x[0])
+        print(utm_epsg)
+        st.session_state.crs = utm_epsg
+        gdf = gdf.to_crs(epsg=utm_epsg)
+        gdf_geometry : gpd.GeoSeries = gdf["geometry"]
+        gdf["geometry"] = gdf_geometry.buffer(distance=buffer_distance, resolution=0.05)
+        gdf = gdf.to_crs(epsg=4326)
         if st.session_state.mode == "Expert":
-            st.success(f"Buffer of {buffer_distance} applied to {folder}")
+            st.success(f"Buffer of {buffer_distance} applied on the shape")
     return gdf
 
 
@@ -100,14 +107,15 @@ def manage_buffer(folder, gdf, default_buffer_distance):
 # --- Widget Initialization Request ---
 # -------------------------------------
 
-def widget_init_beginner(cmip6_variable: dict, historical_end, ssp_list):
+def widget_init_beginner(cmip6_variables: dict, historical_end, ssp_list):
     """
     This function will initialize the widgets for the cmip6 request
     Returns:
         tuple: The selected variables, the selected model, the ssp, the experiment and the years
     """
     # Variable
-    selected_variables = list(cmip6_variable.values())
+    selected_variables = select_variables_to_request(cmip6_variables)
+    real_selected_variables = list(map(lambda key : cmip6_variables.get(key),selected_variables))
     
     # Period
     (long_period_start, long_period_end) = select_period_cmip6(key="cmip6")
@@ -121,7 +129,7 @@ def widget_init_beginner(cmip6_variable: dict, historical_end, ssp_list):
     # Process to get proper years
     years = get_years_from_ssp(ssp, historical_end, long_period_start, long_period_end)
     
-    return selected_variables, selected_model, ssp, experiment, years
+    return real_selected_variables, selected_model, ssp, experiment, years
 
 
 def widget_init(cmip6_variables: dict, model_name, ssp_list, historical_end, experiment):
@@ -132,21 +140,10 @@ def widget_init(cmip6_variables: dict, model_name, ssp_list, historical_end, exp
         tuple: The selected variables, the selected model, the ssp, the experiment and the years
     """
     # Variable
-    if st.session_state.mode == "Beginner":
-        selected_variables = list(cmip6_variables.values())
-        print(selected_variables)
-    else : 
-        if st.checkbox(label="Take all variables"):
-            selected_variables = st.pills("Chose variable to extract", 
-                                                cmip6_variables.keys(), 
-                                                default=cmip6_variables.keys(),
-                                                selection_mode="multi")
-        else:
-            selected_variables = st.pills("Chose variable to extract", 
-                                                cmip6_variables.keys(),
-                                                selection_mode="multi")
-        
+    selected_variables = select_variables_to_request(cmip6_variables)
     real_selected_variables = list(map(lambda key : cmip6_variables.get(key),selected_variables))
+
+    
 
     # Period
     (long_period_start, long_period_end) = select_period_cmip6(key="cmip6")
@@ -168,6 +165,23 @@ def widget_init(cmip6_variables: dict, model_name, ssp_list, historical_end, exp
     years = get_years_from_ssp(ssp, historical_end, long_period_start, long_period_end)
     
     return real_selected_variables, selected_model, ssp, experiment, years
+
+
+def select_variables_to_request(cmip6_variables):
+    """
+    This function will allow the user to select the variables to extract
+    Args:
+        cmip6_variables (dict): The dict of variables
+    Returns:    
+        list: The selected variables
+    """
+    all_variable_checkbox = st.checkbox(label="Take all variables")
+    selected_variables = st.pills("Chose variable to extract", 
+                                        cmip6_variables.keys(), 
+                                        default=cmip6_variables.keys() if all_variable_checkbox else None,
+                                        selection_mode="multi")
+    
+    return selected_variables
 
 
 def select_period_cmip6(key):
@@ -210,6 +224,8 @@ def select_ssp(long_period_start, long_period_end, historical_end, ssp_list):
 
 
 def ask_reset_directory(folder):
+    if not os.path.exists(folder):
+        os.makedirs(folder)
     existing_files = os.listdir(folder)
     if existing_files != []:
         set_title_3("Before to make your request, you should know that your request folder is not empty, and here are the files in it")
@@ -315,8 +331,3 @@ def display_coordinates(empty_request_gdf, height):
     with st.expander(label="Your coordinates"):
         displayed_gdf = empty_request_gdf[["lat", "lon"]]
         st.dataframe(data=displayed_gdf, height=height, use_container_width=True)
-
-
-
-# Si pas de ssp juste shortname
-# si ssp on met le shortname - 1950-2012 (ssp)

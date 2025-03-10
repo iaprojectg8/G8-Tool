@@ -5,7 +5,8 @@ from src.lib.layout import *
 
 from src.results.helpers import *
 
-from src.parametrization.helpers import select_season, select_data_contained_in_season, download_indicators, period_filter
+from src.parametrization.helpers import select_season, select_data_contained_in_season, period_filter
+from src.parametrization.widgets import download_indicators
 
 
 def make_zone_average(dataframes:dict):
@@ -46,11 +47,12 @@ def general_management_beginner(df, ssp):
     periods = split_into_periods(smaller_period_length, long_period_start, long_period_end)
     general_plot(data_to_keep, periods, ssp)
 
-def general_management(df):
+def general_management(df, ssp):
     """
     Function to manage the general results got with the data selected in the Indicator Parametrizer
     Args:
         df (pd.dataframe) : Dataframe that contains the averaged data
+        ssp (str) : The Shared Socioeconomic Pathway selected by the user
     """
     set_title_1("Climate Variables")
     key = "general_part"
@@ -76,7 +78,8 @@ def general_management(df):
 
         
         # Plot part with monthly means and regression through all time
-        general_plot(data_to_keep, periods)
+
+        general_plot(data_to_keep, periods, ssp)
 
 
 def indicator_management(df):
